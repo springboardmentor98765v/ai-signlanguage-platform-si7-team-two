@@ -1,0 +1,4 @@
+{
+  "python-envs.defaultEnvManager": "ms-python.python:venv",
+  "python.defaultInterpreterPath": "${workspaceFolder}/AIML_CV/venv/Scripts/python.exe"
+}
