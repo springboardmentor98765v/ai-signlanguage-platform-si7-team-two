@@ -119,7 +119,7 @@ ipython_config.py
 
 # pixi
 #   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
-# pixi.lock
+#   pixi.lock
 #   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
 #   in the .venv directory. It is recommended not to include this directory in version control.
 .pixi
@@ -156,6 +156,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.env.local
+*.env
 
 # Spyder project settings
 .spyderproject
@@ -216,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# DB
+*.sqlite3
+pgdata/
+
+# Local documents and scripts
+local_docs/
