@@ -1,0 +1,41 @@
+# ============================================================
+# Day 2 deliverable (SRS §6, Intern 5, Day 2):
+#   "Set up PostgreSQL instance for the team... create the
+#   database and initial schemas based on the ER diagram."
+#
+# Scope note: this file stands up ONLY the database. The full
+# stack (backend + ai-service + db together) is explicitly a
+# Day 5 task (§6) and will live in infra/docker-compose.yml —
+# do not merge that work into this file prematurely.
+#
+# Usage (run from the repo root):
+#   docker compose --env-file .env -f Database_Devops/infra/docker-compose.db.yml up -d
+# ============================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: signlang_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-signlang_platform}
+      POSTGRES_USER: ${DB_USER:-signlang_app}
+      # Security Fix: Removed fallback password. A secure password MUST be provided in .env
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - signlang_pgdata:/var/lib/postgresql/data
+      # Anything in this folder runs ONCE, automatically, only on first-ever
+      # container start (empty data volume). This applies the Day 1
+      # reviewed schema + draft seed as soon as the DB is created.
+      - ../db/schema:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-signlang_app} -d ${DB_NAME:-signlang_platform}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  signlang_pgdata:
+    name: signlang_pgdata
