@@ -62,11 +62,12 @@ CREATE TABLE practice_sessions (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     lesson_id       UUID NOT NULL REFERENCES lessons(id) ON DELETE RESTRICT,
+    expected_sign   VARCHAR(2) NOT NULL,
     status          VARCHAR(20) NOT NULL DEFAULT 'in_progress'
                         CHECK (status IN ('in_progress', 'completed', 'abandoned')),
     attempt_count   INT NOT NULL DEFAULT 0,
-    started_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    ended_at        TIMESTAMPTZ
+    start_time      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    end_time        TIMESTAMPTZ
 );
 
 CREATE INDEX idx_sessions_user_id ON practice_sessions(user_id);
@@ -74,14 +75,19 @@ CREATE INDEX idx_sessions_lesson_id ON practice_sessions(lesson_id);
 
 -- ---------- assessments ----------
 CREATE TABLE assessments (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    session_id      UUID NOT NULL REFERENCES practice_sessions(id) ON DELETE CASCADE,
-    predicted_sign  VARCHAR(2) NOT NULL,
-    confidence      NUMERIC(5,4) NOT NULL CHECK (confidence BETWEEN 0 AND 1),
-    expected_sign   VARCHAR(2) NOT NULL,
-    accuracy_score  NUMERIC(5,2) NOT NULL CHECK (accuracy_score BETWEEN 0 AND 100),
-    raw_landmarks   JSONB,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id              UUID NOT NULL REFERENCES practice_sessions(id) ON DELETE CASCADE,
+    predicted_sign          VARCHAR(2) NOT NULL,
+    confidence              NUMERIC(5,4) NOT NULL CHECK (confidence BETWEEN 0 AND 1),
+    hand_shape_score        NUMERIC(5,2) NOT NULL CHECK (hand_shape_score BETWEEN 0 AND 100),
+    finger_position_score   NUMERIC(5,2) NOT NULL CHECK (finger_position_score BETWEEN 0 AND 100),
+    timing_score            NUMERIC(5,2) NOT NULL CHECK (timing_score BETWEEN 0 AND 100),
+    motion_score            NUMERIC(5,2) NOT NULL CHECK (motion_score BETWEEN 0 AND 100),
+    position_score          NUMERIC(5,2) NOT NULL CHECK (position_score BETWEEN 0 AND 100),
+    overall_score           NUMERIC(5,2) NOT NULL CHECK (overall_score BETWEEN 0 AND 100),
+    is_correct              BOOLEAN NOT NULL,
+    raw_landmarks           JSONB,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_assessments_session_id ON assessments(session_id);
@@ -91,20 +97,20 @@ CREATE TABLE feedback (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     assessment_id   UUID NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
     category        VARCHAR(30) NOT NULL
-                        CHECK (category IN ('hand_shape', 'timing', 'position', 'motion')),
+                        CHECK (category IN ('hand_shape', 'finger_position', 'timing', 'position', 'motion')),
+    severity        VARCHAR(20) CHECK (severity IN ('minor', 'moderate', 'major')),
     message         TEXT NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_feedback_assessment_id ON feedback(assessment_id);
 
--- ---------- learner_analytics ----------
-CREATE TABLE learner_analytics (
-    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id             UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    average_accuracy    NUMERIC(5,2) NOT NULL DEFAULT 0,
+-- ---------- analytics_summary ----------
+CREATE TABLE analytics_summary (
+    user_id                     UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    average_accuracy            NUMERIC(5,2) NOT NULL DEFAULT 0,
     lessons_completed           INT NOT NULL DEFAULT 0,
-    total_practice_time_seconds INT NOT NULL DEFAULT 0,
+    total_practice_time         INT NOT NULL DEFAULT 0,
     weak_letters                JSONB NOT NULL DEFAULT '[]',
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+    last_updated                TIMESTAMPTZ NOT NULL DEFAULT now()
 );
