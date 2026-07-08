@@ -10,8 +10,8 @@ This directory contains all database infrastructure, schema definitions, seed da
 Database_Devops/
 ├── db/                         # Database schema & migration files
 │   ├── schema/
-│   │   ├── schema.sql          # PostgreSQL table definitions
-│   │   └── seed.sql            # Idempotent seed data
+│   │   ├── 01-schema.sql       # PostgreSQL table definitions
+│   │   └── 02-seed.sql         # Idempotent seed data
 │   ├── erd/
 │   │   └── erd.mmd             # Mermaid entity-relationship diagram
 │   ├── DATA_MODEL.md           # Detailed data model documentation
@@ -31,27 +31,21 @@ Database_Devops/
 
 ## 🚀 Quick Start
 
-### 1. Set up PostgreSQL locally
+### 1. Set up Environment Variables
+
+Copy `.env.example` to `.env` at the root of the project and set a secure password for the database:
 
 ```bash
-# Using Docker (recommended)
-docker run --name signlang-db \
-  -e POSTGRES_USER=signlang \
-  -e POSTGRES_PASSWORD=signlang \
-  -e POSTGRES_DB=signlang_db \
-  -p 5432:5432 -d postgres:15
+cp .env.example .env
+# Edit .env and update DB_PASSWORD to a secure value
 ```
 
-### 2. Apply the schema
+### 2. Stand up PostgreSQL locally (Day 2 Docker setup)
+
+Use the provided docker-compose configuration. This will automatically run `01-schema.sql` and `02-seed.sql` on first startup:
 
 ```bash
-psql -h localhost -U signlang -d signlang_db -f db/schema/schema.sql
-```
-
-### 3. Seed initial data
-
-```bash
-psql -h localhost -U signlang -d signlang_db -f db/schema/seed.sql
+docker compose --env-file .env -f Database_Devops/infra/docker-compose.db.yml up -d
 ```
 
 ---
