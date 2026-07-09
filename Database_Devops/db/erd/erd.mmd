@@ -16,7 +16,7 @@ erDiagram
         uuid id PK
         uuid role_id FK
         varchar full_name
-        varchar email "UNIQUE"
+        varchar email UK
         varchar password_hash
         timestamptz created_at
         timestamptz updated_at
@@ -71,7 +71,7 @@ erDiagram
 
     LEARNER_ANALYTICS {
         uuid id PK
-        uuid user_id FK "UNIQUE per user"
+        uuid user_id FK UK
         numeric average_accuracy
         int lessons_completed
         jsonb weak_letters
