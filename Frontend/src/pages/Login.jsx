@@ -1,3 +1,4 @@
+import { login } from "../services/api";
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 
@@ -6,11 +7,22 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  function handleSubmit(e) {
-    e.preventDefault()
-    // TODO (Day 6): replace with real call to Intern 2's /auth/login API
-    navigate('/dashboard')
+  async function handleSubmit(e) {
+  e.preventDefault();
+
+  try {
+    const data = await login(email, password);
+
+    console.log(data);
+
+    alert(data.message);
+
+    navigate("/dashboard");
+  } catch (err) {
+    console.error(err);
+    alert("Login failed");
   }
+}
 
   return (
     <div className="auth-shell">

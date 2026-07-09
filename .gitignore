@@ -225,3 +225,6 @@ pgdata/
 
 # Local documents and scripts
 local_docs/
+
+# Node.js
+node_modules/
