@@ -1,5 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from datetime import datetime
+from database import SessionLocal
+from models.practice_model import PracticeSession
 from schemas.practice_schema import (
     StartSessionRequest, StartSessionResponse,
     EndSessionRequest, EndSessionResponse
@@ -7,43 +10,58 @@ from schemas.practice_schema import (
 
 router = APIRouter(prefix="/practice", tags=["Practice Service"])
 
-sessions_db = {}
-session_counter = 1
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @router.post("/start", response_model=StartSessionResponse)
-def start_session(request: StartSessionRequest):
-    global session_counter
-    session_id = session_counter
-    session_counter += 1
-
-    sessions_db[session_id] = {
-        "user_id": request.user_id,
-        "lesson_id": request.lesson_id,
-        "expected_sign": request.expected_sign,
-        "start_time": datetime.now(),
-        "end_time": None,
-        "status": "in_progress",
-        "attempt_count": 0
-    }
+def start_session(request: StartSessionRequest, db: Session = Depends(get_db)):
+    new_session = PracticeSession(
+        user_id=request.user_id,
+        lesson_id=request.lesson_id,
+        expected_sign=request.expected_sign,
+        status="in_progress",
+        attempt_count=0
+    )
+    db.add(new_session)
+    db.commit()
+    db.refresh(new_session)
 
     return StartSessionResponse(
-        session_id=session_id,
-        status="in_progress",
-        start_time=sessions_db[session_id]["start_time"]
+        session_id=new_session.id,
+        status=new_session.status,
+        start_time=new_session.start_time
     )
 
-@router.post("/end", response_model=EndSessionResponse)
-def end_session(request: EndSessionRequest):
-    session = sessions_db.get(request.session_id)
+@router.post("/attempt/{session_id}")
+def log_attempt(session_id: str, db: Session = Depends(get_db)):
+    session = db.query(PracticeSession).filter(PracticeSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    session["end_time"] = datetime.now()
-    session["status"] = "completed"
+    session.attempt_count += 1
+    db.commit()
+    db.refresh(session)
+
+    return {"session_id": session.id, "attempt_count": session.attempt_count}
+
+@router.post("/end", response_model=EndSessionResponse)
+def end_session(request: EndSessionRequest, db: Session = Depends(get_db)):
+    session = db.query(PracticeSession).filter(PracticeSession.id == request.session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    session.end_time = datetime.utcnow()
+    session.status = "completed"
+    db.commit()
+    db.refresh(session)
 
     return EndSessionResponse(
-        session_id=request.session_id,
-        status="completed",
-        end_time=session["end_time"],
-        attempt_count=session["attempt_count"]
+        session_id=session.id,
+        status=session.status,
+        end_time=session.end_time,
+        attempt_count=session.attempt_count
     )
