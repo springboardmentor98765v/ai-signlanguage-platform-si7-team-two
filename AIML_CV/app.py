@@ -1,9 +1,10 @@
 import cv2
 import mediapipe as mp
-
 from src.feature_extractor import extract_features
 from src.data_collector import save_sample
+from inference.predictor import predict_sign
 
+from collections import deque, Counter
 mp_hands = mp.solutions.hands
 mp_draw = mp.solutions.drawing_utils
 
@@ -25,7 +26,7 @@ cap = cv2.VideoCapture(0)
 
 # Initialize features
 features = None
-
+prediction_history = deque(maxlen=5)
 while True:
 
     success, frame = cap.read()
@@ -49,6 +50,34 @@ while True:
             )
 
             features = extract_features(hand_landmarks)
+            prediction, confidence = predict_sign(features)
+
+            if confidence >= 0.80:
+                prediction_history.append(prediction)
+
+            if prediction_history:
+                smoothed_prediction = Counter(prediction_history).most_common(1)[0][0]
+            else:
+                smoothed_prediction = "Unknown"
+            cv2.putText(
+                frame,
+                f"Prediction : {smoothed_prediction}",
+                (20,40),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0,255,0),
+                2
+            )
+
+            cv2.putText(
+                frame,
+                f"Confidence: {confidence*100:.2f}%",
+                (20,80),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (255,0,0),
+                2
+            )
 
     cv2.imshow("Sign Language Camera", frame)
 
