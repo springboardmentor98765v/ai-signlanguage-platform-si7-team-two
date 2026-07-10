@@ -9,13 +9,13 @@ Monorepo for the 5-intern Milestone 1 build (see SRS v1.0).
 - `db/` — Intern 5 (Data Layer): ER diagram, schema, seed data — **start here**
 - `infra/` — Intern 5 (Infrastructure Layer): Docker/Compose/CI (added from Day 5)
 
-## Status: Day 3
-SQLAlchemy ORM models + Alembic migrations added for the Day 3 scope
-(roles, users, courses, lessons) in `db/models/` and `db/migrations/`. See
-`db/README.md` for setup, the important note about your existing Day 2
-database, and verification scripts. Practice Sessions/Assessments/
-Feedback/Analytics models remain Day 4. Full multi-service Docker Compose
-and CI are still Day 5/6.
+## Status: Day 4
+All 8 tables now have SQLAlchemy models and Alembic migrations —
+`db/models/` and `db/migrations/` are complete for the whole schema
+(practice sessions, assessments, feedback, and learner analytics added on
+top of Day 3's roles/users/courses/lessons). See `db/README.md` for setup
+and verification scripts. Full multi-service Docker Compose and CI are
+still Day 5/6.
 
 ## Setup
 Nothing to run yet on Day 1. Once Day 2's database is live, each subproject
