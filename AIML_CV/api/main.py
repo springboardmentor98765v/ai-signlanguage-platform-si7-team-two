@@ -1,49 +1,59 @@
-from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
 
-import cv2
-import numpy as np
-
-from services.recognizer import SignLanguageRecognizer
-
-app = FastAPI(
-    title="Sign Language Assessment API"
+from api.routes.health import router as health_router
+from api.routes.prediction import router as prediction_router
+from fastapi.middleware.cors import CORSMiddleware
+from api.exceptions import (
+    AIServiceException,
+    ai_exception_handler
 )
 
-recognizer = SignLanguageRecognizer()
+app = FastAPI(
+    title="Sign Language Assessment API",
+    version="1.0.0",
+    description="AI Microservice for Sign Language Recognition"
+)
+# --------------------------------------------------
+# CORS Configuration
+# --------------------------------------------------
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",      # React Development
+        "http://127.0.0.1:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# --------------------------------------------------
+# Register Global Exception Handler
+# --------------------------------------------------
 
-@app.get("/")
+app.add_exception_handler(
+    AIServiceException,
+    ai_exception_handler
+)
+
+# --------------------------------------------------
+# Root Endpoint
+# --------------------------------------------------
+@app.get(
+    "/",
+    tags=["Home"],
+    summary="API Information"
+)
 def home():
-
     return {
-        "message": "Sign Language Assessment API Running"
+        "service": "Sign Language Recognition AI Service",
+        "version": "1.0.0",
+        "status": "Running"
     }
 
+# --------------------------------------------------
+# Include Routers
+# --------------------------------------------------
 
-@app.get("/health")
-def health():
-
-    return {
-        "status": "healthy"
-    }
-
-
-@app.post("/predict")
-async def predict(file: UploadFile = File(...)):
-
-    image_bytes = await file.read()
-
-    np_image = np.frombuffer(image_bytes, np.uint8)
-
-    frame = cv2.imdecode(np_image, cv2.IMREAD_COLOR)
-
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    result = recognizer.predict(rgb)
-
-    response = {
-        "prediction": result["prediction"],
-        "confidence": round(float(result["confidence"]) * 100, 2)
-    }
-
-    return JSONResponse(content=response)
+app.include_router(health_router)
+app.include_router(prediction_router)
