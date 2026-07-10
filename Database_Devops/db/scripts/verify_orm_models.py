@@ -1,13 +1,14 @@
 """
 db/scripts/verify_orm_models.py
 
-Day 3 verification (SRS §6, Intern 5, Day 3: "verify with Intern 2's
-User/Course Service"). Honest scope note: Intern 2's actual FastAPI service
-isn't part of this solo engagement, so this script does the closest
-available solo equivalent — it connects to the real, running Day 2
-database and checks that every column the ORM models declare actually
-exists on the live table, with a matching nullability. When Intern 2's
-service is available, that remains the real integration check to run.
+Structural verification (SRS §6, Intern 5, Day 3 + Day 4: "verify with
+Intern 2's / Intern 4's services"). Honest scope note: those teammates'
+actual FastAPI services aren't part of this solo engagement, so this
+script does the closest available solo equivalent — it connects to the
+real, running database and checks that every column the ORM models
+declare actually exists on the live table, with matching nullability.
+When Intern 2/4's services are available, that remains the real
+integration check to run.
 
 Usage (run from repo root):
     python -m db.scripts.verify_orm_models
@@ -19,8 +20,17 @@ from sqlalchemy import inspect
 from db.database import engine
 from db.models import Base
 
-# Only the 4 tables in Day 3's scope.
-DAY3_TABLES = ["roles", "users", "courses", "lessons"]
+# All 8 tables, as of Day 4 (Day 3 added the first 4; Day 4 completed the rest).
+ALL_TABLES = [
+    "roles",
+    "users",
+    "courses",
+    "lessons",
+    "practice_sessions",
+    "assessments",
+    "feedback",
+    "learner_analytics",
+]
 
 
 def verify() -> bool:
@@ -28,7 +38,7 @@ def verify() -> bool:
     live_tables = set(inspector.get_table_names())
     all_ok = True
 
-    for table_name in DAY3_TABLES:
+    for table_name in ALL_TABLES:
         print(f"\n== {table_name} ==")
         if table_name not in live_tables:
             print(f"  FAIL: table '{table_name}' does not exist in the live database.")
@@ -65,7 +75,7 @@ def verify() -> bool:
 
 
 if __name__ == "__main__":
-    print("Verifying Day 3 ORM models (roles, users, courses, lessons) against the live database...")
+    print("Verifying all 8 ORM models against the live database...")
     ok = verify()
     print("\n" + ("ALL CHECKS PASSED" if ok else "SOME CHECKS FAILED — see FAIL lines above"))
     sys.exit(0 if ok else 1)
