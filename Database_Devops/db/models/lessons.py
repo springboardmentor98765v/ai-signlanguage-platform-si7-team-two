@@ -19,6 +19,7 @@ from db.models.base import Base
 
 if TYPE_CHECKING:
     from db.models.courses import Course
+    from db.models.practice_sessions import PracticeSession
 
 
 class Lesson(Base):
@@ -40,6 +41,7 @@ class Lesson(Base):
     )
 
     course: Mapped["Course"] = relationship(back_populates="lessons")
+    practice_sessions: Mapped[list["PracticeSession"]] = relationship(back_populates="lesson")
 
     def __repr__(self) -> str:
         return f"<Lesson id={self.id} letter={self.letter!r}>"
