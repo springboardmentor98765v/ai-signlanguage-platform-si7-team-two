@@ -1,13 +1,24 @@
-// Placeholder API layer — wired up to real backend endpoints on Day 6.
-// Expected fields from Intern 2 (Backend):
-//   auth: { token, role }
-//   lessons: { title, level, letters }
-//   practice: { predicted_sign, confidence }
+import axios from "axios";
 
-export async function login(email, password) {
-  return { token: 'mock-token', role: 'student' }
+const API = axios.create({
+  baseURL: "http://127.0.0.1:8000",
+});
+
+export async function register(full_name, email, password) {
+  const response = await API.post("/users/register", {
+    full_name,
+    email,
+    password,
+  });
+
+  return response.data;
 }
 
-export async function register(name, email, password) {
-  return { token: 'mock-token', role: 'student' }
+export async function login(email, password) {
+  const response = await API.post("/users/login", {
+    email,
+    password,
+  });
+
+  return response.data;
 }

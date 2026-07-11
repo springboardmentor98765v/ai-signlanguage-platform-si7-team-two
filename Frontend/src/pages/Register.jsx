@@ -1,3 +1,4 @@
+import { register } from "../services/api";
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 
@@ -9,11 +10,27 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [role, setRole] = useState('learner')
 
-  function handleSubmit(e) {
-    e.preventDefault()
-    // TODO (Day 6): replace with real call to Intern 2's /auth/register API
-    navigate('/dashboard')
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  if (password !== confirmPassword) {
+    alert("Passwords do not match");
+    return;
   }
+
+  try {
+    const data = await register(name, email, password);
+
+    console.log(data);
+
+    alert(data.message);
+
+    navigate("/");
+  } catch (err) {
+    console.error(err);
+    alert("Registration failed");
+  }
+}
 
   return (
     <div className="auth-shell">
