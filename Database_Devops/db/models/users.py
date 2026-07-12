@@ -20,6 +20,8 @@ from db.models.base import Base
 
 if TYPE_CHECKING:
     from db.models.roles import Role
+    from db.models.practice_sessions import PracticeSession
+    from db.models.learner_analytics import LearnerAnalytics
 
 
 class User(Base):
@@ -42,6 +44,12 @@ class User(Base):
     )
 
     role: Mapped["Role"] = relationship(back_populates="users")
+    practice_sessions: Mapped[list["PracticeSession"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    analytics: Mapped["LearnerAnalytics | None"] = relationship(
+        back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<User id={self.id} email={self.email!r}>"

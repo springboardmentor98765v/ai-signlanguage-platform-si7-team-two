@@ -1,0 +1,98 @@
+# ============================================================
+# Day 6 deliverable (SRS §6, Intern 5, Day 6): "a basic CI check
+# (lint/build on push)."
+#
+# This does more than an "echo lint stub" on purpose: it actually spins up
+# a throwaway Postgres, runs the real Alembic migrations against it fresh
+# (the genuinely-fresh-database path documented in the migration files —
+# CI is the one place that path gets exercised regularly), applies the
+# seed data, and runs the real verification/smoke test scripts from
+# db/scripts/. It also builds both Docker images to catch Dockerfile
+# errors (like the ai-service hyphen/module-path bug caught during Day 5)
+# before they reach a teammate's machine.
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: ["main", "integration", "intern-*/**"]
+  pull_request:
+    branches: ["main", "integration"]
+
+jobs:
+  lint-and-verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: signlang_platform_ci
+          POSTGRES_USER: signlang_app
+          POSTGRES_PASSWORD: ci_test_password_not_real
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U signlang_app -d signlang_platform_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # A CI-only throwaway database — not the shared dev .env's
+      # credentials. This is what "genuinely fresh database" means in the
+      # migration files' comments: real `alembic upgrade head` runs here,
+      # unlike a teammate's already-bootstrapped Day 2 database.
+      DATABASE_URL: postgresql://signlang_app:ci_test_password_not_real@localhost:5432/signlang_platform_ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir -r db/requirements.txt -r backend/requirements.txt -r ai-service/requirements.txt
+          pip install --no-cache-dir ruff
+
+      - name: Lint (ruff)
+        run: ruff check db backend ai-service
+
+      - name: Run Alembic migrations against a fresh CI database
+        working-directory: db
+        run: alembic upgrade head
+
+      - name: Apply seed data
+        run: |
+          sudo apt-get update -y -q && sudo apt-get install -y -q postgresql-client
+          PGPASSWORD=ci_test_password_not_real psql -h localhost -U signlang_app -d signlang_platform_ci -f infra/init/02-seed.sql
+
+      - name: Verify ORM models against the live (fresh) database
+        run: python -m db.scripts.verify_orm_models
+
+      - name: Smoke test — roles/users/courses/lessons round trip
+        run: python -m db.scripts.smoke_test_orm
+
+      - name: Smoke test — full practice/assessment/feedback/analytics journey
+        run: python -m db.scripts.smoke_test_full_journey
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -f backend/Dockerfile -t signlang-backend:ci .
+
+      - name: Build ai-service image
+        run: docker build -f ai-service/Dockerfile -t signlang-ai-service:ci .
+
+      - name: Validate docker-compose.db.yml
+        run: docker compose -f infra/docker-compose.db.yml config -q
+
+      - name: Validate docker-compose.yml (with dummy env values)
+        run: |
+          cp .env.example .env
+          docker compose --env-file .env -f infra/docker-compose.yml config -q
