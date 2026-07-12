@@ -201,3 +201,110 @@ constraint names in both migrations and all ORM models now use the *bare*
 name (e.g. `confidence_range`) and let the convention add the `ck_<table>_`
 prefix automatically. Verified via generated offline SQL that every
 constraint name matches `schema.sql` exactly across all 8 tables.
+
+---
+
+## Day 5 — Full Stack Docker Compose (SRS §6, Intern 5, Day 5)
+
+**Scope note:** `backend/` and `ai-service/` had no real code before today —
+Intern 2/3's actual services don't exist in this solo build. Both now have
+minimal placeholder FastAPI apps (`backend/app/main.py`,
+`ai-service/app/main.py`) so the containers/compose stack are real and
+runnable, clearly marked for replacement.
+
+### What's new
+- `backend/Dockerfile`, `backend/app/main.py`, `backend/requirements.txt` —
+  placeholder backend with `/health` and `/health/db` (the latter actually
+  queries Postgres over the Docker network — real proof of connectivity,
+  not a hardcoded response).
+- `ai-service/Dockerfile`, `ai-service/app/main.py`,
+  `ai-service/requirements.txt` — placeholder AI service with `/health`
+  and a `/predict` stub that returns the exact `{"predicted_sign",
+  "confidence"}` shape Intern 4's Assessment Service (Day 4) expects.
+- `infra/docker-compose.yml` — the full stack: db + backend + ai-service.
+- `db/scripts/start_full_stack.sh` / `.ps1` — one-command startup.
+- `db/scripts/start_db.sh` / `.ps1` — updated convenience scripts.
+- `db/scripts/verify_orm_models.py` — added to verify ORM column alignment.
+
+### Run it (from repo root)
+```bash
+./Database_Devops/db/scripts/start_full_stack.sh      # Linux/macOS
+.\Database_Devops\db\scripts\start_full_stack.ps1     # Windows
+```
+Then check:
+- `http://localhost:8000/health` and `http://localhost:8000/health/db`
+- `http://localhost:8001/health`
+
+### Important gotcha
+`infra/docker-compose.db.yml` (Day 2) and `infra/docker-compose.yml` (Day 5)
+both manage a container named `signlang_postgres` — running both at once
+causes a name/port conflict. `start_full_stack.sh` stops the Day 2 db-only
+container first automatically; do the same manually
+(`docker compose -f infra/docker-compose.db.yml down`) if you're not using
+the script.
+
+### A real bug caught before it shipped
+The AI service's Dockerfile originally tried to run
+`uvicorn ai-service.app.main:app` — but `ai-service` contains a hyphen,
+which is not a valid Python module name, so that import would have failed
+at container startup. Fixed by copying `ai-service/app/`'s contents
+directly into the image's `/app/app/`, so the importable path is just
+`app.main:app`. Verified by replicating the exact container filesystem
+layout locally and actually importing both `app.main:app` (ai-service) and
+`backend.app.main:app` (backend, including its `db/` dependency) with real
+Python — not just by inspecting the Dockerfile.
+
+---
+
+## Day 6 — GitHub Actions CI (SRS §6, Intern 5, Day 6)
+
+**Scope:** basic CI check (lint/build on push) as specified in SRS §6.
+
+### What's new
+- `.github/workflows/ci.yml` — two jobs:
+  1. **lint-and-verify**: spins up a throwaway Postgres, runs real Alembic
+     migrations from scratch (`alembic upgrade head`), applies seed data,
+     then runs all three verification/smoke scripts.
+  2. **docker-build**: builds both Docker images and validates both Compose
+     files (`docker compose config -q`) to catch Dockerfile/config errors
+     before they reach a teammate's machine.
+- Runs on push to `main`, `integration`, and `intern-*/**` branches, and on
+  PRs targeting `main`/`integration`.
+- Uses `ruff` for linting (`ruff check db backend ai-service`).
+
+### Why more than a lint stub
+CI is the one place the "genuinely fresh database" path (`alembic upgrade head`)
+gets exercised regularly — not just stamped as on a bootstrapped Day 2 DB.
+The docker-build job also catches the exact class of Dockerfile bug
+(ai-service hyphen/module-path) that was caught during Day 5.
+
+---
+
+## Day 7 — Integration Check & Deployment Note (SRS §6, Intern 5, Day 7)
+
+**Scope honesty, most important caveat of the whole project:** the SRS's
+actual Day 7 activity is the whole team walking through the real learner
+journey together (SRS §8.1) using Intern 1–4's real code. That is
+inherently a team activity and cannot be done solo. What's here is the
+closest automatable substitute.
+
+### What's new
+- `db/scripts/integration_check.sh` / `.ps1` — runs against the full stack
+  (must already be up via `start_full_stack`) and checks: both services'
+  health endpoints, the AI service's `/predict` response contract, and all
+  3 DB verification/smoke scripts, printing a consolidated pass/fail report.
+
+### Run it
+```bash
+./Database_Devops/db/scripts/start_full_stack.sh      # if not already running
+./Database_Devops/db/scripts/integration_check.sh     # Linux/macOS
+.\Database_Devops\db\scripts\integration_check.ps1    # Windows
+```
+
+### What is and isn't verified
+- ✅ Database connectivity (all 8 tables, seed data)
+- ✅ ORM model alignment (all columns match live DB)
+- ✅ Full ORM round-trip (insert → query → delete via relationships)
+- ✅ Both service `/health` endpoints reachable over Docker network
+- ✅ AI service `/predict` returns correct `{predicted_sign, confidence}` contract
+- ❌ Real learner journey with Intern 1–4's actual code (team activity — cannot be solo)
