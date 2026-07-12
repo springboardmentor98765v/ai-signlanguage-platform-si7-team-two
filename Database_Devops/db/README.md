@@ -144,3 +144,60 @@ doesn't exist in this solo engagement. These two scripts are the closest
 solo equivalent (proving the models are structurally and functionally
 correct against the live DB). The real cross-service check against Intern
 2's actual API still needs to happen once that service exists.
+
+---
+
+## Day 4 — Remaining Models & Migrations (SRS §6, Intern 5, Day 4)
+
+**Scope: Practice Sessions, Assessments, Feedback, Learner Analytics** —
+this completes the schema. All 8 tables now have ORM models and migrations.
+
+### What's new
+- `models/practice_sessions.py`, `models/assessments.py`,
+  `models/feedback.py`, `models/learner_analytics.py` — mirror the
+  remaining 4 tables in `schema/schema.sql` exactly.
+- `migrations/versions/0002_remaining_tables.py` — the second Alembic
+  migration, chained after `0001_initial_base_tables`.
+- Relationships wired both ways: `User.practice_sessions`,
+  `User.analytics`, `Lesson.practice_sessions`,
+  `PracticeSession.assessments`, `Assessment.feedback_items`.
+
+### Setup (same as Day 3, extended)
+Your Day 2 database already has all 8 tables (Docker's one-time
+bootstrap). Stamp both migrations as already applied:
+```bash
+cd db
+alembic stamp head
+```
+`alembic stamp head` always stamps the latest migration — you don't need
+to stamp `0001` and `0002` separately if both tables already exist.
+
+For a genuinely fresh/empty database, `alembic upgrade head` now runs both
+migrations in order and creates all 8 tables from scratch.
+
+### Verification
+```bash
+python -m db.scripts.verify_orm_models        # now checks all 8 tables' columns
+python -m db.scripts.smoke_test_orm           # Day 3: roles/users/courses/lessons round trip
+python -m db.scripts.smoke_test_full_journey  # Day 4: full practice -> assessment -> feedback -> analytics chain
+```
+`smoke_test_full_journey.py` creates a real learner, a practice session, an
+AI assessment, a feedback message, and an analytics row — then re-queries
+everything through the ORM relationships (not raw IDs) to prove
+`user.practice_sessions[0].assessments[0].feedback_items[0]` actually
+resolves against live data, and cleans up afterward via cascade delete.
+
+**Scope honesty (same caveat as Day 3):** the SRS's Day 4 instruction is to
+*"verify with Intern 4's services"* — the Assessment/Feedback/Analytics
+FastAPI service, which doesn't exist in this solo engagement. The smoke
+test above is the closest solo equivalent. The real cross-service check
+still needs to happen once Intern 4's service exists.
+
+### A bug I caught and fixed while building this
+Alembic's naming convention (configured in `models/base.py`) re-prefixes
+any constraint name you give it — so a name like `ck_assessments_confidence_range`
+gets doubled into `ck_assessments_ck_assessments_confidence_range`. All
+constraint names in both migrations and all ORM models now use the *bare*
+name (e.g. `confidence_range`) and let the convention add the `ck_<table>_`
+prefix automatically. Verified via generated offline SQL that every
+constraint name matches `schema.sql` exactly across all 8 tables.

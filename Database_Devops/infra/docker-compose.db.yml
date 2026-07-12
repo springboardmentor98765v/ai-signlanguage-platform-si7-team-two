@@ -9,7 +9,7 @@
 # do not merge that work into this file prematurely.
 #
 # Usage (run from the repo root):
-#   docker compose --env-file .env -f Database_Devops/infra/docker-compose.db.yml up -d
+#   docker compose --env-file .env -f infra/docker-compose.db.yml up -d
 # ============================================================
 
 services:
@@ -20,16 +20,15 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-signlang_platform}
       POSTGRES_USER: ${DB_USER:-signlang_app}
-      # Security Fix: Removed fallback password. A secure password MUST be provided in .env
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme_on_day2}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
       - signlang_pgdata:/var/lib/postgresql/data
-      # Anything in this folder runs ONCE, automatically, only on first-ever
+      # Anything in init/ runs ONCE, automatically, only on first-ever
       # container start (empty data volume). This applies the Day 1
       # reviewed schema + draft seed as soon as the DB is created.
-      - ../db/schema:/docker-entrypoint-initdb.d:ro
+      - ./init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-signlang_app} -d ${DB_NAME:-signlang_platform}"]
       interval: 5s
