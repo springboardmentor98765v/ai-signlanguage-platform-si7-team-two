@@ -3,10 +3,10 @@
 #   "write a docker-compose.yml that spins up backend + AI
 #    service + database together for the whole team."
 #
-# Build contexts for backend/ai-service are the REPO ROOT (`..`), not
-# their own folders — backend needs the shared db/ package alongside its
-# app code. See the NOTE comments in backend/Dockerfile and
-# ai-service/Dockerfile for why.
+# Build contexts for Bussiness_Logic/AIML_CV are the REPO ROOT (`..`), not
+# their own folders — Bussiness_Logic needs the shared Database_Devops/db/ package
+# alongside its app code. See the NOTE comments in Bussiness_Logic/Dockerfile and
+# AIML_CV/Dockerfile for why.
 #
 # Usage (run from the repo root):
 #   docker compose --env-file .env -f infra/docker-compose.yml up -d --build
@@ -40,7 +40,7 @@ services:
   backend:
     build:
       context: ..
-      dockerfile: backend/Dockerfile
+      dockerfile: Bussiness_Logic/Dockerfile
     container_name: signlang_backend
     restart: unless-stopped
     env_file:
@@ -59,7 +59,7 @@ services:
   ai-service:
     build:
       context: ..
-      dockerfile: ai-service/Dockerfile
+      dockerfile: AIML_CV/Dockerfile
     container_name: signlang_ai_service
     restart: unless-stopped
     env_file:
