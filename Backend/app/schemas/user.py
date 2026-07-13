@@ -6,7 +6,6 @@ class UserRegister(BaseModel):
     full_name: str
     email: EmailStr
     password: str
-    role_id: UUID
 
 
 class UserLogin(BaseModel):

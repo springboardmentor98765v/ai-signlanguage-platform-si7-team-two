@@ -6,6 +6,9 @@
 
 **Version:** 1.0
 
+> **Note:** This document reflects the APIs currently implemented in Milestone 1.
+> Some endpoints planned in the Software Requirements Specification (SRS) will be added in later milestones.
+
 ---
 
 # Authentication APIs
@@ -22,8 +25,7 @@ POST /auth/register
 {
   "full_name": "Harshit Amit Paradeshi",
   "email": "harshit@example.com",
-  "password": "Password@123",
-  "role": "Learner"
+  "password": "Password@123"
 }
 ```
 
@@ -31,16 +33,17 @@ POST /auth/register
 
 ```json
 {
-  "message": "User registered successfully",
-  "user_id": 1
+  "id": "6f3c2db2-f991-45b4-a55b-3a4a8e2f9d98",
+  "full_name": "Harshit Amit Paradeshi",
+  "email": "harshit@example.com",
+  "role_id": "54d6bda5-79d5-4dd7-93d2-315d4fc0f66a"
 }
 ```
 
 ### Status Codes
 
-- 201 Created
+- 200 OK
 - 400 Bad Request
-- 409 Conflict
 
 ---
 
@@ -63,8 +66,13 @@ POST /auth/login
 
 ```json
 {
-  "access_token": "JWT_TOKEN",
-  "token_type": "Bearer"
+  "message": "Login successful",
+  "user": {
+    "id": "6f3c2db2-f991-45b4-a55b-3a4a8e2f9d98",
+    "full_name": "Harshit Amit Paradeshi",
+    "email": "harshit@example.com",
+    "role_id": "54d6bda5-79d5-4dd7-93d2-315d4fc0f66a"
+  }
 }
 ```
 
@@ -185,7 +193,11 @@ DELETE /courses/{id}
 
 # Authentication
 
-JWT Bearer Token
+Authentication is currently under development.
+
+JWT authentication will be implemented in a future milestone.
+
+Current login endpoint validates user credentials and returns user details.
 
 Example:
 
@@ -202,15 +214,16 @@ Authorization: Bearer <JWT_TOKEN>
 
 ---
 
+
 # Standard HTTP Status Codes
 
-| Code | Description |
-|------|-------------|
-|200|OK|
-|201|Created|
-|400|Bad Request|
-|401|Unauthorized|
-|403|Forbidden|
-|404|Not Found|
-|409|Conflict|
-|500|Internal Server Error|
+| Code | Description           |
+| ---- | --------------------- |
+| 200  | OK                    |
+| 201  | Created               |
+| 400  | Bad Request           |
+| 401  | Unauthorized          |
+| 403  | Forbidden             |
+| 404  | Not Found             |
+| 409  | Conflict              |
+| 500  | Internal Server Error |
