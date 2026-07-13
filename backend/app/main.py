@@ -31,6 +31,10 @@ app.include_router(practice.router, prefix="/practice", tags=["Practice"])
 def root():
     return {"message": "Backend API is running successfully!"}
 
+print("\n===== Registered Routes =====")
+for route in app.routes:
+    print(route.path, route.methods)
+print("=============================\n")
 
 @app.get("/health")
 def health():
