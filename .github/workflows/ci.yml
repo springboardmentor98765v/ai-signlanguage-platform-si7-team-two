@@ -1,0 +1,109 @@
+# ============================================================
+# CI — Sign Language Platform (Intern 5 deliverable, Day 6)
+#
+# Jobs:
+#   lint-and-verify  — ruff lint + real Alembic migration on a
+#                      fresh throwaway Postgres + smoke tests
+#   docker-build     — build both service images + validate
+#                      compose files
+#
+# Directory layout this workflow expects (matching the repo):
+#   Database_Devops/db/          ← ORM, migrations, scripts
+#   Database_Devops/infra/       ← docker-compose files
+#   Bussiness_Logic/             ← backend service (Intern 2/4)
+#   AIML_CV/                     ← AI/CV service (Intern 3)
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: ["main", "integration", "intern5-db-infra", "intern-*/**"]
+  pull_request:
+    branches: ["main", "integration"]
+
+jobs:
+  # ----------------------------------------------------------
+  # Job 1: Lint + migrate + smoke-test
+  # ----------------------------------------------------------
+  lint-and-verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: signlang_platform_ci
+          POSTGRES_USER: signlang_app
+          POSTGRES_PASSWORD: ci_test_password_not_real
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U signlang_app -d signlang_platform_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://signlang_app:ci_test_password_not_real@localhost:5432/signlang_platform_ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Only install the lightweight db requirements here.
+      # AIML_CV has heavy packages (mediapipe, opencv, xgboost)
+      # that belong in the docker-build job, not lint.
+      - name: Install db + backend dependencies
+        run: |
+          pip install --no-cache-dir \
+            -r Database_Devops/db/requirements.txt \
+            -r Bussiness_Logic/requirements.txt
+          pip install --no-cache-dir ruff
+
+      - name: Lint (ruff) — db layer and backend
+        run: ruff check Database_Devops/db Bussiness_Logic
+
+      - name: Run Alembic migrations against fresh CI database
+        working-directory: Database_Devops/db
+        run: alembic upgrade head
+
+      - name: Apply seed data
+        run: |
+          sudo apt-get update -y -q && sudo apt-get install -y -q postgresql-client
+          PGPASSWORD=ci_test_password_not_real psql \
+            -h localhost -U signlang_app -d signlang_platform_ci \
+            -f Database_Devops/infra/init/02-seed.sql
+
+      - name: Verify ORM models against live CI database
+        run: python -m Database_Devops.db.scripts.verify_orm_models
+
+      - name: Smoke test — roles/users/courses/lessons round trip
+        run: python -m Database_Devops.db.scripts.smoke_test_orm
+
+      - name: Smoke test — full practice/assessment/feedback/analytics journey
+        run: python -m Database_Devops.db.scripts.smoke_test_full_journey
+
+  # ----------------------------------------------------------
+  # Job 2: Build Docker images + validate compose files
+  # ----------------------------------------------------------
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Bussiness_Logic (backend) image
+        run: docker build -f Bussiness_Logic/Dockerfile -t signlang-backend:ci .
+
+      - name: Build AIML_CV (ai-service) image
+        run: docker build -f AIML_CV/Dockerfile -t signlang-ai-service:ci .
+
+      - name: Validate docker-compose.db.yml
+        run: docker compose -f Database_Devops/infra/docker-compose.db.yml config -q
+
+      - name: Validate full-stack docker-compose.yml
+        run: |
+          cp .env.example .env
+          docker compose --env-file .env -f Database_Devops/infra/docker-compose.yml config -q

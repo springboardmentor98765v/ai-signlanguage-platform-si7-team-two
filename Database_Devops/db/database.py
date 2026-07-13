@@ -17,6 +17,9 @@ from sqlalchemy.orm import sessionmaker, Session
 # Load the repo-root .env regardless of what directory this is run from.
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(_REPO_ROOT / ".env")
+# Load Backend/.env
+BACKEND_ROOT = Path(__file__).resolve().parents[2] / "Backend"
+load_dotenv(BACKEND_ROOT / ".env")
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
