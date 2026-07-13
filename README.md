@@ -4,8 +4,8 @@ Monorepo for the 5-intern Milestone 1 build (see SRS v1.0).
 
 ## Repo layout
 - `frontend/` — Intern 1 (Application Layer)
-- `backend/` — Intern 2 (Auth/Course APIs) & Intern 4 (Practice/Assessment/Feedback/Analytics); placeholder FastAPI app added Day 5
-- `ai-service/` — Intern 3 (CV + AI/ML); placeholder FastAPI app added Day 5
+- `Bussiness_Logic/` — Intern 2 (Auth/Course APIs) & Intern 4 (Practice/Assessment/Feedback/Analytics); placeholder FastAPI app + Dockerfile added Day 5
+- `AIML_CV/` — Intern 3 (CV + AI/ML); placeholder FastAPI app + Dockerfile added Day 5
 - `Database_Devops/db/` — Intern 5 (Data Layer): ER diagram, schema, ORM models, Alembic migrations, seed data, verification & smoke-test scripts — **start here**
 - `Database_Devops/infra/` — Intern 5 (Infrastructure Layer): DB-only Compose (Day 2) + full-stack Compose (Day 5)
 - `.github/workflows/ci.yml` — Intern 5 (CI): lint + migrate + smoke-test + docker-build (Day 6)
@@ -19,7 +19,7 @@ All Intern 5 deliverables for Milestone 1 are complete:
 | 2 | Live Postgres instance (Docker), seed data | ✅ Done |
 | 3 | SQLAlchemy ORM models for Roles/Users/Courses/Lessons + Alembic | ✅ Done |
 | 4 | ORM models for Practice Sessions/Assessments/Feedback/Analytics | ✅ Done |
-| 5 | Full-stack Docker Compose (db + backend + ai-service), placeholder services | ✅ Done |
+| 5 | Full-stack Docker Compose (db + Bussiness_Logic + AIML_CV), placeholder services + Dockerfiles | ✅ Done |
 | 6 | GitHub Actions CI (lint + real migration + smoke tests + Docker builds) | ✅ Done |
 | 7 | Integration check script + deployment note | ✅ Done |
 

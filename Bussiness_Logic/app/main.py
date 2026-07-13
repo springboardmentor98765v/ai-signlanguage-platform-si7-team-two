@@ -13,7 +13,7 @@ them), or move their logic into whatever router structure Intern 2 sets up.
 from fastapi import FastAPI, HTTPException
 from sqlalchemy import text
 
-from db.database import engine
+from Database_Devops.db.database import engine
 
 app = FastAPI(title="Sign Language Platform — Backend (PLACEHOLDER)")
 
