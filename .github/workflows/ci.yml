@@ -8,7 +8,8 @@
 # CI is the one place that path gets exercised regularly), applies the
 # seed data, and runs the real verification/smoke test scripts from
 # db/scripts/. It also builds both Docker images to catch Dockerfile
-# errors before they reach a teammate's machine.
+# errors (like the ai-service hyphen/module-path bug caught during Day 5)
+# before they reach a teammate's machine.
 # ============================================================
 name: CI
 
@@ -53,29 +54,29 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --no-cache-dir -r Database_Devops/db/requirements.txt -r Bussiness_Logic/requirements.txt -r AIML_CV/requirements.txt
+          pip install --no-cache-dir -r db/requirements.txt -r backend/requirements.txt -r ai-service/requirements.txt
           pip install --no-cache-dir ruff
 
       - name: Lint (ruff)
-        run: ruff check Database_Devops/db Bussiness_Logic AIML_CV
+        run: ruff check db backend ai-service
 
       - name: Run Alembic migrations against a fresh CI database
-        working-directory: Database_Devops/db
+        working-directory: db
         run: alembic upgrade head
 
       - name: Apply seed data
         run: |
           sudo apt-get update -y -q && sudo apt-get install -y -q postgresql-client
-          PGPASSWORD=ci_test_password_not_real psql -h localhost -U signlang_app -d signlang_platform_ci -f Database_Devops/infra/init/02-seed.sql
+          PGPASSWORD=ci_test_password_not_real psql -h localhost -U signlang_app -d signlang_platform_ci -f infra/init/02-seed.sql
 
       - name: Verify ORM models against the live (fresh) database
-        run: python -m Database_Devops.db.scripts.verify_orm_models
+        run: python -m db.scripts.verify_orm_models
 
       - name: Smoke test — roles/users/courses/lessons round trip
-        run: python -m Database_Devops.db.scripts.smoke_test_orm
+        run: python -m db.scripts.smoke_test_orm
 
       - name: Smoke test — full practice/assessment/feedback/analytics journey
-        run: python -m Database_Devops.db.scripts.smoke_test_full_journey
+        run: python -m db.scripts.smoke_test_full_journey
 
   docker-build:
     runs-on: ubuntu-latest
@@ -83,15 +84,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build backend image
-        run: docker build -f Bussiness_Logic/Dockerfile -t signlang-backend:ci .
+        run: docker build -f backend/Dockerfile -t signlang-backend:ci .
 
       - name: Build ai-service image
-        run: docker build -f AIML_CV/Dockerfile -t signlang-ai-service:ci .
+        run: docker build -f ai-service/Dockerfile -t signlang-ai-service:ci .
 
       - name: Validate docker-compose.db.yml
-        run: docker compose -f Database_Devops/infra/docker-compose.db.yml config -q
+        run: docker compose -f infra/docker-compose.db.yml config -q
 
       - name: Validate docker-compose.yml (with dummy env values)
         run: |
           cp .env.example .env
-          docker compose --env-file .env -f Database_Devops/infra/docker-compose.yml config -q
+          docker compose --env-file .env -f infra/docker-compose.yml config -q
