@@ -1,0 +1,75 @@
+# ============================================================
+# Day 5 deliverable (SRS §6, Intern 5, Day 5):
+#   "write a docker-compose.yml that spins up backend + AI
+#    service + database together for the whole team."
+#
+# Build contexts for Bussiness_Logic/AIML_CV are the REPO ROOT (`..`),
+# not their own folders — Bussiness_Logic needs the shared
+# Database_Devops/db/ package alongside its app code.
+# See the Dockerfile comments in each folder for details.
+#
+# Usage (run from the repo root):
+#   docker compose --env-file .env -f Database_Devops/infra/docker-compose.yml up -d --build
+#
+# This supersedes docker-compose.db.yml for day-to-day full-stack work;
+# docker-compose.db.yml still exists for anyone who only wants the
+# database running (e.g. while developing services locally, outside
+# Docker, against a containerised DB).
+# ============================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: signlang_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-signlang_platform}
+      POSTGRES_USER: ${DB_USER:-signlang_app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme_on_day2}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - signlang_pgdata:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-signlang_app} -d ${DB_NAME:-signlang_platform}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ..
+      dockerfile: Bussiness_Logic/Dockerfile
+    container_name: signlang_backend
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      # Inside the Docker network, the DB is reachable by service name
+      # ("db"), not "localhost" — override just this one piece of the
+      # .env file's local-dev value for in-container use.
+      DATABASE_URL: postgresql://${DB_USER:-signlang_app}:${DB_PASSWORD:-changeme_on_day2}@db:5432/${DB_NAME:-signlang_platform}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ai-service:
+    build:
+      context: ..
+      dockerfile: AIML_CV/Dockerfile
+    container_name: signlang_ai_service
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    ports:
+      - "8001:8001"
+    # No DB dependency for the placeholder — Intern 3's real service may
+    # add one later (e.g. to log predictions), at which point add a
+    # `depends_on: db` here too.
+
+volumes:
+  signlang_pgdata:
+    name: signlang_pgdata

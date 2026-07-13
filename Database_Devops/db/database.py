@@ -7,6 +7,7 @@ one place engine configuration lives — Intern 2's FastAPI app should import
 `get_session` from here rather than creating its own engine, so there's a
 single source of truth for how the app connects to Postgres.
 """
+
 import os
 from pathlib import Path
 
@@ -15,10 +16,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
 # Load the repo-root .env regardless of what directory this is run from.
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(_REPO_ROOT / ".env")
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+load_dotenv(BASE_DIR / ".env")
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+print("DATABASE_URL =", DATABASE_URL)
+
+if DATABASE_URL is None:
+    raise RuntimeError("DATABASE_URL not found in .env")
 if not DATABASE_URL:
     raise RuntimeError(
         "DATABASE_URL is not set. Copy .env.example to .env at the repo "
@@ -33,3 +41,11 @@ def get_session() -> Session:
     """Returns a new SQLAlchemy session. Caller is responsible for closing it
     (or use it as a context manager: `with get_session() as session:`)."""
     return SessionLocal()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
