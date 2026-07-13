@@ -4,37 +4,19 @@ Monorepo for the 5-intern Milestone 1 build (see SRS v1.0).
 
 ## Repo layout
 - `frontend/` — Intern 1 (Application Layer)
-- `backend/` — Intern 2 (Auth/Course APIs) & Intern 4 (Practice/Assessment/Feedback/Analytics); placeholder FastAPI app added Day 5
-- `ai-service/` — Intern 3 (CV + AI/ML); placeholder FastAPI app added Day 5
-- `Database_Devops/db/` — Intern 5 (Data Layer): ER diagram, schema, ORM models, Alembic migrations, seed data, verification & smoke-test scripts — **start here**
-- `Database_Devops/infra/` — Intern 5 (Infrastructure Layer): DB-only Compose (Day 2) + full-stack Compose (Day 5)
-- `.github/workflows/ci.yml` — Intern 5 (CI): lint + migrate + smoke-test + docker-build (Day 6)
+- `backend/` — Intern 2 (Auth/Course APIs) & Intern 4 (Practice/Assessment/Feedback/Analytics)
+- `ai-service/` — Intern 3 (CV + AI/ML)
+- `db/` — Intern 5 (Data Layer): ER diagram, schema, seed data — **start here**
+- `infra/` — Intern 5 (Infrastructure Layer): Docker/Compose/CI (added from Day 5)
 
-## Status: Day 7 ✅
-All Intern 5 deliverables for Milestone 1 are complete:
+## Status: Day 4
+All 8 tables now have SQLAlchemy models and Alembic migrations —
+`db/models/` and `db/migrations/` are complete for the whole schema
+(practice sessions, assessments, feedback, and learner analytics added on
+top of Day 3's roles/users/courses/lessons). See `db/README.md` for setup
+and verification scripts. Full multi-service Docker Compose and CI are
+still Day 5/6.
 
-| Day | Deliverable | Status |
-|-----|-------------|--------|
-| 1 | ER diagram, data model, schema DDL draft | ✅ Done |
-| 2 | Live Postgres instance (Docker), seed data | ✅ Done |
-| 3 | SQLAlchemy ORM models for Roles/Users/Courses/Lessons + Alembic | ✅ Done |
-| 4 | ORM models for Practice Sessions/Assessments/Feedback/Analytics | ✅ Done |
-| 5 | Full-stack Docker Compose (db + backend + ai-service), placeholder services | ✅ Done |
-| 6 | GitHub Actions CI (lint + real migration + smoke tests + Docker builds) | ✅ Done |
-| 7 | Integration check script + deployment note | ✅ Done |
-
-## Quick Start (from repo root)
-```bash
-# Copy env file
-cp .env.example .env
-
-# Start the full stack (db + backend + ai-service)
-./Database_Devops/db/scripts/start_full_stack.sh      # Linux/macOS
-.\Database_Devops\db\scripts\start_full_stack.ps1     # Windows
-
-# Verify everything
-./Database_Devops/db/scripts/integration_check.sh     # Linux/macOS
-.\Database_Devops\db\scripts\integration_check.ps1    # Windows
-```
-
-See `Database_Devops/db/README.md` for full day-by-day setup, migration, and verification docs.
+## Setup
+Nothing to run yet on Day 1. Once Day 2's database is live, each subproject
+will get its own setup instructions in its README.
