@@ -1,39 +1,35 @@
-"""
-Database connection stub.
+import os
+from pathlib import Path
 
-This file will be updated once the database URL and ORM models
-are shared by Intern 5.
-"""
-
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Placeholder database URL
-DATABASE_URL = "sqlite:///./app.db"
+# Load the .env from the repository root
+BASE_DIR = Path(__file__).resolve().parents[3]
+load_dotenv(BASE_DIR / ".env")
 
-# SQLAlchemy engine
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Session factory
+if DATABASE_URL is None:
+    raise RuntimeError(
+        f"DATABASE_URL not found. Expected .env at: {BASE_DIR / '.env'}"
+    )
+
+print("DATABASE_URL =", DATABASE_URL)
+
+engine = create_engine(DATABASE_URL)
+
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-# Base class for ORM models
 Base = declarative_base()
 
 
 def get_db():
-    """
-    Dependency for getting a database session.
-    Replace DATABASE_URL with the production database
-    once Intern 5 shares the connection details.
-    """
     db = SessionLocal()
     try:
         yield db

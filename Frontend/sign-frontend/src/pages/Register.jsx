@@ -1,34 +1,36 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { register } from '../services/api.js'
-import { saveSession } from '../utils/auth.js'
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { register } from "../services/api.js";
+import { saveSession } from "../utils/auth.js";
 
 export default function Register() {
-  const navigate = useNavigate()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [role, setRole] = useState('learner')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("learner");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
     if (password !== confirmPassword) {
-      setError('Passwords do not match.')
-      return
+      setError("Passwords do not match.");
+      return;
     }
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const { token, role: userRole } = await register(name, email, password, role)
-      saveSession(token, userRole)
-      navigate('/dashboard')
+      await register(name, email, password);
+
+      alert("Registration successful!");
+
+      navigate("/");
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.')
+      setError(err.message || "Registration failed. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -47,34 +49,67 @@ export default function Register() {
         <form onSubmit={handleSubmit}>
           <div className="field">
             <label htmlFor="name">Full name</label>
-            <input id="name" type="text" placeholder="Jane Doe"
-              value={name} onChange={(e) => setName(e.target.value)} required disabled={isLoading} />
+            <input
+              id="name"
+              type="text"
+              placeholder="Jane Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              disabled={isLoading}
+            />
           </div>
           <div className="field">
             <label htmlFor="email">Email</label>
-            <input id="email" type="email" placeholder="you@example.com"
-              value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
+            <input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={isLoading}
+            />
           </div>
           <div className="field">
             <label htmlFor="password">Password</label>
-            <input id="password" type="password" placeholder="••••••••"
-              value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+            />
           </div>
           <div className="field">
             <label htmlFor="confirmPassword">Confirm password</label>
-            <input id="confirmPassword" type="password" placeholder="••••••••"
-              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={isLoading} />
+            <input
+              id="confirmPassword"
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={isLoading}
+            />
           </div>
           <div className="field">
             <label htmlFor="role">Role</label>
-            <select id="role" value={role} onChange={(e) => setRole(e.target.value)} disabled={isLoading}>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              disabled={isLoading}
+            >
               <option value="learner">Learner</option>
               <option value="instructor">Instructor</option>
               <option value="trainer">Trainer</option>
             </select>
           </div>
           <button type="submit" className="btn-primary" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Create account'}
+            {isLoading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
@@ -83,5 +118,5 @@ export default function Register() {
         </div>
       </div>
     </div>
-  )
+  );
 }
