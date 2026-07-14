@@ -35,8 +35,8 @@ export async function register(name, email, password) {
 
 export async function predictSign(imageBlob) {
   const formData = new FormData()
-  formData.append('frame', imageBlob)
-  const res = await fetch(`${API_BASE_URL}/ai/predict`, {
+  formData.append("file", imageBlob, "frame.jpg")
+  const res = await fetch(`${API_BASE_URL}/practice/predict`, {
     method: 'POST',
     body: formData,
   })
