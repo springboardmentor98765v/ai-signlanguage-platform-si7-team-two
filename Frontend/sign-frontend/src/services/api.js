@@ -17,42 +17,30 @@ export async function login(email, password) {
   return handleResponse(res)
 }
 
-export async function register(name, email, password) {
+export async function register(name, email, password, role) {
   const res = await fetch(`${API_BASE_URL}/auth/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      full_name: name,
-      email,
-      password,
-    }),
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password, role }),
   })
-
   return handleResponse(res)
 }
 
 export async function predictSign(imageBlob) {
   const formData = new FormData()
-  formData.append("file", imageBlob, "frame.jpg")
-  const res = await fetch(`${API_BASE_URL}/practice/predict`, {
+  formData.append('frame', imageBlob)
+  const res = await fetch(`${API_BASE_URL}/ai/predict`, {
     method: 'POST',
     body: formData,
   })
   return handleResponse(res)
 }
 
-export async function assessAttempt(expectedSign, predictedSign, confidence, attemptDuration = 0) {
+export async function assessAttempt(expectedSign, predictedSign, confidence) {
   const res = await fetch(`${API_BASE_URL}/assessment/score`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      expected_sign: expectedSign,
-      predicted_sign: predictedSign,
-      confidence,
-      attempt_duration: attemptDuration,
-    }),
+    body: JSON.stringify({ expected_sign: expectedSign, predicted_sign: predictedSign, confidence }),
   })
   return handleResponse(res)
 }
