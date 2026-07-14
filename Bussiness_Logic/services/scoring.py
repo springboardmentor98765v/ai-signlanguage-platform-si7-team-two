@@ -1,3 +1,8 @@
+def normalize_confidence(confidence: float) -> float:
+    """Accept confidence from either AI convention: 0-1 or 0-100."""
+    return max(0.0, min(100.0, confidence * 100 if confidence <= 1 else confidence))
+
+
 def calculate_scores(expected_sign: str, predicted_sign: str, confidence: float, duration_seconds: float, expected_duration: float = 3.0):
     """
     Bootstrapped scoring logic for Milestone 1.
@@ -6,10 +11,11 @@ def calculate_scores(expected_sign: str, predicted_sign: str, confidence: float,
     derived from confidence + timing until real landmark-based sub-scores
     are available.
     """
-    is_match = predicted_sign == expected_sign
+    confidence_percent = normalize_confidence(confidence)
+    is_match = predicted_sign.strip().upper() == expected_sign.strip().upper()
 
-    hand_shape_score = confidence * 100 if is_match else confidence * 30
-    finger_position_score = confidence * 100 if is_match else confidence * 30
+    hand_shape_score = confidence_percent if is_match else confidence_percent * 0.30
+    finger_position_score = confidence_percent if is_match else confidence_percent * 0.30
     motion_score = 100.0  # static letters assumed fine for M1
     timing_score = min(100.0, (duration_seconds / expected_duration) * 100)
     position_score = 90.0  # placeholder until real landmark data available

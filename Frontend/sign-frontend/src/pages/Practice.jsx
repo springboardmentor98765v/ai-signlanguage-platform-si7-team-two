@@ -79,19 +79,12 @@ useEffect(() => {
   }
 
   async function handleCheckSign() {
-    if (!videoRef.current) return;
-
-    if (videoRef.current.videoWidth === 0) {
-      setCheckError(
-        "Camera is still loading. Please wait a moment and try again."
-      );
-      return;
-    }
-
-    setCheckError("");
-    setIsChecking(true);
-    setPrediction(null);
-    setAssessment(null);
+    if (!videoRef.current) return
+    setCheckError('')
+    setIsChecking(true)
+    setPrediction(null)
+    setAssessment(null)
+    const attemptStartedAt = performance.now()
 
     try {
       const canvas = canvasRef.current;
@@ -130,11 +123,11 @@ useEffect(() => {
 
       const assessmentResult = await assessAttempt(
         targetLetter,
-        predictionResult.prediction,
-        predictionResult.confidence
-      );
-
-      setAssessment(assessmentResult);
+        predictionResult.predicted_sign,
+        predictionResult.confidence,
+        (performance.now() - attemptStartedAt) / 1000
+      )
+      setAssessment(assessmentResult)
     } catch (err) {
       console.error(err);
 
@@ -218,19 +211,31 @@ useEffect(() => {
 
           {assessment && (
             <div className="result-card">
-              <div className="result-score">
-                <span className="score-value">
-                  {assessment.accuracy}%
-                </span>
-
-                <span className="score-label">
-                  Accuracy
-                </span>
+              <div className="assessment-summary">
+                <p className="label">Assessment Summary</p>
+                <div className="summary-grid">
+                  <div className="summary-item"><span>Letter</span><strong>{assessment.expected_sign}</strong></div>
+                  <div className="summary-item"><span>Prediction</span><strong>{assessment.predicted_sign}</strong></div>
+                  <div className="summary-item"><span>Result</span><strong className={assessment.is_correct ? 'correct' : 'incorrect'}>{assessment.is_correct ? '✓ Correct' : '✕ Incorrect'}</strong></div>
+                  <div className="summary-item"><span>Status</span><strong>{assessment.status}</strong></div>
+                  <div className="summary-item"><span>Attempt time</span><strong>{assessment.attempt_duration}s</strong></div>
+                  <div className="summary-item"><span>Completed at</span><strong>{new Date(assessment.completed_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</strong></div>
+                </div>
+                <div className="metric-row">
+                  <span>Confidence</span>
+                  <div className="progress-track"><div className="progress-fill" style={{ width: `${assessment.confidence}%` }} /></div>
+                  <strong>{assessment.confidence}%</strong>
+                </div>
+                <div className="metric-row">
+                  <span>Accuracy</span>
+                  <div className="progress-track"><div className="progress-fill" style={{ width: `${assessment.accuracy}%` }} /></div>
+                  <strong>{assessment.accuracy}%</strong>
+                </div>
               </div>
 
               <ul className="feedback-list">
                 {assessment.feedback.map((msg, i) => (
-                  <li key={i}>{msg}</li>
+                  <li key={i}><span aria-hidden="true">✓</span>{msg}</li>
                 ))}
               </ul>
             </div>
