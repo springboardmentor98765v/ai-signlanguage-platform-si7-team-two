@@ -36,11 +36,16 @@ export async function predictSign(imageBlob) {
   return handleResponse(res)
 }
 
-export async function assessAttempt(expectedSign, predictedSign, confidence) {
+export async function assessAttempt(expectedSign, predictedSign, confidence, attemptDuration = 0) {
   const res = await fetch(`${API_BASE_URL}/assessment/score`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ expected_sign: expectedSign, predicted_sign: predictedSign, confidence }),
+    body: JSON.stringify({
+      expected_sign: expectedSign,
+      predicted_sign: predictedSign,
+      confidence,
+      attempt_duration: attemptDuration,
+    }),
   })
   return handleResponse(res)
 }
