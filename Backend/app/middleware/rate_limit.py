@@ -2,7 +2,7 @@ import time
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-RATE_LIMIT = 10
+RATE_LIMIT = 1000
 WINDOW = 60
 
 requests = {}
