@@ -223,22 +223,20 @@ runnable, clearly marked for replacement.
   "confidence"}` shape Intern 4's Assessment Service (Day 4) expects.
 - `infra/docker-compose.yml` — the full stack: db + backend + ai-service.
 - `db/scripts/start_full_stack.sh` / `.ps1` — one-command startup.
-- `db/scripts/start_db.sh` / `.ps1` — updated convenience scripts.
-- `db/scripts/verify_orm_models.py` — added to verify ORM column alignment.
 
 ### Run it (from repo root)
 ```bash
-./Database_Devops/db/scripts/start_full_stack.sh      # Linux/macOS
-.\Database_Devops\db\scripts\start_full_stack.ps1     # Windows
+./db/scripts/start_full_stack.sh      # Linux/macOS
+.\db\scripts\start_full_stack.ps1     # Windows
 ```
 Then check:
 - `http://localhost:8000/health` and `http://localhost:8000/health/db`
 - `http://localhost:8001/health`
 
 ### Important gotcha
-`infra/docker-compose.db.yml` (Day 2) and `infra/docker-compose.yml` (Day 5)
-both manage a container named `signlang_postgres` — running both at once
-causes a name/port conflict. `start_full_stack.sh` stops the Day 2 db-only
+`docker-compose.db.yml` (Day 2) and `docker-compose.yml` (Day 5) both
+manage a container named `signlang_postgres` — running both at once causes
+a name/port conflict. `start_full_stack.sh` stops the Day 2 db-only
 container first automatically; do the same manually
 (`docker compose -f infra/docker-compose.db.yml down`) if you're not using
 the script.
@@ -256,55 +254,34 @@ Python — not just by inspecting the Dockerfile.
 
 ---
 
-## Day 6 — GitHub Actions CI (SRS §6, Intern 5, Day 6)
-
-**Scope:** basic CI check (lint/build on push) as specified in SRS §6.
-
-### What's new
-- `.github/workflows/ci.yml` — two jobs:
-  1. **lint-and-verify**: spins up a throwaway Postgres, runs real Alembic
-     migrations from scratch (`alembic upgrade head`), applies seed data,
-     then runs all three verification/smoke scripts.
-  2. **docker-build**: builds both Docker images and validates both Compose
-     files (`docker compose config -q`) to catch Dockerfile/config errors
-     before they reach a teammate's machine.
-- Runs on push to `main`, `integration`, and `intern-*/**` branches, and on
-  PRs targeting `main`/`integration`.
-- Uses `ruff` for linting (`ruff check db backend ai-service`).
-
-### Why more than a lint stub
-CI is the one place the "genuinely fresh database" path (`alembic upgrade head`)
-gets exercised regularly — not just stamped as on a bootstrapped Day 2 DB.
-The docker-build job also catches the exact class of Dockerfile bug
-(ai-service hyphen/module-path) that was caught during Day 5.
-
----
-
 ## Day 7 — Integration Check & Deployment Note (SRS §6, Intern 5, Day 7)
 
 **Scope honesty, most important caveat of the whole project:** the SRS's
 actual Day 7 activity is the whole team walking through the real learner
 journey together (SRS §8.1) using Intern 1–4's real code. That is
 inherently a team activity and cannot be done solo. What's here is the
-closest automatable substitute.
+closest automatable substitute — see `DEPLOYMENT_NOTE.md` at the repo root
+for the full, honest breakdown of what is and isn't verified.
 
 ### What's new
 - `db/scripts/integration_check.sh` / `.ps1` — runs against the full stack
   (must already be up via `start_full_stack`) and checks: both services'
-  health endpoints, the AI service's `/predict` response contract, and all
-  3 DB verification/smoke scripts, printing a consolidated pass/fail report.
+  health endpoints, the AI service's response contract, and all 3 DB
+  verification/smoke scripts, printing a consolidated pass/fail report.
+- `DEPLOYMENT_NOTE.md` (repo root) — the literal Day 7 deliverable named in
+  the SRS.
 
 ### Run it
 ```bash
-./Database_Devops/db/scripts/start_full_stack.sh      # if not already running
-./Database_Devops/db/scripts/integration_check.sh     # Linux/macOS
-.\Database_Devops\db\scripts\integration_check.ps1    # Windows
+./db/scripts/start_full_stack.sh      # if not already running
+./db/scripts/integration_check.sh     # Linux/macOS
+.\db\scripts\integration_check.ps1    # Windows
 ```
 
-### What is and isn't verified
-- ✅ Database connectivity (all 8 tables, seed data)
-- ✅ ORM model alignment (all columns match live DB)
-- ✅ Full ORM round-trip (insert → query → delete via relationships)
-- ✅ Both service `/health` endpoints reachable over Docker network
-- ✅ AI service `/predict` returns correct `{predicted_sign, confidence}` contract
-- ❌ Real learner journey with Intern 1–4's actual code (team activity — cannot be solo)
+---
+
+## Milestone 2 — Day 1 (current)
+See `milestone2/README.md` for the Milestone 2 Data Layer plan (4 new
+entities: Certificates, Recommendations, Instructor-Student mapping,
+Weekly Analytics). Everything above this line is Milestone 1, which
+remains complete and unchanged.
