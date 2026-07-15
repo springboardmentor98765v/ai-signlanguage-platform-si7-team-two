@@ -22,7 +22,7 @@ export default function App() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/lessons" element={<Lessons />} />
-        <Route path="/practice" element={<Practice />} />
+        <Route path="/practice/:letter" element={<Practice />} />
         <Route path="/reports" element={<Reports />} />
       </Route>
     </Routes>

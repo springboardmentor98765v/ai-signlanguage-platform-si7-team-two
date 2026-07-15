@@ -1,75 +1,88 @@
-import { useState, useEffect } from 'react'
-import { getLessons } from '../services/api.js'
-import { lessons as mockLessons } from '../data/mockData.js'
-
-
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getLessons } from "../services/api.js";
 
 
 function badgeClass(difficulty) {
-  if (difficulty === 'Beginner') return 'badge badge-beginner'
-  if (difficulty === 'Intermediate') return 'badge badge-intermediate'
-  return 'badge badge-advanced'
+  if (difficulty === "Beginner") return "badge badge-beginner";
+  if (difficulty === "Intermediate") return "badge badge-intermediate";
+  return "badge badge-advanced";
 }
 
 export default function Lessons() {
-  const [lessons, setLessons] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+
+  const [lessons, setLessons] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    let isMounted = true
+    let isMounted = true;
 
     async function fetchLessons() {
-      setIsLoading(true)
-      setError('')
+      console.log("Fetching lessons...");
+      setIsLoading(true);
+      setError("");
+
       try {
-        const data = await getLessons()
-        if (isMounted) setLessons(data)
+        const data = await getLessons();
+
+        if (isMounted) {
+          setLessons(data);
+        }
       } catch (err) {
-        if (isMounted) setError(err.message || 'Could not load lessons.')
+        if (isMounted) {
+          setError(err.message || "Could not load lessons.");
+        }
       } finally {
-        if (isMounted) setIsLoading(false)
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
-    fetchLessons()
-    return () => { isMounted = false }
-  }, [])
+    fetchLessons();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (isLoading) {
-    return <p className="lessons-status">Loading lessons...</p>
+    return <p className="lessons-status">Loading lessons...</p>;
   }
-
-  if (error) {
-    return (
-      <div>
-        <p className="lessons-status error">
-          {error} Showing sample lessons instead.
-        </p>
-        <LessonGrid lessons={mockLessons} />
-      </div>
-    )
-  }
-
-  return <LessonGrid lessons={lessons} />
+if (error) {
+  return (
+    <p className="lessons-status error">
+      {error}
+    </p>
+  )
 }
 
-function LessonGrid({ lessons }) {
+  return <LessonGrid lessons={lessons} navigate={navigate} />;
+}
+
+function LessonGrid({ lessons, navigate }) {
   return (
     <div className="lesson-grid">
       {lessons.map((lesson) => (
         <div
-    className="lesson-card"
-    key={lesson.id}
-    onClick={() => window.location.href = "/practice"}
->
+          key={lesson.id}
+          className="lesson-card"
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate(`/practice/${lesson.letter}`)}
+        >
           <div className="lesson-card-header">
             <h3>{lesson.title}</h3>
-            <span className={badgeClass(lesson.difficulty)}>{lesson.difficulty}</span>
+
+            <span className={badgeClass(lesson.difficulty)}>
+              {lesson.difficulty}
+            </span>
           </div>
+
           <p>{lesson.description}</p>
         </div>
       ))}
     </div>
-  )
+  );
 }

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { predictSign, assessAttempt } from '../services/api.js'
-
+import { useParams } from "react-router-dom";
+import { useLocation } from 'react-router-dom'
 function getStatusLabel(accuracy) {
   if (accuracy >= 90) return 'Excellent'
   if (accuracy >= 75) return 'Good'
@@ -9,13 +10,16 @@ function getStatusLabel(accuracy) {
 }
 
 export default function Practice() {
+  
   const videoRef = useRef(null)
   const streamRef = useRef(null)
   const canvasRef = useRef(null)
 
   const [isPracticing, setIsPracticing] = useState(false)
   const [cameraError, setCameraError] = useState('')
-  const [targetLetter] = useState('A')
+  const { letter } = useParams();
+
+const targetLetter = letter || "A";
 
   const [isChecking, setIsChecking] = useState(false)
   const [checkError, setCheckError] = useState('')
@@ -328,9 +332,13 @@ useEffect(() => {
 
               <div className="result-card">
                 <ul className="feedback-list">
-                  {assessment.feedback.map((msg, index) => (
-                    <li key={index}>{msg}</li>
-                  ))}
+                  {assessment?.feedback?.length ? (
+  assessment.feedback.map((msg, i) => (
+    <li key={i}>{msg}</li>
+  ))
+) : (
+  <li>No feedback available.</li>
+)}
                 </ul>
               </div>
 
