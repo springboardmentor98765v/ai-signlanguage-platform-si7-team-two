@@ -28,13 +28,24 @@ export async function register(name, email, password, role) {
 
 export async function predictSign(imageBlob) {
   const formData = new FormData()
-  formData.append('frame', imageBlob)
-  const res = await fetch(`${API_BASE_URL}/ai/predict`, {
-    method: 'POST',
-    body: formData,
-  })
+
+  formData.append(
+    "file",
+    imageBlob,
+    "frame.jpg"
+  )
+
+  const res = await fetch(
+    `${API_BASE_URL}/ai/predict`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  )
+
   return handleResponse(res)
 }
+
 
 export async function assessAttempt(expectedSign, predictedSign, confidence) {
   const res = await fetch(`${API_BASE_URL}/assessment/score`, {
