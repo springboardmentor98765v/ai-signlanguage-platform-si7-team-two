@@ -4,6 +4,7 @@ from app.routers import practice
 from app.middleware.logging import log_requests
 from app.middleware.rate_limit import rate_limit
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers import lesson
 
 # Create FastAPI app FIRST
 app = FastAPI(
@@ -33,7 +34,11 @@ app.include_router(
     prefix="/practice",
     tags=["Practice"],
 )
-
+app.include_router(
+    lesson.router,
+    prefix="/lessons",
+    tags=["Lessons"]
+)
 
 @app.get("/", tags=["Root"])
 def root():
