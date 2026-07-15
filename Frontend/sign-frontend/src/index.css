@@ -814,3 +814,58 @@ button, input, select {
 .lessons-status.error {
   color: var(--clay);
 }
+
+/* --- Milestone 2 / Practice page additions --- */
+
+.practice-result-row {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.practice-result-row .label { font-size: 11px; color: var(--muted); margin: 0 0 4px; }
+.result-value { font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; }
+.result-correct { color: var(--moss); }
+.result-incorrect { color: var(--clay); }
+
+.summary-card {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.summary-card .label { font-size: 11px; color: var(--muted); margin: 0 0 10px; }
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--ink);
+  padding: 4px 0;
+}
+.summary-row + .accuracy-bar-wrap {
+  margin: 2px 0 6px;
+  width: 100%;
+}
+
+.status-badge {
+  font-weight: 700;
+  color: var(--moss);
+}
+.status-badge.low { color: var(--clay); }
+
+.feedback-list.checklist {
+  list-style: none;
+  padding-left: 0;
+}
+.feedback-list.checklist li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 6px;
+}
+.feedback-list.checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--moss);
+  font-weight: 700;
+}
