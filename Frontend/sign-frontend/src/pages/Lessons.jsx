@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { getLessons } from '../services/api.js'
 import { lessons as mockLessons } from '../data/mockData.js'
 
+
+
+
 function badgeClass(difficulty) {
   if (difficulty === 'Beginner') return 'badge badge-beginner'
   if (difficulty === 'Intermediate') return 'badge badge-intermediate'
@@ -55,7 +58,11 @@ function LessonGrid({ lessons }) {
   return (
     <div className="lesson-grid">
       {lessons.map((lesson) => (
-        <div className="lesson-card" key={lesson.id}>
+        <div
+    className="lesson-card"
+    key={lesson.id}
+    onClick={() => window.location.href = "/practice"}
+>
           <div className="lesson-card-header">
             <h3>{lesson.title}</h3>
             <span className={badgeClass(lesson.difficulty)}>{lesson.difficulty}</span>
