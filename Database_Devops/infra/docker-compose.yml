@@ -50,6 +50,7 @@ services:
       # ("db"), not "localhost" — override just this one piece of the
       # .env file's local-dev value for in-container use.
       DATABASE_URL: postgresql://${DB_USER:-signlang_app}:${DB_PASSWORD:-changeme_on_day2}@db:5432/${DB_NAME:-signlang_platform}
+      PYTHONPATH: /app/Bussiness_Logic:/app
     ports:
       - "8000:8000"
     depends_on:
@@ -64,6 +65,8 @@ services:
     restart: unless-stopped
     env_file:
       - ../.env
+    environment:
+      PYTHONPATH: /app/AIML_CV:/app
     ports:
       - "8001:8001"
     # No DB dependency for the placeholder — Intern 3's real service may

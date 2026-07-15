@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY AIML_CV/ ./AIML_CV/
 
-ENV PYTHONPATH=/app/AIML_CV:/app
+ENV PYTHONPATH=/app
 
 EXPOSE 8001
 

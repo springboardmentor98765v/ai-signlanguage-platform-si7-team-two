@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir -r db-requirements.txt -r requirements.txt
 COPY Database_Devops/db/ ./Database_Devops/db/
 COPY Bussiness_Logic/ ./Bussiness_Logic/
 
-ENV PYTHONPATH=/app/Bussiness_Logic:/app
+ENV PYTHONPATH=/app
 
 EXPOSE 8000
 
