@@ -35,6 +35,7 @@ async def submit_attempt(
     ai_result = await get_ai_prediction(image_bytes, filename=file.filename)
     predicted_sign = ai_result["predicted_sign"]
     confidence = ai_result["confidence"]
+    possible_issue = ai_result["possible_issue"]
 
     # 3. Log the attempt
     session.attempt_count += 1
@@ -64,7 +65,7 @@ async def submit_attempt(
     db.refresh(new_assessment)
 
     # 5. Generate feedback (Feedback Service)
-    rules_triggered = generate_feedback(scores)
+    rules_triggered = generate_feedback(scores, possible_issue)
     feedback_list = []
     for rule in rules_triggered:
         fb = Feedback(

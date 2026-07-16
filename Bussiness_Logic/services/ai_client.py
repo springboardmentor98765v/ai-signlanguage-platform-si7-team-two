@@ -9,7 +9,9 @@ AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://127.0.0.1:8001")
 async def get_ai_prediction(image_bytes: bytes, filename: str = "frame.jpg") -> dict:
     """
     Calls Intern 3's real AI service (POST /predict, multipart/form-data).
-    Returns predicted_sign + confidence normalized to 0-1 scale.
+    Returns predicted_sign, confidence (0-1 scale), and possible_issue —
+    a real, letter-specific hint generated from landmark analysis
+    (e.g. "Fold your thumb outside the fist.").
     Falls back to a safe mock response if the service is unreachable.
     """
     try:
@@ -19,11 +21,15 @@ async def get_ai_prediction(image_bytes: bytes, filename: str = "frame.jpg") -> 
             response.raise_for_status()
             data = response.json()
 
-            # Their field names: "prediction" + confidence as percentage (0-100)
             return {
                 "predicted_sign": data["prediction"],
-                "confidence": data["confidence"] / 100.0  # normalize to 0-1
+                "confidence": data["confidence"] / 100.0,  # normalize to 0-1
+                "possible_issue": data.get("possible_issue", "No major issue detected."),
             }
     except Exception as e:
         print(f"[WARN] AI service unreachable, using mock response: {e}")
-        return {"predicted_sign": "A", "confidence": 0.85}
+        return {
+            "predicted_sign": "A",
+            "confidence": 0.85,
+            "possible_issue": "No major issue detected.",
+        }
