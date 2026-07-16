@@ -1,8 +1,8 @@
 import mediapipe as mp
 
 from src.feature_extractor import extract_features
+from src.possible_issue import detect_possible_issue
 from inference.predictor import predict_sign
-
 from config.settings import (
     MAX_NUM_HANDS,
     MIN_DETECTION_CONFIDENCE,
@@ -43,19 +43,27 @@ class SignLanguageRecognizer:
             return {
                 "prediction": "No Hand",
                 "confidence": 0.0,
+                "possible_issue": "Place your hand inside the camera frame.",
                 "features": None,
-                "landmarks": None
+                "landmarks": None,
             }
 
+        # First detected hand
         hand = results.multi_hand_landmarks[0]
 
+        # Extract MediaPipe features
         features = self.extract(hand)
 
+        # XGBoost prediction
         prediction, confidence = self.classify(features)
 
+        # Rule-based feedback
+        possible_issue = detect_possible_issue(hand)
+
         return {
-        "prediction": prediction,
-        "confidence": confidence,
-        "features": features,
-        "landmarks": hand
+            "prediction": prediction,
+            "confidence": confidence,
+            "possible_issue": possible_issue,
+            "features": features,
+            "landmarks": hand,
         }
