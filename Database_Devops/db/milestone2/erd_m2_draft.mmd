@@ -1,0 +1,95 @@
+%% DRAFT — Milestone 2, Day 1. Extends db/erd/erd.mmd (Milestone 1) with
+%% the 4 new entities below. Existing Milestone 1 entities are included
+%% unmodified for context; only CERTIFICATES, RECOMMENDATIONS,
+%% INSTRUCTOR_STUDENT_LINKS, and WEEKLY_ANALYTICS are new.
+erDiagram
+    ROLES ||--o{ USERS : "assigned to"
+    USERS ||--o{ PRACTICE_SESSIONS : "starts"
+    USERS ||--o| LEARNER_ANALYTICS : "has (lifetime)"
+    COURSES ||--o{ LESSONS : "contains"
+    LESSONS ||--o{ PRACTICE_SESSIONS : "practiced in"
+    PRACTICE_SESSIONS ||--o{ ASSESSMENTS : "produces"
+    ASSESSMENTS ||--o{ FEEDBACK : "generates"
+
+    %% --- NEW in Milestone 2 ---
+    USERS ||--o{ CERTIFICATES : "earns"
+    COURSES ||--o{ CERTIFICATES : "awarded for"
+    USERS ||--o{ RECOMMENDATIONS : "receives"
+    LESSONS ||--o{ RECOMMENDATIONS : "recommended"
+    USERS ||--o{ INSTRUCTOR_STUDENT_LINKS : "instructor in"
+    USERS ||--o{ INSTRUCTOR_STUDENT_LINKS : "student in"
+    USERS ||--o{ WEEKLY_ANALYTICS : "has (weekly)"
+
+    ROLES {
+        uuid id PK
+        varchar name
+    }
+    USERS {
+        uuid id PK
+        uuid role_id FK
+        varchar full_name
+        varchar email UK
+        varchar password_hash
+    }
+    COURSES {
+        uuid id PK
+        varchar name
+        varchar level
+    }
+    LESSONS {
+        uuid id PK
+        uuid course_id FK
+        varchar letter
+    }
+    PRACTICE_SESSIONS {
+        uuid id PK
+        uuid user_id FK
+        uuid lesson_id FK
+    }
+    ASSESSMENTS {
+        uuid id PK
+        uuid session_id FK
+        varchar predicted_sign
+        numeric confidence
+    }
+    FEEDBACK {
+        uuid id PK
+        uuid assessment_id FK
+    }
+    LEARNER_ANALYTICS {
+        uuid id PK
+        uuid user_id FK UK
+        numeric average_accuracy
+    }
+
+    CERTIFICATES {
+        uuid id PK
+        uuid user_id FK
+        uuid course_id FK
+        numeric score_achieved
+        timestamptz issued_at
+        varchar certificate_file_path
+    }
+    RECOMMENDATIONS {
+        uuid id PK
+        uuid user_id FK
+        uuid lesson_id FK
+        varchar reason
+        varchar status
+        timestamptz created_at
+    }
+    INSTRUCTOR_STUDENT_LINKS {
+        uuid id PK
+        uuid instructor_id FK
+        uuid student_id FK
+        timestamptz assigned_at
+    }
+    WEEKLY_ANALYTICS {
+        uuid id PK
+        uuid user_id FK
+        date week_start_date
+        numeric average_accuracy
+        int lessons_practiced
+        numeric improvement_rate
+        jsonb weak_letters
+    }

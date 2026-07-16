@@ -201,3 +201,87 @@ constraint names in both migrations and all ORM models now use the *bare*
 name (e.g. `confidence_range`) and let the convention add the `ck_<table>_`
 prefix automatically. Verified via generated offline SQL that every
 constraint name matches `schema.sql` exactly across all 8 tables.
+
+---
+
+## Day 5 — Full Stack Docker Compose (SRS §6, Intern 5, Day 5)
+
+**Scope note:** `backend/` and `ai-service/` had no real code before today —
+Intern 2/3's actual services don't exist in this solo build. Both now have
+minimal placeholder FastAPI apps (`backend/app/main.py`,
+`ai-service/app/main.py`) so the containers/compose stack are real and
+runnable, clearly marked for replacement.
+
+### What's new
+- `backend/Dockerfile`, `backend/app/main.py`, `backend/requirements.txt` —
+  placeholder backend with `/health` and `/health/db` (the latter actually
+  queries Postgres over the Docker network — real proof of connectivity,
+  not a hardcoded response).
+- `ai-service/Dockerfile`, `ai-service/app/main.py`,
+  `ai-service/requirements.txt` — placeholder AI service with `/health`
+  and a `/predict` stub that returns the exact `{"predicted_sign",
+  "confidence"}` shape Intern 4's Assessment Service (Day 4) expects.
+- `infra/docker-compose.yml` — the full stack: db + backend + ai-service.
+- `db/scripts/start_full_stack.sh` / `.ps1` — one-command startup.
+
+### Run it (from repo root)
+```bash
+./db/scripts/start_full_stack.sh      # Linux/macOS
+.\db\scripts\start_full_stack.ps1     # Windows
+```
+Then check:
+- `http://localhost:8000/health` and `http://localhost:8000/health/db`
+- `http://localhost:8001/health`
+
+### Important gotcha
+`docker-compose.db.yml` (Day 2) and `docker-compose.yml` (Day 5) both
+manage a container named `signlang_postgres` — running both at once causes
+a name/port conflict. `start_full_stack.sh` stops the Day 2 db-only
+container first automatically; do the same manually
+(`docker compose -f infra/docker-compose.db.yml down`) if you're not using
+the script.
+
+### A real bug caught before it shipped
+The AI service's Dockerfile originally tried to run
+`uvicorn ai-service.app.main:app` — but `ai-service` contains a hyphen,
+which is not a valid Python module name, so that import would have failed
+at container startup. Fixed by copying `ai-service/app/`'s contents
+directly into the image's `/app/app/`, so the importable path is just
+`app.main:app`. Verified by replicating the exact container filesystem
+layout locally and actually importing both `app.main:app` (ai-service) and
+`backend.app.main:app` (backend, including its `db/` dependency) with real
+Python — not just by inspecting the Dockerfile.
+
+---
+
+## Day 7 — Integration Check & Deployment Note (SRS §6, Intern 5, Day 7)
+
+**Scope honesty, most important caveat of the whole project:** the SRS's
+actual Day 7 activity is the whole team walking through the real learner
+journey together (SRS §8.1) using Intern 1–4's real code. That is
+inherently a team activity and cannot be done solo. What's here is the
+closest automatable substitute — see `DEPLOYMENT_NOTE.md` at the repo root
+for the full, honest breakdown of what is and isn't verified.
+
+### What's new
+- `db/scripts/integration_check.sh` / `.ps1` — runs against the full stack
+  (must already be up via `start_full_stack`) and checks: both services'
+  health endpoints, the AI service's response contract, and all 3 DB
+  verification/smoke scripts, printing a consolidated pass/fail report.
+- `DEPLOYMENT_NOTE.md` (repo root) — the literal Day 7 deliverable named in
+  the SRS.
+
+### Run it
+```bash
+./db/scripts/start_full_stack.sh      # if not already running
+./db/scripts/integration_check.sh     # Linux/macOS
+.\db\scripts\integration_check.ps1    # Windows
+```
+
+---
+
+## Milestone 2 — Day 1 (current)
+See `milestone2/README.md` for the Milestone 2 Data Layer plan (4 new
+entities: Certificates, Recommendations, Instructor-Student mapping,
+Weekly Analytics). Everything above this line is Milestone 1, which
+remains complete and unchanged.

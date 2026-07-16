@@ -23,7 +23,7 @@ def run() -> None:
         assert len(roles) == 4, f"expected 4 seeded roles, found {len(roles)}"
 
         lessons = session.query(Lesson).join(Course).order_by(Lesson.order_index).all()
-        print(f"Lessons found: {[(l.letter, l.course.name) for l in lessons]}")
+        print(f"Lessons found: {[(lesson.letter, lesson.course.name) for lesson in lessons]}")
         assert len(lessons) == 5, f"expected 5 seeded lessons, found {len(lessons)}"
 
         print("\n== Insert/query/delete round trip (proves ORM writes actually work) ==")
