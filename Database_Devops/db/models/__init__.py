@@ -15,6 +15,8 @@ from db.models.practice_sessions import PracticeSession
 from db.models.assessments import Assessment
 from db.models.feedback import Feedback
 from db.models.learner_analytics import LearnerAnalytics
+from db.models.certificates import Certificate
+from db.models.recommendations import Recommendation
 
 __all__ = [
     "Base",
@@ -26,4 +28,6 @@ __all__ = [
     "Assessment",
     "Feedback",
     "LearnerAnalytics",
+    "Certificate",
+    "Recommendation",
 ]

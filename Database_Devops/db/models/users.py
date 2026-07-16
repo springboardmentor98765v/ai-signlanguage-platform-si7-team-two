@@ -22,6 +22,8 @@ if TYPE_CHECKING:
     from db.models.roles import Role
     from db.models.practice_sessions import PracticeSession
     from db.models.learner_analytics import LearnerAnalytics
+    from db.models.certificates import Certificate
+    from db.models.recommendations import Recommendation
 
 
 class User(Base):
@@ -49,6 +51,12 @@ class User(Base):
     )
     analytics: Mapped["LearnerAnalytics | None"] = relationship(
         back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+    certificates: Mapped[list["Certificate"]] = relationship(
+        back_populates="learner", cascade="all, delete-orphan"
+    )
+    recommendations: Mapped[list["Recommendation"]] = relationship(
+        back_populates="learner", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
