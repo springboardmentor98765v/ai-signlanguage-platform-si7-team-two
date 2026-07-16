@@ -1,118 +1,68 @@
-import math
+from src.letter_rules import (
+    check_A,
+    check_B,
+    check_C,
+    check_D,
+    check_E,
+    check_F,
+    check_G,
+    check_H,
+    check_I,
+    check_J,
+    check_K,
+    check_L,
+    check_M,
+    check_N,
+    check_O,
+)
 
-
-def distance(p1, p2):
-    """
-    Euclidean distance between two MediaPipe landmarks.
-    """
-    return math.sqrt(
-        (p1.x - p2.x) ** 2 +
-        (p1.y - p2.y) ** 2
-    )
-
-
-def detect_possible_issue(hand_landmarks):
-    """
-    Returns a simple rule-based feedback message.
-
-    Input:
-        hand_landmarks -> MediaPipe HandLandmark object
-
-    Output:
-        String
-    """
+def detect_possible_issue(hand_landmarks, prediction):
 
     lm = hand_landmarks.landmark
 
-    # -----------------------------
-    # Landmark indices
-    # -----------------------------
-
     wrist = lm[0]
-
-    thumb_tip = lm[4]
-
-    index_tip = lm[8]
-
-    middle_tip = lm[12]
-
-    ring_tip = lm[16]
-
+    index_mcp = lm[5]
     pinky_tip = lm[20]
 
-    index_mcp = lm[5]
-
-    middle_mcp = lm[9]
-
-    # ---------------------------------------
-    # Rule 1
-    # Hand too low
-    # ---------------------------------------
+    # ------------------------
+    # Global Rules
+    # ------------------------
 
     if wrist.y > 0.90:
         return "Raise your hand slightly."
 
-    # ---------------------------------------
-    # Rule 2
-    # Hand too high
-    # ---------------------------------------
-
     if wrist.y < 0.10:
         return "Lower your hand slightly."
 
-    # ---------------------------------------
-    # Rule 3
-    # Fingers too close
-    # ---------------------------------------
-
-    spread = distance(index_tip, middle_tip)
-
-    if spread < 0.03:
-        return "Spread your fingers slightly."
-
-    # ---------------------------------------
-    # Rule 4
-    # Fingers too wide
-    # ---------------------------------------
-
-    if spread > 0.18:
-        return "Keep your fingers closer together."
-
-    # ---------------------------------------
-    # Rule 5
-    # Thumb too far away
-    # ---------------------------------------
-
-    thumb_distance = distance(
-        thumb_tip,
-        index_mcp
-    )
-
-    if thumb_distance > 0.35:
-        return "Fold your thumb inward."
-
-    # ---------------------------------------
-    # Rule 6
-    # Palm rotated
-    # ---------------------------------------
-
-    palm_width = abs(
-        index_mcp.x -
-        pinky_tip.x
-    )
+    palm_width = abs(index_mcp.x - pinky_tip.x)
 
     if palm_width < 0.08:
         return "Keep your palm facing the camera."
 
-    # ---------------------------------------
-    # Rule 7
-    # Fingers bent too much
-    # ---------------------------------------
+    # ------------------------
+    # Letter-specific Rules
+    # ------------------------
 
-    if (
-        index_tip.y > middle_mcp.y and
-        middle_tip.y > middle_mcp.y
-    ):
-        return "Extend your fingers."
+    RULES = {
+    "A": check_A,
+    "B": check_B,
+    "C": check_C,
+    "D": check_D,
+    "E": check_E,
+    "F": check_F,
+    "G": check_G,
+    "H": check_H,
+    "I": check_I,
+    "J": check_J,
+    "J": check_J,
+    "K": check_K,
+    "L": check_L,
+    "M": check_M,
+    "N": check_N,
+    "O": check_O,
+}
+
+    if prediction in RULES:
+        return RULES[prediction](lm)
 
     return "No major issue detected."
