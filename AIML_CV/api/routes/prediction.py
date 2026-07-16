@@ -47,9 +47,10 @@ async def predict(file: UploadFile = File(...)):
             status_code=400
         )
     response = PredictionResponse(
-        prediction=result["prediction"],
-        confidence=round(float(result["confidence"]) * 100, 2)
-    )
+    prediction=result["prediction"],
+    confidence=round(float(result["confidence"]) * 100, 2),
+    possible_issue=result["possible_issue"]
+)
     logger.info(
         f"Prediction: {result['prediction']} | Confidence: {result['confidence']:.4f}"
     )
