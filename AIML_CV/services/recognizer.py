@@ -58,7 +58,7 @@ class SignLanguageRecognizer:
         prediction, confidence = self.classify(features)
 
         # Rule-based feedback
-        possible_issue = detect_possible_issue(hand)
+        possible_issue = detect_possible_issue(hand,prediction)
 
         return {
             "prediction": prediction,
