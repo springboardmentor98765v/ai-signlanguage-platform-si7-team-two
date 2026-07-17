@@ -14,6 +14,19 @@ from src.letter_rules import (
     check_M,
     check_N,
     check_O,
+    check_P,
+    check_Q,
+    check_R,
+    check_S,
+    check_T,
+    check_U,
+    check_V,
+    check_W,
+    check_X,
+    check_Y,
+    check_Z,
+    check_del,
+    check_space,
 )
 
 def detect_possible_issue(hand_landmarks, prediction):
@@ -60,6 +73,20 @@ def detect_possible_issue(hand_landmarks, prediction):
     "M": check_M,
     "N": check_N,
     "O": check_O,
+    "P": check_P,
+    "Q": check_Q,
+    "R": check_R,
+    "S": check_S,
+    "T": check_T,
+    "U": check_U,
+    "V": check_V,
+    "W": check_W,
+    "X": check_X,
+    "Y": check_Y,
+    "Z": check_Z,
+    "del": check_del,
+    "space": check_space,
+    
 }
 
     if prediction in RULES:

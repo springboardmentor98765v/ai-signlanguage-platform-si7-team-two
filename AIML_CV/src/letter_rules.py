@@ -68,7 +68,7 @@ def check_A(lm):
     index_mcp = lm[5]
     middle_mcp = lm[9]
 
-    if thumb_extended(thumb_tip, index_mcp):
+    if thumb_extended(thumb_tip, index_mcp,lm):
         return "Fold your thumb outside the fist."
 
     if index_tip.y < middle_mcp.y:
@@ -84,10 +84,10 @@ def check_B(lm):
     middle_tip = lm[12]
     index_mcp = lm[5]
 
-    if fingers_are_wide(index_tip, middle_tip):
+    if fingers_are_wide(index_tip, middle_tip,lm):
         return "Keep your fingers together."
 
-    if thumb_extended(thumb_tip, index_mcp):
+    if thumb_extended(thumb_tip, index_mcp,lm):
         return "Fold your thumb across the palm."
 
     return "Good 'B' hand shape."
@@ -120,7 +120,7 @@ def check_E(lm):
     thumb_tip = lm[4]
     index_mcp = lm[5]
 
-    if thumb_extended(thumb_tip, index_mcp):
+    if thumb_extended(thumb_tip, index_mcp,lm):
         return "Bring your thumb closer to your palm."
 
     return "Good 'E' hand shape."
@@ -239,4 +239,153 @@ def check_O(lm):
     return (
         "Curve all your fingers and thumb together "
         "to form a rounded 'O' shape."
+    )
+# ==========================================================
+# Letter P
+# ==========================================================
+
+def check_P(lm):
+
+    return (
+        "Point your index finger downward while keeping "
+        "your thumb extended beside it."
+    )
+
+
+# ==========================================================
+# Letter Q
+# ==========================================================
+
+def check_Q(lm):
+
+    return (
+        "Point your thumb and index finger downward "
+        "while keeping the remaining fingers folded."
+    )
+
+
+# ==========================================================
+# Letter R
+# ==========================================================
+
+def check_R(lm):
+
+    return (
+        "Cross your index finger over your middle finger "
+        "while keeping the remaining fingers folded."
+    )
+
+
+# ==========================================================
+# Letter S
+# ==========================================================
+
+def check_S(lm):
+
+    return (
+        "Make a closed fist and wrap your thumb "
+        "across the front of your fingers."
+    )
+
+
+# ==========================================================
+# Letter T
+# ==========================================================
+
+def check_T(lm):
+
+    return (
+        "Place your thumb between your index and middle fingers "
+        "while keeping a closed fist."
+    )
+# ==========================================================
+# Letter U
+# ==========================================================
+
+def check_U(lm):
+
+    return (
+        "Keep your index and middle fingers together and "
+        "pointing upward while folding the remaining fingers."
+    )
+
+
+# ==========================================================
+# Letter V
+# ==========================================================
+
+def check_V(lm):
+
+    return (
+        "Separate your index and middle fingers into a 'V' "
+        "while keeping the other fingers folded."
+    )
+
+
+# ==========================================================
+# Letter W
+# ==========================================================
+
+def check_W(lm):
+
+    return (
+        "Extend your index, middle, and ring fingers while "
+        "keeping your little finger folded."
+    )
+
+
+# ==========================================================
+# Letter X
+# ==========================================================
+
+def check_X(lm):
+
+    return (
+        "Curl your index finger into a hook shape while "
+        "keeping the remaining fingers folded."
+    )
+
+
+# ==========================================================
+# Letter Y
+# ==========================================================
+
+def check_Y(lm):
+
+    return (
+        "Extend your thumb and little finger while "
+        "folding the remaining fingers."
+    )
+
+
+# ==========================================================
+# Letter Z
+# ==========================================================
+
+def check_Z(lm):
+
+    return (
+        "Draw the letter 'Z' in the air using your index finger."
+    )
+# ==========================================================
+# Delete
+# ==========================================================
+
+def check_del(lm):
+
+    return (
+        "Show the delete gesture clearly and keep your hand "
+        "steady before submitting."
+    )
+
+
+# ==========================================================
+# Space
+# ==========================================================
+
+def check_space(lm):
+
+    return (
+        "Perform the space gesture with a clear hand position "
+        "and avoid unnecessary movement."
     )
