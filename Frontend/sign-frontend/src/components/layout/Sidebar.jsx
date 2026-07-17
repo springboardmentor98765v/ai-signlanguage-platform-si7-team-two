@@ -8,6 +8,7 @@ const links = [
   { to: '/practice/A', label: 'Practice' },
 
   { to: '/reports', label: 'Reports' },
+  { to: '/profile', label: 'Profile' },
 ]
 
 export default function Sidebar() {

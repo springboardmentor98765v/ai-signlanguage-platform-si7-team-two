@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import Lessons from './pages/Lessons.jsx'
 import Practice from './pages/Practice.jsx'
 import Reports from './pages/Reports.jsx'
+import Profile from './pages/Profile.jsx'
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/lessons" element={<Lessons />} />
         <Route path="/practice/:letter" element={<Practice />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
     </Routes>
   )
