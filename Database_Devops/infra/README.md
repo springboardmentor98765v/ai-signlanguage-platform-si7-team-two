@@ -17,13 +17,4 @@ container named `signlang_postgres` — don't run both at once. Use
 automatically before starting the full stack.
 
 ## Still to come
-Nothing — Day 6 (CI) below completes Intern 5's Infrastructure Layer scope
-for Milestone 1. Day 7 is a team integration pass, not new infra artifacts.
-
-## Day 6 (done)
-`.github/workflows/ci.yml` — runs on every push/PR: lint (ruff), a real
-Alembic migration run against a throwaway Postgres service container, the
-seed data, all 3 verification/smoke test scripts from `db/scripts/`, and a
-Docker build check for both `backend/Dockerfile` and
-`ai-service/Dockerfile` plus compose config validation. See root
-`CONTRIBUTING.md` for the branching strategy this CI runs against.
+- `.github/workflows/ci.yml` CI stub (Day 6, SRS §6)
