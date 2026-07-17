@@ -58,12 +58,22 @@ class SignLanguageRecognizer:
         prediction, confidence = self.classify(features)
 
         # Rule-based feedback
-        possible_issue = detect_possible_issue(hand,prediction)
+        # Determine feedback based on confidence
+        if confidence >= 95:
+            possible_issue = "✅ Excellent! Your sign looks correct."
+
+        elif confidence >= 85:
+            guidance = detect_possible_issue(hand, prediction)
+            possible_issue = f"👍 Good attempt! {guidance}"
+
+        else:
+            guidance = detect_possible_issue(hand, prediction)
+            possible_issue = f"⚠ Try again! {guidance}"
 
         return {
             "prediction": prediction,
             "confidence": confidence,
             "possible_issue": possible_issue,
             "features": features,
-            "landmarks": hand,
+            "landmarks": hand
         }
