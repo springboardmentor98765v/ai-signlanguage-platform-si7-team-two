@@ -38,6 +38,7 @@ class Feedback(Base):
         UUID(as_uuid=True), ForeignKey("assessments.id", ondelete="CASCADE"), nullable=False
     )
     category: Mapped[str] = mapped_column(String(30), nullable=False)
+    severity: Mapped[str] = mapped_column(String(20), nullable=False, server_default="moderate")
     message: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
