@@ -28,7 +28,7 @@ class Assessment(Base):
     __tablename__ = "assessments"
     __table_args__ = (
         CheckConstraint("confidence BETWEEN 0 AND 1", name="confidence_range"),
-        CheckConstraint("accuracy_score BETWEEN 0 AND 100", name="accuracy_score_range"),
+        CheckConstraint("overall_score BETWEEN 0 AND 100", name="overall_score_range"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -42,7 +42,13 @@ class Assessment(Base):
     predicted_sign: Mapped[str] = mapped_column(String(2), nullable=False)
     confidence: Mapped[Decimal] = mapped_column(Numeric(5, 4), nullable=False)
     expected_sign: Mapped[str] = mapped_column(String(2), nullable=False)
-    accuracy_score: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
+    hand_shape_score: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
+    finger_position_score: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
+    timing_score: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
+    motion_score: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
+    position_score: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
+    overall_score: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
+    is_correct: Mapped[bool] = mapped_column(nullable=False, server_default="false")
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
@@ -53,4 +59,4 @@ class Assessment(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<Assessment id={self.id} predicted_sign={self.predicted_sign!r} accuracy={self.accuracy_score}>"
+        return f"<Assessment id={self.id} predicted_sign={self.predicted_sign!r} accuracy={self.overall_score}>"
