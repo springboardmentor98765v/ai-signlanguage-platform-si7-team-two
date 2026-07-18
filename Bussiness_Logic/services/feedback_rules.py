@@ -1,23 +1,20 @@
 """
-Rule-based feedback engine — Milestone 2, Day 3 upgrade.
+Rule-based feedback engine — Milestone 2, Day 3.
 
-Intern 3's AI service already analyzes real hand landmarks and returns a
-`possible_issue` message specific to the letter being attempted (e.g.
-"Fold your thumb outside the fist." for letter A). That single message
-already covers hand-shape, finger-position, AND hand-position-in-frame
-issues combined — so instead of maintaining our own guessed per-letter
-tips (which would be less accurate), we use their message directly.
+Uses Intern 3's real, landmark-based `possible_issue` message directly
+for hand-shape/finger-position/position feedback, instead of a separate
+guessed tips dictionary.
 
-We only add our own feedback for things the AI can't see from a single
-frame: timing (held too briefly) and motion (too fast/unclear), which
-depend on session duration data we own.
+IMPORTANT: Intern 5's `feedback` table only allows these categories:
+('hand_shape', 'timing', 'position', 'motion') — no 'finger_position' or
+'gesture_accuracy'. So any AI-issue-driven feedback is tagged as
+'hand_shape' here, since that's the closest allowed category for
+gesture/shape corrections.
 """
 
 THRESHOLD = 70.0
 EXCELLENT_THRESHOLD = 90.0
 
-# Messages from the AI service that mean "nothing wrong" — don't show
-# these as a correction, they're not useful feedback.
 NON_ISSUE_MESSAGES = {
     "No major issue detected.",
     "Good 'A' hand shape.",
@@ -43,14 +40,12 @@ GOOD_JOB_MESSAGES = [
 
 def generate_feedback(scores: dict, possible_issue: str = None) -> list:
     """
-    scores: the 5 sub-score keys + overall_score.
-    possible_issue: real, letter-specific hint from Intern 3's AI service
-    (landmark-based), used directly instead of our own guessed tips.
+    scores: hand_shape_score, finger_position_score, timing_score,
+    motion_score, position_score, overall_score.
+    possible_issue: real, landmark-based hint from Intern 3's AI service.
     """
     feedback = []
 
-    # Hand shape / finger position / hand-in-frame position issues —
-    # all covered by the AI's possible_issue message in one go.
     gesture_needs_correction = (
         scores["hand_shape_score"] < THRESHOLD
         or scores["finger_position_score"] < THRESHOLD
@@ -58,13 +53,11 @@ def generate_feedback(scores: dict, possible_issue: str = None) -> list:
     )
     if gesture_needs_correction and possible_issue and possible_issue not in NON_ISSUE_MESSAGES:
         feedback.append({
-            "category": "gesture_accuracy",
+            "category": "hand_shape",  # only allowed category for gesture/shape issues
             "severity": "major" if scores["hand_shape_score"] < 50 else "moderate",
             "message": possible_issue,
         })
 
-    # Timing and motion — not visible to the AI from a single frame,
-    # so we keep our own generic checks for these.
     if scores["timing_score"] < THRESHOLD:
         feedback.append({
             "category": "timing",
@@ -79,7 +72,6 @@ def generate_feedback(scores: dict, possible_issue: str = None) -> list:
             "message": "Movement was too fast or unclear — slow down.",
         })
 
-    # No issues found — encouragement, rotated so it's not always the same line
     if not feedback:
         import random
         if scores["overall_score"] >= EXCELLENT_THRESHOLD:

@@ -52,13 +52,14 @@ async def submit_attempt(
         session_id=session.id,
         predicted_sign=predicted_sign,
         confidence=confidence,
+        expected_sign=expected_sign,
         hand_shape_score=scores["hand_shape_score"],
         finger_position_score=scores["finger_position_score"],
         timing_score=scores["timing_score"],
         motion_score=scores["motion_score"],
         position_score=scores["position_score"],
         overall_score=scores["overall_score"],
-        is_correct=scores["is_correct"]
+        is_correct=scores["is_correct"],
     )
     db.add(new_assessment)
     db.commit()
@@ -71,7 +72,7 @@ async def submit_attempt(
         fb = Feedback(
             assessment_id=new_assessment.id,
             category=rule["category"],
-            severity=rule["severity"],
+            severity=rule["severity"] or "minor",  # DB requires NOT NULL
             message=rule["message"]
         )
         db.add(fb)
