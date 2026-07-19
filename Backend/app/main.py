@@ -31,11 +31,7 @@ app.add_middleware(
 # Register router ONLY ONCE
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(assessment.router, prefix="/assessment", tags=["Assessment"])
-app.include_router(
-    practice.router,
-    prefix="/ai",
-    tags=["AI"],
-)
+app.include_router(practice.router, prefix="/ai", tags=["AI"])
 app.include_router(lesson.router, prefix="/lessons", tags=["Lessons"])
 
 app.include_router(instructor.router, prefix="/instructor", tags=["Instructor"])

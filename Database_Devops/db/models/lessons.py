@@ -5,6 +5,7 @@ Mirrors the `lessons` table in db/schema/schema.sql — the "Modules" named
 in SRS FR-2 ("CRUD APIs for Lessons/Modules"). One row per target sign
 (e.g. letter "A") within a course.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -41,7 +42,9 @@ class Lesson(Base):
     )
 
     course: Mapped["Course"] = relationship(back_populates="lessons")
-    practice_sessions: Mapped[list["PracticeSession"]] = relationship(back_populates="lesson")
+    practice_sessions: Mapped[list["PracticeSession"]] = relationship(
+        back_populates="lesson"
+    )
 
     def __repr__(self) -> str:
         return f"<Lesson id={self.id} letter={self.letter!r}>"

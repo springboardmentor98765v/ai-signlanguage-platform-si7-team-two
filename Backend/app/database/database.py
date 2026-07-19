@@ -1,12 +1,19 @@
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Load the .env from the repository root
+# Repository root
 BASE_DIR = Path(__file__).resolve().parents[3]
+
+# Add Database_Devops to Python path
+DB_PROJECT = BASE_DIR / "Database_Devops"
+sys.path.append(str(DB_PROJECT))
+
+# Load .env
 load_dotenv(BASE_DIR / ".env")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -23,7 +30,7 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine
+    bind=engine,
 )
 
 Base = declarative_base()

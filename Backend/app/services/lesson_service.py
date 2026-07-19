@@ -1,22 +1,36 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
+
 from db.models.lessons import Lesson
 
 
-def get_all_lessons(db: Session):
+def get_all_lessons(
+    db: Session,
+    page: int = 1,
+    limit: int = 10,
+    search: str | None = None,
+):
     """
-    Returns all seeded lessons ordered by order_index.
+    Returns lessons with pagination and search.
     """
-    return (
-        db.query(Lesson).all()
-    )
+
+    query = db.query(Lesson)
+
+    if search:
+        query = query.filter(
+            or_(
+                Lesson.title.ilike(f"%{search}%"),
+                Lesson.letter.ilike(f"%{search}%"),
+            )
+        )
+
+    offset = (page - 1) * limit
+
+    return query.order_by(Lesson.order_index).offset(offset).limit(limit).all()
 
 
-def get_lesson_by_id(db: Session, lesson_id):
-    """
-    Returns a single lesson.
-    """
-    return (
-        db.query(Lesson)
-        .filter(Lesson.id == lesson_id)
-        .first()
-    )
+def get_lesson_by_id(
+    db: Session,
+    lesson_id,
+):
+    return db.query(Lesson).filter(Lesson.id == lesson_id).first()
