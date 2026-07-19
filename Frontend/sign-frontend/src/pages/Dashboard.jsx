@@ -1,5 +1,6 @@
 import { dashboardStats } from '../data/mockData.js'
 import AccuracyOverTimeChart from '../components/charts/AccuracyOverTimeChart.jsx'
+import LessonsCompletedChart from '../components/charts/LessonsCompletedChart.jsx'
 
 export default function Dashboard() {
   return (
@@ -19,7 +20,10 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <AccuracyOverTimeChart />
+      <div className="chart-grid">
+        <AccuracyOverTimeChart />
+        <LessonsCompletedChart />
+      </div>
     </div>
   )
 }

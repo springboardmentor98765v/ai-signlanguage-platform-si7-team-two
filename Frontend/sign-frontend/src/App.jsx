@@ -8,6 +8,8 @@ import Lessons from './pages/Lessons.jsx'
 import Practice from './pages/Practice.jsx'
 import Reports from './pages/Reports.jsx'
 import Profile from './pages/Profile.jsx'
+import Instructor from './pages/Instructor.jsx'
+import Admin from './pages/Admin.jsx'
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
         <Route path="/practice/:letter" element={<Practice />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/instructor" element={<Instructor />} />
+        <Route path="/admin" element={<Admin />} />
       </Route>
     </Routes>
   )
