@@ -2,10 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from db.models.users import User
-from db.models.roles import Role
-from db.models.practice_sessions import PracticeSession
-from db.models.assessments import Assessment
 from db.models.learner_analytics import LearnerAnalytics
+from db.models.assessments import Assessment
 
 
 class InstructorService:
@@ -13,12 +11,9 @@ class InstructorService:
     @staticmethod
     def get_assigned_students(db: Session):
 
-        students = (
-            db.query(User)
-            .join(Role)
-            .filter(Role.name == "Learner")
-            .all()
-        )
+        students = db.execute(
+            select(User)
+        ).scalars().all()
 
         return students
 
@@ -28,13 +23,11 @@ class InstructorService:
         student_id,
     ):
 
-        progress = (
-            db.query(LearnerAnalytics)
-            .filter(
+        progress = db.execute(
+            select(LearnerAnalytics).where(
                 LearnerAnalytics.user_id == student_id
             )
-            .first()
-        )
+        ).scalar_one_or_none()
 
         if progress is None:
             raise ValueError("Student progress not found")
@@ -47,16 +40,10 @@ class InstructorService:
         student_id,
     ):
 
-        assessments = (
-            db.query(Assessment)
-            .join(
-                PracticeSession,
-                Assessment.session_id == PracticeSession.id,
+        assessments = db.execute(
+            select(Assessment).where(
+                Assessment.user_id == student_id
             )
-            .filter(
-                PracticeSession.user_id == student_id
-            )
-            .all()
-        )
+        ).scalars().all()
 
         return assessments
