@@ -1,49 +1,34 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import select
+from uuid import UUID
+from typing import List
 
-from db.models.users import User
-from db.models.learner_analytics import LearnerAnalytics
-from db.models.assessments import Assessment
+from pydantic import BaseModel, EmailStr
 
 
-class InstructorService:
+class StudentResponse(BaseModel):
+    id: UUID
+    full_name: str
+    email: EmailStr
 
-    @staticmethod
-    def get_assigned_students(db: Session):
+    class Config:
+        from_attributes = True
 
-        students = db.execute(
-            select(User)
-        ).scalars().all()
 
-        return students
+class StudentProgressResponse(BaseModel):
+    average_accuracy: float
+    lessons_completed: int
+    weak_letters: List[str]
 
-    @staticmethod
-    def get_student_progress(
-        db: Session,
-        student_id,
-    ):
+    class Config:
+        from_attributes = True
 
-        progress = db.execute(
-            select(LearnerAnalytics).where(
-                LearnerAnalytics.user_id == student_id
-            )
-        ).scalar_one_or_none()
 
-        if progress is None:
-            raise ValueError("Student progress not found")
+class AssessmentResponse(BaseModel):
+    id: UUID
+    session_id: UUID
+    predicted_sign: str
+    expected_sign: str
+    overall_score: float
+    is_correct: bool
 
-        return progress
-
-    @staticmethod
-    def get_student_assessments(
-        db: Session,
-        student_id,
-    ):
-
-        assessments = db.execute(
-            select(Assessment).where(
-                Assessment.user_id == student_id
-            )
-        ).scalars().all()
-
-        return assessments
+    class Config:
+        from_attributes = True
