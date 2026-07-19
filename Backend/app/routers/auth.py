@@ -10,6 +10,7 @@ from app.schemas.user import (
     UpdateProfile,
     ChangePassword,
     ForgotPassword,
+    ResetPassword,
 )
 from app.services.auth_service import AuthService
 
@@ -96,6 +97,24 @@ def forgot_password(
         return AuthService.forgot_password(
             db,
             request.email,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+        
+@router.post("/reset-password/{user_id}")
+def reset_password(
+    user_id: UUID,
+    password_data: ResetPassword,
+    db: Session = Depends(get_db),
+):
+    try:
+        return AuthService.reset_password(
+            db,
+            user_id,
+            password_data,
         )
     except ValueError as e:
         raise HTTPException(
