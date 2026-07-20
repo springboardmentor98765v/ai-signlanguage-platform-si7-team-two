@@ -1,6 +1,19 @@
-import { reportSummary, attemptHistory, weakLetters } from '../data/mockData.js'
+import { reportSummary, attemptHistory, weakLetters, currentUser } from '../data/mockData.js'
+
+// DEV ONLY: real eligibility rule comes from Intern 4's Certificate API (due Day 6/9)
+const CERTIFICATE_THRESHOLD = 80
+const today = new Date().toLocaleDateString('en-GB', {
+  day: 'numeric', month: 'long', year: 'numeric',
+})
 
 export default function Reports() {
+  const isEligible = reportSummary.overallAccuracy >= CERTIFICATE_THRESHOLD
+
+  function handleDownload() {
+    // TODO: replace with real certificate PDF from Intern 4's API (Day 7)
+    window.print()
+  }
+
   return (
     <div>
       <div className="reports-header">
@@ -75,6 +88,36 @@ export default function Reports() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Certificate */}
+      <div className="report-panel certificate-panel">
+        <p className="panel-title">Certificate</p>
+
+        {isEligible ? (
+          <div className="certificate-row">
+            <div id="certificate-preview" className="certificate-card">
+              <p className="certificate-kicker">Certificate of Completion</p>
+              <p className="certificate-name">{currentUser.name}</p>
+              <p className="certificate-detail">
+                has achieved {reportSummary.overallAccuracy}% overall accuracy across{' '}
+                {reportSummary.lessonsCompleted} lessons on SignLearn.
+              </p>
+              <p className="certificate-date">{today}</p>
+            </div>
+            <div className="certificate-actions">
+              <p className="certificate-note">You&rsquo;ve qualified for a certificate. Nice work!</p>
+              <button className="btn-primary btn-inline" onClick={handleDownload}>
+                Download Certificate
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="certificate-locked">
+            Reach {CERTIFICATE_THRESHOLD}% overall accuracy to unlock your certificate.
+            You&rsquo;re currently at {reportSummary.overallAccuracy}%.
+          </p>
+        )}
       </div>
     </div>
   )

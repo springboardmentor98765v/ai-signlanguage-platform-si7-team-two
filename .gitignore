@@ -32,3 +32,5 @@ Database_Devops/backup/backups/*.db
 # Day 8 monitoring results
 Database_Devops/monitoring/results/*.txt
 Database_Devops/monitoring/results/*.csv
+AIML_CV/venv/
+venv/

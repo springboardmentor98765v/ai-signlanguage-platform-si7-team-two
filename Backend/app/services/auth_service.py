@@ -5,7 +5,13 @@ from db.models.users import User
 from db.models.roles import Role
 
 from app.utils.hashing import hash_password, verify_password
-from app.schemas.user import UserRegister, UserLogin
+from app.schemas.user import (
+    UserRegister,
+    UserLogin,
+    UpdateProfile,
+    ChangePassword,
+    ResetPassword,
+)
 
 
 class AuthService:
@@ -54,8 +60,95 @@ class AuthService:
 
         if not verify_password(
             user.password,
-            existing_user.password_hash
+            existing_user.password_hash,
         ):
             raise ValueError("Invalid email or password")
 
         return existing_user
+
+    @staticmethod
+    def update_profile(
+        db: Session,
+        user_id,
+        profile: UpdateProfile,
+    ):
+
+        existing_user = db.get(User, user_id)
+
+        if existing_user is None:
+            raise ValueError("User not found")
+
+        existing_user.full_name = profile.full_name
+        existing_user.email = profile.email
+
+        db.commit()
+        db.refresh(existing_user)
+
+        return existing_user
+
+    @staticmethod
+    def change_password(
+        db: Session,
+        user_id,
+        password_data: ChangePassword,
+    ):
+
+        existing_user = db.get(User, user_id)
+
+        if existing_user is None:
+            raise ValueError("User not found")
+
+        if not verify_password(
+            password_data.old_password,
+            existing_user.password_hash,
+        ):
+            raise ValueError("Old password is incorrect")
+
+        existing_user.password_hash = hash_password(
+            password_data.new_password
+        )
+
+        db.commit()
+
+        return {
+            "message": "Password changed successfully"
+        }
+
+    @staticmethod
+    def forgot_password(
+        db: Session,
+        email: str,
+    ):
+
+        existing_user = db.execute(
+            select(User).where(User.email == email)
+        ).scalar_one_or_none()
+
+        if existing_user is None:
+            raise ValueError("Email not found")
+
+        reset_link = (
+            f"http://localhost:8000/reset-password/{existing_user.id}"
+        )
+        
+    @staticmethod
+    def reset_password(
+        db: Session,
+        user_id,
+        password_data: ResetPassword,
+    ):
+
+        existing_user = db.get(User, user_id)
+
+        if existing_user is None:
+            raise ValueError("User not found")
+
+        existing_user.password_hash = hash_password(
+            password_data.new_password
+        )
+
+        db.commit()
+
+        return {
+            "message": "Password reset successfully"
+        }
