@@ -16,6 +16,7 @@ class User(Base):
 class Lesson(Base):
     __tablename__ = "lessons"
     id = Column(UUID(as_uuid=True), primary_key=True)
+    letter = Column(String(2))  
 
 class PracticeSession(Base):
     __tablename__ = "practice_sessions"
