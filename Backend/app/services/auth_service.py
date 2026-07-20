@@ -10,6 +10,7 @@ from app.schemas.user import (
     UserLogin,
     UpdateProfile,
     ChangePassword,
+    ResetPassword,
 )
 
 
@@ -129,13 +130,25 @@ class AuthService:
         reset_link = (
             f"http://localhost:8000/reset-password/{existing_user.id}"
         )
+        
+    @staticmethod
+    def reset_password(
+        db: Session,
+        user_id,
+        password_data: ResetPassword,
+    ):
 
-        print("\n")
-        print("========== PASSWORD RESET LINK ==========")
-        print(reset_link)
-        print("=========================================")
-        print("\n")
+        existing_user = db.get(User, user_id)
+
+        if existing_user is None:
+            raise ValueError("User not found")
+
+        existing_user.password_hash = hash_password(
+            password_data.new_password
+        )
+
+        db.commit()
 
         return {
-            "message": "Password reset link generated successfully"
+            "message": "Password reset successfully"
         }
