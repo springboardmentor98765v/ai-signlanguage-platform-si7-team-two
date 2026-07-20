@@ -130,7 +130,12 @@ class AuthService:
         reset_link = (
             f"http://localhost:8000/reset-password/{existing_user.id}"
         )
-        
+
+        return {
+            "message": "Password reset link generated successfully.",
+            "reset_link": reset_link,
+        }
+
     @staticmethod
     def reset_password(
         db: Session,
