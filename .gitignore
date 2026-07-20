@@ -14,6 +14,7 @@ Day5-temp/
 Day6-temp/
 Day7-temp/
 m2_d2_temp/
+m2_d6to8_temp/
 local_docs/
 *.zip
 day2_full_hashes.csv
@@ -23,3 +24,11 @@ day3_hashes.csv
 docx_content.txt
 files_to_revert.txt
 main_files.txt
+
+# Day 6 backup files — keep the backups/ folder but not the actual backups
+Database_Devops/backup/backups/*.sql
+Database_Devops/backup/backups/*.db
+
+# Day 8 monitoring results
+Database_Devops/monitoring/results/*.txt
+Database_Devops/monitoring/results/*.csv
