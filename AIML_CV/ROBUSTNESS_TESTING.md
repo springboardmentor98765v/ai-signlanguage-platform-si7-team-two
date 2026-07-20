@@ -1,270 +1,86 @@
-# Robustness Testing Report
+# Robustness Testing — Sign Language Recognition Model
 
-## Project
-
-**Sign Language Learning and Assessment Platform**
-
-AI/ML & Computer Vision Module
+**Owner:** Intern 3 (AI/ML & CV)
+**Milestone:** 1
+**Last Updated:** July 2026
 
 ---
 
-# Objective
+## Overview
 
-The objective of robustness testing is to evaluate how well the sign language recognition model performs under different real-world conditions.
-
-The tests focus on:
-
-- Lighting
-- Camera distance
-- Hand orientation
-- Background complexity
-- Different users
-- Partial occlusion
+This document describes the robustness testing approach for the XGBoost + MediaPipe sign language recognition model. Tests cover classification accuracy, confidence threshold behaviour, edge cases, and REST API error handling.
 
 ---
 
-# Test Environment
+## Test Coverage
 
-Operating System:
+### 1. Unit Tests — `tests/`
 
-Windows 11
+Located in `tests/` directory. Run from repo root:
 
-Camera:
-
-Laptop Webcam
-
-Frameworks:
-
-- MediaPipe
-- OpenCV
-- FastAPI
-- XGBoost
-
----
-
-# Test Cases
-
-## 1. Normal Lighting
-
-Condition:
-
-Indoor room lighting.
-
-Expected:
-
-Correct sign recognition.
-
-Result:
-
-✅ Passed
-
-Observation:
-
-Prediction confidence remained consistently high (>95%).
-
----
-
-## 2. Low Lighting
-
-Condition:
-
-Dim room.
-
-Expected:
-
-Recognition accuracy may decrease.
-
-Result:
-
-⚠ Partial Pass
-
-Observation:
-
-MediaPipe occasionally failed to detect hand landmarks.
-
----
-
-## 3. Bright Lighting
-
-Condition:
-
-Bright LED lighting.
-
-Expected:
-
-Stable predictions.
-
-Result:
-
-✅ Passed
-
-Observation:
-
-No significant degradation observed.
-
----
-
-## 4. Camera Distance
-
-### Close Distance
-
-Result:
-
-✅ Passed
-
-Average confidence remained above 95%.
-
----
-
-### Medium Distance
-
-Result:
-
-✅ Passed
-
-Stable predictions.
-
----
-
-### Long Distance
-
-Result:
-
-⚠ Partial Pass
-
-Hand landmarks became less accurate due to reduced hand size.
-
----
-
-## 5. Background Complexity
-
-### Plain Background
-
-Result:
-
-✅ Passed
-
-Recognition remained stable.
-
----
-
-### Busy Background
-
-Result:
-
-⚠ Partial Pass
-
-Occasional landmark instability.
-
----
-
-## 6. Hand Rotation
-
-Condition:
-
-Different hand orientations.
-
-Result:
-
-⚠ Partial Pass
-
-Extreme rotations reduced prediction confidence.
-
----
-
-## 7. Partial Occlusion
-
-Condition:
-
-Some fingers hidden.
-
-Result:
-
-❌ Failed
-
-Prediction accuracy decreased significantly.
-
-Reason:
-
-MediaPipe could not estimate hidden landmarks reliably.
-
----
-
-## 8. Different Users
-
-Condition:
-
-Different hand sizes and skin tones.
-
-Result:
-
-✅ Passed
-
-Normalization using MediaPipe landmarks enabled consistent predictions.
-
----
-
-# Failure Cases
-
-Observed failure scenarios:
-
-- Hand outside camera frame
-- Heavy finger occlusion
-- Very low lighting
-- Motion blur
-- Incorrect hand orientation
-
-The system correctly returns:
-
-```json
-{
-    "prediction": "No Hand",
-    "confidence": 0.0
-}
+```bash
+cd AIML_CV
+pytest tests/ -v
 ```
 
-when no hand is detected.
+Key test scenarios:
+
+| Test | Description |
+|---|---|
+| `test_predictor.py` | `predict_sign()` with valid 63-feature input → returns `(str, float)` |
+| `test_recognizer.py` | `SignLanguageRecognizer.predict()` with no-hand frame → `prediction == "No Hand"` |
+| Confidence threshold | Features producing confidence < 0.80 → label is `"Unknown"` |
+
+### 2. Integration / API Tests — `test_recognizer.py` (root)
+
+```bash
+python test_recognizer.py
+```
+
+Tests the full pipeline against images in `test_images/` (if populated).
 
 ---
 
-# Model Limitations
+## Edge Case Handling
 
-Current model supports:
-
-- Single hand
-- Static signs
-
-Current model does not support:
-
-- Dynamic gestures
-- Continuous sentence recognition
-- Two-hand signs
-- Severe occlusion
+| Scenario | Expected Behaviour |
+|---|---|
+| No hand detected in frame | Returns `{"prediction": "No Hand", "confidence": 0.0}` |
+| Low confidence (< 0.80) | Returns `{"prediction": "Unknown", "confidence": <raw_value>}` |
+| Invalid/corrupt image upload | API raises HTTP 400 with `"Invalid image uploaded."` |
+| Multiple hands in frame | Only the **first** detected hand is used (`multi_hand_landmarks[0]`) |
+| Empty image (all zeros) | MediaPipe returns no landmarks → `"No Hand"` |
 
 ---
 
-# Future Improvements
+## Confidence Threshold Rationale
 
-Potential enhancements:
+The 0.80 threshold (`THRESHOLD = 0.80` in `inference/predictor.py`) was chosen to minimize false-positive sign classifications. Signs with visually similar hand shapes (e.g., A/S/E, M/N) tend to score < 0.80 on ambiguous frames, making `"Unknown"` the safer response than a wrong label.
 
-- Temporal models (LSTM/Transformer)
-- Multi-hand detection
-- Larger datasets
-- Data augmentation
-- Automatic feedback using landmark analysis
-- Personalized learning analytics
+The `/predict` API additionally raises HTTP 400 on `"No Hand"` — the assessment engine should not attempt to score an attempt where no hand was detected.
 
 ---
 
-# Overall Assessment
+## Known Limitations & Failure Modes
 
-The model performs reliably under standard operating conditions.
+| Limitation | Impact | Mitigation |
+|---|---|---|
+| Training data distribution unknown | May underperform on certain skin tones / lighting conditions | Collect diverse test images; augment training set |
+| Static-image model | Reduced accuracy on fast-moving hands | Use prediction smoothing (`deque(maxlen=5)` in `assessment_app.py`) |
+| Single-hand only | Multi-hand signs not supported in this version | Documented limitation for Milestone 1 |
+| MediaPipe version sensitivity | `mediapipe==0.10.14` required; earlier versions have different landmark indices | Pinned in `requirements.txt` |
 
-Best performance is achieved with:
+---
 
-- Good lighting
-- Plain background
-- Single visible hand
-- Front-facing camera
+## Test Images
 
-Overall robustness is suitable for educational sign language learning and assessment.
+Place test images in `test_images/` directory for manual validation. Not committed to Git (add to `.gitignore` if containing sensitive frames).
+
+---
+
+## Future Testing (Milestone 2+)
+
+- [ ] Cross-lighting condition tests (bright/dark/backlit)
+- [ ] Cross-skin-tone evaluation
+- [ ] Benchmark against held-out test split (accuracy, F1 per class)
+- [ ] Load test `/predict` endpoint under concurrent requests

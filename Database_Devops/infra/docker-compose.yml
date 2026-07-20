@@ -1,7 +1,20 @@
 # ============================================================
-# Day 5 deliverable (SRS §6, Intern 5, Day 5):
-#   "write a docker-compose.yml that spins up backend + AI
-#    service + database together for the whole team."
+# Updated: Milestone 2, Day 7 (Intern 5: Database & DevOps)
+#
+# Changes vs. the Day 5 version:
+#   - backend now reads the full .env file (env_file:), which picks up
+#     the new Milestone 2 email variables (EMAIL_HOST, EMAIL_PORT, …)
+#     needed by Intern 2's forgot-password flow.
+#   - New shared volume `certificates_data` mounted into the backend at
+#     /app/generated_certificates so PDF certificates Intern 4 generates
+#     survive container restarts and can be served back to the frontend.
+#   - ai-service also gets env_file: for any shared config it may need.
+#   - Variable names (DB_USER / DB_PASSWORD / DB_NAME) unchanged from Day 5
+#     so existing .env files keep working without modification.
+#
+# Original Day 5 header:
+# "write a docker-compose.yml that spins up backend + AI
+#  service + database together for the whole team."
 #
 # Build contexts for backend/ai-service are the REPO ROOT (`..`), not
 # their own folders — backend needs the shared db/ package alongside its
@@ -44,7 +57,7 @@ services:
     container_name: signlang_backend
     restart: unless-stopped
     env_file:
-      - ../.env
+      - ../.env          # loads email + certificate vars for Milestone 2
     environment:
       # Inside the Docker network, the DB is reachable by service name
       # ("db"), not "localhost" — override just this one piece of the
@@ -55,6 +68,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      # Shared volume so Intern 4's certificate PDFs (Day 7 of the
+      # business-logic track) persist across restarts and can be served
+      # back to the frontend without a separate upload step.
+      - certificates_data:/app/generated_certificates
 
   ai-service:
     build:
@@ -63,7 +81,7 @@ services:
     container_name: signlang_ai_service
     restart: unless-stopped
     env_file:
-      - ../.env
+      - ../.env          # picks up any shared Milestone 2 vars it needs
     ports:
       - "8001:8001"
     # No DB dependency for the placeholder — Intern 3's real service may
@@ -73,3 +91,5 @@ services:
 volumes:
   signlang_pgdata:
     name: signlang_pgdata
+  certificates_data:
+    name: signlang_certificates

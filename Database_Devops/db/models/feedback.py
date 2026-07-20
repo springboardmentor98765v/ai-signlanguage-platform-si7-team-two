@@ -26,6 +26,18 @@ class Feedback(Base):
     __tablename__ = "feedback"
     __table_args__ = (
         CheckConstraint(
+            # Allowed feedback categories per SRS FR-4 / base doc Step 8.
+            #
+            # NOTE — finger_position mapping (raised by Intern 3/Koushik, 17 Jul):
+            # The AI engine's `possible_issue` field can return 'finger_position'
+            # (e.g. finger curl or extension errors). That value is intentionally
+            # mapped to 'hand_shape' in the feedback layer for now, since
+            # 'hand_shape' is semantically broad enough to cover finger geometry.
+            #
+            # TODO: If a dedicated 'finger_position' category is ever needed,
+            # add it here AND create an Alembic migration to update the DB
+            # CHECK constraint (ALTER TABLE feedback DROP CONSTRAINT
+            # category_valid_values; ALTER TABLE feedback ADD CONSTRAINT ...).
             "category IN ('hand_shape', 'timing', 'position', 'motion')",
             name="category_valid_values",
         ),
