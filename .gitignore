@@ -5,3 +5,21 @@ dist/
 __pycache__/
 _pycache_/
 .env
+
+# Integration temp directories and zip files (not part of repo)
+Day2-unzipped/
+Day3-unzipped/
+Day4-temp/
+Day5-temp/
+Day6-temp/
+Day7-temp/
+m2_d2_temp/
+local_docs/
+*.zip
+day2_full_hashes.csv
+day2_hashes.csv
+day3_full_hashes.csv
+day3_hashes.csv
+docx_content.txt
+files_to_revert.txt
+main_files.txt
