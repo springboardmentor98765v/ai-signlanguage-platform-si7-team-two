@@ -142,6 +142,7 @@ def evaluate_attempt(request: AssessmentRequest, db: Session = Depends(get_db)):
     new_assessment = Assessment(
         session_id=request.session_id,
         predicted_sign=request.predicted_sign,
+        expected_sign=request.expected_sign,
         confidence=request.confidence,
         hand_shape_score=scores["hand_shape_score"],
         finger_position_score=scores["finger_position_score"],

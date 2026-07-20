@@ -51,8 +51,9 @@ async def submit_attempt(
     new_assessment = Assessment(
         session_id=session.id,
         predicted_sign=predicted_sign,
+        expected_sign=session.expected_sign, 
         confidence=confidence,
-        expected_sign=expected_sign,
+        # expected_sign=expected_sign,
         hand_shape_score=scores["hand_shape_score"],
         finger_position_score=scores["finger_position_score"],
         timing_score=scores["timing_score"],

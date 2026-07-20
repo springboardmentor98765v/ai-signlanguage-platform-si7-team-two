@@ -10,6 +10,7 @@ class Assessment(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
     session_id = Column(UUID(as_uuid=True), ForeignKey("practice_sessions.id", ondelete="CASCADE"), nullable=False)
     predicted_sign = Column(String(2), nullable=False)
+    expected_sign = Column(String(2), nullable=True)
     confidence = Column(Numeric(5, 4), nullable=False)
     expected_sign = Column(String(2), nullable=False)
     hand_shape_score = Column(Numeric(5, 2), nullable=False)
