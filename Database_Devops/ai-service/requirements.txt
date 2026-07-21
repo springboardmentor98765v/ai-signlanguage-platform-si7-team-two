@@ -1,8 +1,15 @@
-fastapi>=0.110,<1.0
-uvicorn[standard]>=0.29,<1.0
+# PLACEHOLDER — replace this file with Koushik's actual ai-service
+# requirements.txt (from his AIML/CV folder) before building the Docker
+# image. Listed below are the packages implied by the shared model
+# artifacts (xgboost model + label encoder) in case his file needs merging
+# with whatever the Milestone 1 AI service already had (opencv, mediapipe,
+# fastapi, etc.) rather than a straight replace.
 
-# Intern 3 will add real CV/ML dependencies here once the placeholder
-# /predict endpoint is replaced with the real pipeline, e.g.:
-# mediapipe>=0.10,<1.0
-# opencv-python-headless>=4.9,<5.0
-# numpy>=1.26,<2.0
+fastapi
+uvicorn[standard]
+opencv-python-headless
+mediapipe
+numpy
+xgboost
+scikit-learn   # needed to unpickle the LabelEncoder
+joblib
