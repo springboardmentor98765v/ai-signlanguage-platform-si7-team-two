@@ -156,8 +156,8 @@ export default function ProfilePage() {
             />
           </div>
 
-          {passwordError && <p className="form-error">{passwordError}</p>}
-          {passwordSuccess && <p className="form-success">Password updated.</p>}
+          {passwordError && <p className="form-error" role="alert">{passwordError}</p>}
+          {passwordSuccess && <p className="form-success" role="status">Password updated.</p>}
 
           <button type="submit" className="btn-primary btn-inline">
             Update password

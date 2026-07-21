@@ -42,7 +42,7 @@ export default function Register() {
         <h1>Create your account</h1>
         <p className="sub">Start learning sign language today.</p>
 
-        {error && <div className="form-error">{error}</div>}
+        {error && <div className="form-error" role="alert">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="field">

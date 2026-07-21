@@ -13,20 +13,25 @@ const links = [
   { to: '/profile', label: 'Profile' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ open = false, onClose }) {
   return (
-    <aside className="sidebar">
+    <aside
+      id="app-sidebar"
+      className={`sidebar ${open ? 'open' : ''}`}
+      aria-label="Main navigation"
+    >
       <div className="brand">
-        <div className="mark">SL</div>
+        <div className="mark" aria-hidden="true">SL</div>
         SignLearn
       </div>
 
-      <nav>
+      <nav aria-label="Primary">
         {links.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
             className={({ isActive }) => (isActive ? 'active' : '')}
+            onClick={onClose}
           >
             {link.label}
           </NavLink>
