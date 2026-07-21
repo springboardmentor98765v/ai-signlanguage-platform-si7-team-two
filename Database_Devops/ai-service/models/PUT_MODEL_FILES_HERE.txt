@@ -1,0 +1,7 @@
+Drop Koushik's real files here before building the Docker image:
+  - sign_language_xgb.pkl
+  - label_encoder.pkl
+
+These are the trained model + label encoder shared at the end of
+Milestone 2, Day 9 (AIML/CV folder). This directory is a placeholder in
+this zip — the actual .pkl binaries aren't included here.

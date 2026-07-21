@@ -1,27 +1,38 @@
-# ============================================================
-# AI/CV service Dockerfile — PLACEHOLDER app (see ai-service/app/main.py).
+# Milestone 2, Day 9 — AI service Dockerfile, updated to package the
+# trained model artifacts Intern 3 (Koushik) shared at the end of Day 9:
+#   models/sign_language_xgb.pkl
+#   models/label_encoder.pkl
 #
-# Unlike backend/, this placeholder doesn't need the db/ package (it has
-# no database access), so build context can stay scoped to ai-service/.
-# infra/docker-compose.yml still builds it with `context: ..` for
-# consistency and so Intern 3 can freely import shared code later if
-# needed without a compose file change.
-# ============================================================
+# Assumes Intern 3's existing FastAPI prediction app lives at app/main.py
+# (built back in Milestone 1/2, Intern 3's track) — this file only adds the
+# model artifacts and their dependencies for deployment. Adjust paths if
+# the real repo's AI-service layout differs.
+
 FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY ai-service/requirements.txt ./requirements.txt
+# System deps commonly needed by opencv/mediapipe/xgboost wheels.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# NOTE: copying ai-service/'s CONTENTS into /app (not into /app/ai-service/)
-# on purpose — "ai-service" has a hyphen, which is not a valid Python
-# module name, so `uvicorn ai-service.app.main:app` would fail to import.
-# This way the importable module is just `app.main:app`.
-COPY ai-service/app/ ./app/
+# App code (Intern 3's detection/prediction pipeline).
+COPY app/ ./app/
 
-ENV PYTHONPATH=/app
+# Trained model artifacts (Intern 3, shared end of Day 9).
+# Drop the real files here before building:
+#   ai-service/models/sign_language_xgb.pkl
+#   ai-service/models/label_encoder.pkl
+COPY models/ ./models/
 
-EXPOSE 8001
+ENV MODEL_PATH=/app/models/sign_language_xgb.pkl
+ENV LABEL_ENCODER_PATH=/app/models/label_encoder.pkl
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+ENV PORT=8500
+EXPOSE 8500
+
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
