@@ -19,47 +19,50 @@ export default function Admin() {
 
       <div className="reports-grid">
         <div className="report-panel">
-          <p className="panel-title">All users ({users.length})</p>
+          <p className="panel-title" id="users-table-caption">All users ({users.length})</p>
 
-          <table className="attempts-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td>
-                    <p className="user-name">{u.name}</p>
-                    <p className="user-email">{u.email}</p>
-                  </td>
-                  <td>
-                    <span className={`badge ${u.role === 'Instructor' ? 'badge-intermediate' : 'badge-beginner'}`}>
-                      {u.role}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status-pill ${u.active ? 'active' : 'inactive'}`}>
-                      {u.active ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="btn-secondary btn-inline btn-toggle"
-                      onClick={() => toggleUser(u.id)}
-                    >
-                      {u.active ? 'Deactivate' : 'Activate'}
-                    </button>
-                  </td>
+          <div className="table-scroll" role="region" aria-labelledby="users-table-caption" tabIndex={0}>
+            <table className="attempts-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th><span className="sr-only">Actions</span></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <p className="user-name">{u.name}</p>
+                      <p className="user-email">{u.email}</p>
+                    </td>
+                    <td>
+                      <span className={`badge ${u.role === 'Instructor' ? 'badge-intermediate' : 'badge-beginner'}`}>
+                        {u.role}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-pill ${u.active ? 'active' : 'inactive'}`}>
+                        {u.active ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn-secondary btn-inline btn-toggle"
+                        onClick={() => toggleUser(u.id)}
+                        aria-label={`${u.active ? 'Deactivate' : 'Activate'} ${u.name}`}
+                      >
+                        {u.active ? 'Deactivate' : 'Activate'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="report-panel">

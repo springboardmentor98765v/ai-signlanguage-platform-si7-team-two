@@ -1,7 +1,10 @@
 import { useRef, useState, useEffect } from "react";
 import { predictSign, assessAttempt } from "../services/api.js";
-import { useParams } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { lessons } from "../data/mockData.js";
+
+const TARGET_ATTEMPTS = 5;
+
 function getStatusLabel(accuracy) {
   if (accuracy >= 90) return "Excellent";
   if (accuracy >= 75) return "Good";
@@ -9,10 +12,17 @@ function getStatusLabel(accuracy) {
   return "Needs Practice";
 }
 
+function formatTime(totalSeconds) {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
 export default function Practice() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const canvasRef = useRef(null);
+  const navigate = useNavigate();
 
   const [isPracticing, setIsPracticing] = useState(false);
   const [cameraError, setCameraError] = useState("");
@@ -25,6 +35,11 @@ export default function Practice() {
   const [prediction, setPrediction] = useState(null);
   const [assessment, setAssessment] = useState(null);
   const [attemptTime, setAttemptTime] = useState(null);
+
+  // Day 7: session timer + attempts progress
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [attemptCount, setAttemptCount] = useState(0);
+  const timerRef = useRef(null);
 
   // Attach stream AFTER the video element is rendered
   useEffect(() => {
@@ -39,6 +54,22 @@ export default function Practice() {
         }
       };
     }
+  }, [isPracticing]);
+
+  // Run the session timer while practicing
+  useEffect(() => {
+    if (isPracticing) {
+      timerRef.current = setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [isPracticing]);
 
   // Cleanup ONLY when component unmounts
@@ -56,8 +87,18 @@ export default function Practice() {
     streamRef.current = null;
   }
 
+  function handleLetterChange(e) {
+    setPrediction(null);
+    setAssessment(null);
+    setAttemptTime(null);
+    setAttemptCount(0);
+    navigate(`/practice/${e.target.value}`);
+  }
+
   async function handleStart() {
     setCameraError("");
+    setElapsedSeconds(0);
+    setAttemptCount(0);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -132,11 +173,10 @@ export default function Practice() {
 
       setAssessment(assessmentResult);
 
-      const elapsedSeconds = ((performance.now() - startedAt) / 1000).toFixed(
-        1,
-      );
+      const elapsed = ((performance.now() - startedAt) / 1000).toFixed(1);
 
-      setAttemptTime(elapsedSeconds);
+      setAttemptTime(elapsed);
+      setAttemptCount((prev) => Math.min(prev + 1, TARGET_ATTEMPTS));
     } catch (err) {
       console.error(err);
       setCheckError(err.message || "Could not check your sign.");
@@ -153,13 +193,33 @@ export default function Practice() {
     ? assessment.status || getStatusLabel(assessment.accuracy)
     : null;
 
+  const progressPercent = Math.min(
+    (attemptCount / TARGET_ATTEMPTS) * 100,
+    100,
+  );
+
   return (
     <div>
       <div className="practice-header">
-        <h2>Practice: Letter {targetLetter}</h2>
-        <p className="sub">
-          Show the sign in front of your camera and hold it steady.
-        </p>
+        <div className="practice-header-row">
+          <div>
+            <h2>Practice: Letter {targetLetter}</h2>
+            <p className="sub">
+              Show the sign in front of your camera and hold it steady.
+            </p>
+          </div>
+
+          <div className="letter-picker">
+            <label htmlFor="letter-select">Pick a letter</label>
+            <select id="letter-select" value={targetLetter} onChange={handleLetterChange}>
+              {lessons.map((l) => (
+                <option key={l.id} value={l.letter}>
+                  {l.title} · {l.difficulty}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       <div className="practice-grid">
@@ -172,17 +232,36 @@ export default function Practice() {
                 playsInline
                 muted
                 className="video-feed"
+                aria-label="Live camera preview of your hand sign"
               />
             ) : (
               <div className="video-placeholder">Camera is Off</div>
+            )}
+
+            {isPracticing && (
+              <div className="session-timer">{formatTime(elapsedSeconds)}</div>
             )}
           </div>
 
           <canvas ref={canvasRef} style={{ display: "none" }} />
 
-          {cameraError && <p className="camera-error">{cameraError}</p>}
+          {cameraError && <p className="camera-error" role="alert">{cameraError}</p>}
 
-          {checkError && <p className="camera-error">{checkError}</p>}
+          {checkError && <p className="camera-error" role="alert">{checkError}</p>}
+
+          {isPracticing && (
+            <div className="attempt-progress">
+              <div className="attempt-progress-label">
+                <span>Attempt {Math.min(attemptCount, TARGET_ATTEMPTS)} of {TARGET_ATTEMPTS}</span>
+              </div>
+              <div className="attempt-progress-bar-wrap">
+                <div
+                  className="attempt-progress-bar"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="practice-controls">
             {!isPracticing ? (
@@ -207,7 +286,7 @@ export default function Practice() {
           </div>
 
           {assessment && (
-            <>
+            <div role="status" aria-live="polite">
               <div className="practice-result-row">
                 <div>
                   <p className="label">Letter</p>
@@ -256,16 +335,27 @@ export default function Practice() {
                 )}
               </div>
 
-              <div className="result-card">
+              <div className={`feedback-panel ${isCorrect ? "feedback-good" : "feedback-warn"}`}>
+                <p className="feedback-panel-title">
+                  {isCorrect ? "Nice work" : "Correction tips"}
+                </p>
                 <ul className="feedback-list">
                   {assessment?.feedback?.length ? (
-                    assessment.feedback.map((msg, i) => <li key={i}>{msg}</li>)
+                    assessment.feedback.map((msg, i) => (
+                      <li key={i}>
+                        <span className="feedback-icon">{isCorrect ? "✓" : "•"}</span>
+                        {msg}
+                      </li>
+                    ))
                   ) : (
-                    <li>No feedback available.</li>
+                    <li>
+                      <span className="feedback-icon">•</span>
+                      No feedback available.
+                    </li>
                   )}
                 </ul>
               </div>
-            </>
+            </div>
           )}
         </div>
 

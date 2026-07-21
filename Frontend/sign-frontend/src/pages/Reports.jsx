@@ -44,33 +44,35 @@ export default function Reports() {
       <div className="reports-grid">
         {/* Attempt history table */}
         <div className="report-panel">
-          <p className="panel-title">Recent Attempts</p>
-          <table className="attempts-table">
-            <thead>
-              <tr>
-                <th>Letter</th>
-                <th>Date</th>
-                <th>Accuracy</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attemptHistory.map((a) => (
-                <tr key={a.id}>
-                  <td className="letter-cell">{a.letter}</td>
-                  <td>{a.date}</td>
-                  <td>
-                    <div className="accuracy-bar-wrap">
-                      <div
-                        className={`accuracy-bar ${a.accuracy < 70 ? 'low' : ''}`}
-                        style={{ width: `${a.accuracy}%` }}
-                      />
-                      <span>{a.accuracy}%</span>
-                    </div>
-                  </td>
+          <p className="panel-title" id="attempts-table-caption">Recent Attempts</p>
+          <div className="table-scroll" role="region" aria-labelledby="attempts-table-caption" tabIndex={0}>
+            <table className="attempts-table">
+              <thead>
+                <tr>
+                  <th>Letter</th>
+                  <th>Date</th>
+                  <th>Accuracy</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {attemptHistory.map((a) => (
+                  <tr key={a.id}>
+                    <td className="letter-cell">{a.letter}</td>
+                    <td>{a.date}</td>
+                    <td>
+                      <div className="accuracy-bar-wrap">
+                        <div
+                          className={`accuracy-bar ${a.accuracy < 70 ? 'low' : ''}`}
+                          style={{ width: `${a.accuracy}%` }}
+                        />
+                        <span>{a.accuracy}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Weak letters / recommendations */}

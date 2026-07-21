@@ -19,7 +19,9 @@ export default function Instructor() {
       </div>
 
       <div className="field search-field">
+        <label htmlFor="student-search" className="sr-only">Search student by name</label>
         <input
+          id="student-search"
           type="text"
           placeholder="Search student by name"
           value={search}
@@ -29,41 +31,52 @@ export default function Instructor() {
 
       <div className="reports-grid">
         <div className="report-panel">
-          <p className="panel-title">Students ({filteredStudents.length})</p>
+          <p className="panel-title" id="students-table-caption">Students ({filteredStudents.length})</p>
 
           {filteredStudents.length === 0 ? (
             <p className="lessons-status">No students match that search.</p>
           ) : (
-            <table className="attempts-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Accuracy</th>
-                  <th>Lessons</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.map((s) => (
-                  <tr
-                    key={s.id}
-                    className={`student-row ${s.id === selectedId ? 'selected' : ''}`}
-                    onClick={() => setSelectedId(s.id)}
-                  >
-                    <td className="letter-cell student-name">{s.name}</td>
-                    <td>
-                      <div className="accuracy-bar-wrap">
-                        <div
-                          className={`accuracy-bar ${s.accuracy < 70 ? 'low' : ''}`}
-                          style={{ width: `${s.accuracy}%` }}
-                        />
-                        <span>{s.accuracy}%</span>
-                      </div>
-                    </td>
-                    <td>{s.lessonsCompleted}</td>
+            <div className="table-scroll" role="region" aria-labelledby="students-table-caption" tabIndex={0}>
+              <table className="attempts-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Accuracy</th>
+                    <th>Lessons</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredStudents.map((s) => (
+                    <tr
+                      key={s.id}
+                      className={`student-row ${s.id === selectedId ? 'selected' : ''}`}
+                      onClick={() => setSelectedId(s.id)}
+                      tabIndex={0}
+                      role="button"
+                      aria-pressed={s.id === selectedId}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setSelectedId(s.id)
+                        }
+                      }}
+                    >
+                      <td className="letter-cell student-name">{s.name}</td>
+                      <td>
+                        <div className="accuracy-bar-wrap">
+                          <div
+                            className={`accuracy-bar ${s.accuracy < 70 ? 'low' : ''}`}
+                            style={{ width: `${s.accuracy}%` }}
+                          />
+                          <span>{s.accuracy}%</span>
+                        </div>
+                      </td>
+                      <td>{s.lessonsCompleted}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
