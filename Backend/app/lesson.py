@@ -4,10 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.schemas.lesson_schema import (
-    LessonCreate,
-    LessonUpdate,
-)
+from app.schemas.lesson_schema import LessonCreate, LessonUpdate
 from app.services.lesson_service import (
     get_all_lessons,
     get_lesson_by_id,
@@ -24,7 +21,7 @@ def list_lessons(
     page: int = 1,
     limit: int = 10,
     search: str | None = None,
-    db: Session = Depends(get_db),
+    db: Session =Depends(get_db),
 ):
     return get_all_lessons(
         db=db,
@@ -39,10 +36,7 @@ def lesson_details(
     lesson_id: UUID,
     db: Session = Depends(get_db),
 ):
-    lesson = get_lesson_by_id(
-        db,
-        lesson_id,
-    )
+    lesson = get_lesson_by_id(db, lesson_id)
 
     if lesson is None:
         raise HTTPException(
@@ -54,14 +48,11 @@ def lesson_details(
 
 
 @router.post("/")
-def create_new_lesson(
+def add_lesson(
     lesson: LessonCreate,
     db: Session = Depends(get_db),
 ):
-    return create_lesson(
-        db,
-        lesson,
-    )
+    return create_lesson(db, lesson)
 
 
 @router.put("/{lesson_id}")
@@ -101,4 +92,6 @@ def remove_lesson(
             detail="Lesson not found",
         )
 
-    return deleted
+    return {
+        "message": "Lesson deleted successfully"
+    }
