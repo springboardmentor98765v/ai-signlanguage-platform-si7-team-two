@@ -20,15 +20,13 @@ class Lesson(Base):
 
 class PracticeSession(Base):
     __tablename__ = "practice_sessions"
-
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     lesson_id = Column(UUID(as_uuid=True), ForeignKey("lessons.id", ondelete="RESTRICT"), nullable=False)
-    expected_sign = Column(String(2), nullable=False)
     status = Column(String(20), nullable=False, default="in_progress")
     attempt_count = Column(Integer, nullable=False, default=0)
-    start_time = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
-    end_time = Column(DateTime(timezone=True), nullable=True)
+    started_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    ended_at = Column(DateTime(timezone=True), nullable=True)
 class Recommendation(Base):
     __tablename__ = "recommendations"
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
