@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models.practice_model import PracticeSession
+from models.practice_model import PracticeSession, Lesson
 from models.assessment_model import Assessment
 from models.analytics_model import AnalyticsSummary
 from schemas.analytics_schema import AnalyticsResponse
@@ -29,11 +29,16 @@ def get_learner_analytics(user_id: str, db: Session = Depends(get_db)):
 
     total_practice_time = 0
     for s in completed_sessions:
-        if s.end_time and s.start_time:
-            total_practice_time += int((s.end_time - s.start_time).total_seconds())
+        if s.ended_at and s.started_at:
+            total_practice_time += int((s.ended_at - s.started_at).total_seconds())
 
     session_ids = [s.id for s in sessions]
-    session_letter_map = {s.id: s.expected_sign for s in sessions}
+
+    # Build session_id -> letter map by joining each session's lesson
+    lesson_ids = [s.lesson_id for s in sessions]
+    lessons = db.query(Lesson).filter(Lesson.id.in_(lesson_ids)).all()
+    lesson_letter_map = {l.id: l.letter for l in lessons}
+    session_letter_map = {s.id: lesson_letter_map.get(s.lesson_id) for s in sessions}
 
     assessments = db.query(Assessment).filter(Assessment.session_id.in_(session_ids)).all()
 
@@ -60,9 +65,8 @@ def get_learner_analytics(user_id: str, db: Session = Depends(get_db)):
 
     summary.average_accuracy = round(average_accuracy, 2)
     summary.lessons_completed = lessons_completed
-    summary.total_practice_time = total_practice_time
     summary.weak_letters = weak_letters
-    summary.last_updated = datetime.utcnow()
+    summary.updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(summary)
@@ -71,7 +75,7 @@ def get_learner_analytics(user_id: str, db: Session = Depends(get_db)):
         user_id=summary.user_id,
         average_accuracy=float(summary.average_accuracy),
         lessons_completed=summary.lessons_completed,
-        total_practice_time=summary.total_practice_time,
+        total_practice_time=total_practice_time,
         weak_letters=summary.weak_letters,
-        last_updated=summary.last_updated
+        last_updated=summary.updated_at
     )

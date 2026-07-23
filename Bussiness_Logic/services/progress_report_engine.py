@@ -10,8 +10,8 @@ def build_progress_report(sessions: list, assessments: list, certificates: list)
 
     total_practice_time = 0
     for s in completed_sessions:
-        if s.end_time and s.start_time:
-            total_practice_time += int((s.end_time - s.start_time).total_seconds())
+        if s.ended_at and s.started_at:
+            total_practice_time += int((s.ended_at - s.started_at).total_seconds())
 
     if assessments:
         average_accuracy = sum(float(a.overall_score) for a in assessments) / len(assessments)
