@@ -21,7 +21,7 @@ export async function register(name, email, password, role) {
   const res = await fetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password, role }),
+    body: JSON.stringify({ full_name: name, email, password,}),
   })
   return handleResponse(res)
 }
@@ -60,4 +60,28 @@ export async function assessAttempt(expectedSign, predictedSign, confidence) {
 export async function getLessons() {
   const res = await fetch(`${API_BASE_URL}/lessons`)
   return handleResponse(res) // [{ id, title, level, description }, ...]
+}
+
+export async function updateProfile(userId, profile) {
+  const res = await fetch(`${API_BASE_URL}/auth/profile/${userId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(profile),
+  });
+
+  return handleResponse(res);
+}
+
+export async function changePassword(userId, passwordData) {
+  const res = await fetch(`${API_BASE_URL}/auth/change-password/${userId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(passwordData),
+  });
+
+  return handleResponse(res);
 }
