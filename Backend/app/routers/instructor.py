@@ -2,14 +2,15 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
+from typing import List
+from app.schemas.instructor_schema import StudentResponse
 from app.database.database import get_db
 from app.services.instructor_service import InstructorService
 
 router = APIRouter()
 
 
-@router.get("/students")
+@router.get("/students", response_model=List[StudentResponse])
 def get_assigned_students(
     db: Session = Depends(get_db),
 ):
