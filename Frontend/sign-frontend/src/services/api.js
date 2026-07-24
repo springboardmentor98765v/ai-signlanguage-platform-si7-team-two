@@ -85,3 +85,56 @@ export async function changePassword(userId, passwordData) {
 
   return handleResponse(res);
 }
+// ---------- Instructor ----------
+
+export async function getStudents() {
+  const res = await fetch(`${API_BASE_URL}/instructor/students`);
+  return handleResponse(res);
+}
+
+export async function getStudentProgress(studentId) {
+  const res = await fetch(
+    `${API_BASE_URL}/instructor/student/${studentId}/progress`
+  );
+
+  return handleResponse(res);
+}
+
+export async function getStudentAssessments(studentId) {
+  const res = await fetch(
+    `${API_BASE_URL}/instructor/student/${studentId}/assessments`
+  );
+
+  return handleResponse(res);
+}
+export async function createLesson(lesson) {
+  const res = await fetch(`${API_BASE_URL}/lessons`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(lesson),
+  });
+
+  return handleResponse(res);
+}
+
+export async function updateLesson(id, lesson) {
+  const res = await fetch(`${API_BASE_URL}/lessons/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(lesson),
+  });
+
+  return handleResponse(res);
+}
+
+export async function deleteLesson(id) {
+  const res = await fetch(`${API_BASE_URL}/lessons/${id}`, {
+    method: "DELETE",
+  });
+
+  return handleResponse(res);
+}
