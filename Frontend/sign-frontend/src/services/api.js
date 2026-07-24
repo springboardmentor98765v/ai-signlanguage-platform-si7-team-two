@@ -138,3 +138,24 @@ export async function deleteLesson(id) {
 
   return handleResponse(res);
 }
+export async function getUsers() {
+  const response = await fetch(`${API_BASE_URL}/admin/users`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch users");
+  }
+
+  return response.json();
+}
+
+export async function deleteUser(id) {
+  const response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete user");
+  }
+
+  return response.json();
+}

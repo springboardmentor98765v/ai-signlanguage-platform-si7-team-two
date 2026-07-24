@@ -33,3 +33,13 @@ def get_session() -> Session:
     """Returns a new SQLAlchemy session. Caller is responsible for closing it
     (or use it as a context manager: `with get_session() as session:`)."""
     return SessionLocal()
+def get_db():
+    """
+    FastAPI dependency that provides a database session
+    and automatically closes it after the request.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
