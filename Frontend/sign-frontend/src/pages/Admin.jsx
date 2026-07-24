@@ -1,18 +1,21 @@
 import { useState, useEffect } from "react";
-import { adminUsers } from "../data/mockData.js";
 import {
   getLessons,
   createLesson,
   updateLesson,
   deleteLesson,
+  getUsers,
+  deleteUser,
 } from "../services/api.js";
 
 export default function Admin() {
-  const [users, setUsers] = useState(adminUsers);
+  const [users, setUsers] = useState([]);
+const [loadingUsers, setLoadingUsers] = useState(true);
   const [lessons, setLessons] = useState([]);
   const [loadingLessons, setLoadingLessons] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState(null);
+
 
 const [newLesson, setNewLesson] = useState({
   course_id: "",
@@ -28,6 +31,29 @@ const [newLesson, setNewLesson] = useState({
       prev.map((u) => (u.id === id ? { ...u, active: !u.active } : u))
     );
   }
+  async function loadUsers() {
+  try {
+    const data = await getUsers();
+    setUsers(data);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoadingUsers(false);
+  }
+}
+
+async function handleDeleteUser(id, name) {
+  const confirmed = window.confirm(`Delete ${name}?`);
+  if (!confirmed) return;
+  try {
+    await deleteUser(id);
+    await loadUsers();
+    alert("User deleted successfully.");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 async function handleAddLesson() {
   try {
     await createLesson({
@@ -134,6 +160,7 @@ if (data.length > 0) {
     }
 
     loadLessons();
+    loadUsers();
   }, []);
 
   return (
@@ -174,42 +201,33 @@ if (data.length > 0) {
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td>
-                      <p className="user-name">{u.name}</p>
+                      <p className="user-name">{u.full_name}</p>
                       <p className="user-email">{u.email}</p>
                     </td>
 
                     <td>
                       <span
                         className={`badge ${
-                          u.role === "Instructor"
-                            ? "badge-intermediate"
-                            : "badge-beginner"
+                          "badge-beginner"
                         }`}
                       >
-                        {u.role}
+                        {u.role_id}
                       </span>
                     </td>
 
                     <td>
-                      <span
-                        className={`status-pill ${
-                          u.active ? "active" : "inactive"
-                        }`}
-                      >
-                        {u.active ? "Active" : "Inactive"}
+                      <span className="status-pill active">
+                        Active
                       </span>
                     </td>
 
                     <td>
                       <button
                         type="button"
-                        className="btn-secondary btn-inline btn-toggle"
-                        onClick={() => toggleUser(u.id)}
-                        aria-label={`${
-                          u.active ? "Deactivate" : "Activate"
-                        } ${u.name}`}
+                        className="btn-secondary btn-inline"
+                        onClick={() => handleDeleteUser(u.id, u.full_name)}
                       >
-                        {u.active ? "Deactivate" : "Activate"}
+                        Delete
                       </button>
                     </td>
                   </tr>

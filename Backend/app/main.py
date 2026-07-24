@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import lesson
 from app.routers import assessment
 from app.routers import instructor
+from app.routers import admin
 
 # Create FastAPI app FIRST
 app = FastAPI(
@@ -35,7 +36,11 @@ app.include_router(practice.router, prefix="/ai", tags=["AI"])
 app.include_router(lesson.router, prefix="/lessons", tags=["Lessons"])
 
 app.include_router(instructor.router, prefix="/instructor", tags=["Instructor"])
-
+app.include_router(
+    admin.router,
+    prefix="/admin",
+    tags=["Admin"],
+)
 
 @app.get("/", tags=["Root"])
 def root():
