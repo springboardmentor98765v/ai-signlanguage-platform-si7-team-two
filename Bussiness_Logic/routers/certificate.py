@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal
+
 from models.practice_model import PracticeSession, Lesson, Certificate
 from models.assessment_model import Assessment
 from services.certificate_engine import check_certificate_eligibility, generate_certificate_code
@@ -42,7 +43,7 @@ def check_eligibility(learner_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.post("/{learner_id}/issue", response_model=CertificateIssuedResponse)
-def issue_certificate(learner_id: UUID, learner_name: str,db: Session = Depends(get_db)):
+def issue_certificate(learner_id: UUID, learner_name: str, db: Session = Depends(get_db)):
     sessions = db.query(PracticeSession).filter(PracticeSession.user_id == learner_id).all()
     session_ids = [s.id for s in sessions]
 
@@ -63,6 +64,19 @@ def issue_certificate(learner_id: UUID, learner_name: str,db: Session = Depends(
         )
 
     completed_sessions = [s for s in sessions if s.status == "completed"]
+    
+    # Check if a valid certificate already exists
+    existing_certificate = (
+        db.query(Certificate)
+        .filter(
+            Certificate.learner_id == learner_id,
+            Certificate.is_valid == True
+        )
+        .first()
+    )
+
+    if existing_certificate:
+        return existing_certificate
 
     certificate_code = generate_certificate_code(learner_id)
 
@@ -77,9 +91,6 @@ def issue_certificate(learner_id: UUID, learner_name: str,db: Session = Depends(
     db.refresh(cert)
 
     # Generate the actual PDF file and save its path
-    # NOTE: learner_name is a placeholder here since this service doesn't
-    # own the users table's full_name field — see note below.
-   
     file_path = generate_certificate_pdf(learner_name, result["average_score"], certificate_code)
 
     cert.file_path = file_path

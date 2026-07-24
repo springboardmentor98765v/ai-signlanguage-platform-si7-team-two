@@ -1,14 +1,15 @@
 from datetime import datetime, timezone
-
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from uuid import UUID
+
 from database import SessionLocal
 from models.assessment_model import Assessment
 from models.feedback_model import Feedback
-from models.practice_model import PracticeSession, Lesson
+from models.practice_model import PracticeSession, Lesson, Recommendation
 from schemas.assessment_schema import AssessmentRequest, AssessmentResponse
+from services.recommendation_engine import find_weak_letters
 from services.scoring import calculate_scores, normalize_confidence
 
 router = APIRouter(prefix="/assessment", tags=["Assessment Service"])
@@ -81,6 +82,7 @@ def score_attempt(request: ScoreRequest, db: Session = Depends(get_db)):
         session = db.query(PracticeSession).filter(PracticeSession.id == request.session_id).first()
         if not session:
             raise HTTPException(status_code=404, detail="Practice session not found")
+        
         lesson = db.query(Lesson).filter(Lesson.id == session.lesson_id).first()
         if not lesson or lesson.letter.strip().upper() != expected_sign:
             raise HTTPException(status_code=400, detail="Expected sign does not match the practice session's lesson")
@@ -112,6 +114,63 @@ def score_attempt(request: ScoreRequest, db: Session = Depends(get_db)):
         session.attempt_count += 1
         db.commit()
         db.refresh(new_assessment)
+
+        # ------------------------------
+        # Auto-update Recommendations
+        # ------------------------------
+        all_assessments = (
+            db.query(Assessment)
+            .join(PracticeSession, Assessment.session_id == PracticeSession.id)
+            .filter(PracticeSession.user_id == session.user_id)
+            .all()
+        )
+
+        weak_letters = find_weak_letters(all_assessments)
+        weak_letter_names = {w["letter"] for w in weak_letters}
+
+        # Mark improved recommendations as completed
+        existing_recommendations = (
+            db.query(Recommendation)
+            .filter(
+                Recommendation.learner_id == session.user_id,
+                Recommendation.status == "active",
+            )
+            .all()
+        )
+
+        for rec in existing_recommendations:
+            if rec.letter_or_word not in weak_letter_names:
+                rec.status = "completed"
+
+        # Add new recommendations
+        for w in weak_letters:
+            existing = (
+                db.query(Recommendation)
+                .filter(
+                    Recommendation.learner_id == session.user_id,
+                    Recommendation.letter_or_word == w["letter"],
+                    Recommendation.status == "active",
+                )
+                .first()
+            )
+
+            if not existing:
+                db.add(
+                    Recommendation(
+                        learner_id=session.user_id,
+                        letter_or_word=w["letter"],
+                        reason=(
+                                f"Practice the sign '{w['letter']}' again. "
+                                f"Your recent average accuracy is {w['average_score']:.1f}%. "
+                                "Keep practicing to improve your performance."
+                            ),
+                        recent_avg_accuracy=w["average_score"],
+                        status="active",
+                    )
+                )
+
+        db.commit()
+
         assessment_id = str(new_assessment.id)
         completed_at = new_assessment.created_at
 
