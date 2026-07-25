@@ -1,14 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models.practice_model import PracticeSession
+from models.practice_model import PracticeSession, Recommendation
 from models.assessment_model import Assessment
-from models.practice_model import Recommendation
 from services.recommendation_engine import find_weak_letters
 from schemas.recommendation_schema import RecommendationResponse
 from uuid import UUID
-
-
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendation Engine"])
 
@@ -34,7 +31,23 @@ def get_recommendations(learner_id: UUID, db: Session = Depends(get_db)):
     )
 
     weak_letters = find_weak_letters(assessments)
+    weak_letter_names = {w["letter"] for w in weak_letters}
 
+    # 1. Deactivate recommendations for letters that are no longer weak
+    existing_recommendations = (
+        db.query(Recommendation)
+        .filter(
+            Recommendation.learner_id == learner_id,
+            Recommendation.status == "active"
+        )
+        .all()
+    )
+
+    for rec in existing_recommendations:
+        if rec.letter_or_word not in weak_letter_names:
+            rec.status = "completed"
+
+    # 2. Add new active recommendations for weak letters
     for w in weak_letters:
         existing = (
             db.query(Recommendation)
@@ -49,13 +62,19 @@ def get_recommendations(learner_id: UUID, db: Session = Depends(get_db)):
             new_rec = Recommendation(
                 learner_id=learner_id,
                 letter_or_word=w["letter"],
-                reason=f"Average accuracy on '{w['letter']}' dropped below 70% over last 3 attempts.",
+                reason=(
+                         f"Practice the sign '{w['letter']}' again. "
+                         f"Your recent average accuracy is {w['average_score']:.1f}%. "
+                        "Keep practicing to improve your performance."
+                       ),
                 recent_avg_accuracy=w["average_score"],
                 status="active",
             )
             db.add(new_rec)
+
     db.commit()
 
+    # 3. Fetch and return active recommendations
     active_recs = (
         db.query(Recommendation)
         .filter(Recommendation.learner_id == learner_id, Recommendation.status == "active")
