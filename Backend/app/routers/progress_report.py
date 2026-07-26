@@ -12,9 +12,14 @@ def get_progress_report(user_id: str):
         return IntegrationService.get_progress_report(user_id)
 
     except requests.exceptions.HTTPError as e:
+        try:
+            detail = e.response.json()
+        except Exception:
+            detail = e.response.text
+
         raise HTTPException(
             status_code=e.response.status_code,
-            detail=e.response.json().get("detail", "Unknown error"),
+            detail=detail,
         )
 
     except Exception as e:
