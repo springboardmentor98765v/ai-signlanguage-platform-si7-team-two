@@ -4,7 +4,7 @@ from datetime import datetime
 from uuid import UUID
 
 class CertificateEligibilityResponse(BaseModel):
-    learner_id: str
+    learner_id: UUID
     eligible: bool
     average_score: float
     attempted_letters: List[str]
