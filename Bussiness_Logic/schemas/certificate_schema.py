@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
-
+from uuid import UUID
 
 class CertificateEligibilityResponse(BaseModel):
     learner_id: str
@@ -13,8 +13,8 @@ class CertificateEligibilityResponse(BaseModel):
 
 
 class CertificateIssuedResponse(BaseModel):
-    id: str
-    learner_id: str
+    id: UUID
+    learner_id: UUID
     average_score: float
     lessons_completed: int
     certificate_code: str
