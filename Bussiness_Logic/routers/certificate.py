@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal
-
+from fastapi.responses import FileResponse
 from models.practice_model import PracticeSession, Lesson, Certificate
 from models.assessment_model import Assessment
 from services.certificate_engine import check_certificate_eligibility, generate_certificate_code
@@ -93,8 +93,9 @@ def issue_certificate(learner_id: UUID, learner_name: str, db: Session = Depends
     # Generate the actual PDF file and save its path
     file_path = generate_certificate_pdf(learner_name, result["average_score"], certificate_code)
 
-    cert.file_path = file_path
-    db.commit()
-    db.refresh(cert)
-
+    return FileResponse(
+    path=file_path,
+    media_type="application/pdf",
+    filename=f"Certificate_{learner_name}.pdf",
+)
     return cert

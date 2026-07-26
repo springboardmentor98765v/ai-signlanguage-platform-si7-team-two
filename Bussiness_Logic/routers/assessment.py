@@ -89,7 +89,6 @@ def score_attempt(request: ScoreRequest, db: Session = Depends(get_db)):
         
         new_assessment = Assessment(
             session_id=session.id,
-            expected_sign=expected_sign,
             predicted_sign=predicted_sign,
             confidence=confidence / 100,
             hand_shape_score=scores["hand_shape_score"],
@@ -118,14 +117,19 @@ def score_attempt(request: ScoreRequest, db: Session = Depends(get_db)):
         # ------------------------------
         # Auto-update Recommendations
         # ------------------------------
-        all_assessments = (
-            db.query(Assessment)
-            .join(PracticeSession, Assessment.session_id == PracticeSession.id)
-            .filter(PracticeSession.user_id == session.user_id)
+        assessment_session_pairs = (
+            db.query(Assessment, PracticeSession)
+            .join(
+                PracticeSession,
+                Assessment.session_id == PracticeSession.id
+            )
+            .filter(
+                PracticeSession.user_id == session.user_id
+            )
             .all()
         )
 
-        weak_letters = find_weak_letters(all_assessments)
+        weak_letters = find_weak_letters(assessment_session_pairs)
         weak_letter_names = {w["letter"] for w in weak_letters}
 
         # Mark improved recommendations as completed
