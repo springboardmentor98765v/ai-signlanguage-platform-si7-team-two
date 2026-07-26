@@ -159,3 +159,48 @@ export async function deleteUser(id) {
 
   return response.json();
 }
+// ---------- Progress Report ----------
+
+export async function getProgressReport(userId) {
+  const res = await fetch(`${API_BASE_URL}/progress-report/${userId}`);
+  return handleResponse(res);
+}
+
+export async function downloadProgressReport(userId, learnerName) {
+  const res = await fetch(
+    `${API_BASE_URL}/progress-report/${userId}/download?learner_name=${encodeURIComponent(learnerName)}`
+  );
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || "Failed to download progress report.");
+  }
+
+  return res.blob();
+}
+
+// ---------- Certificate ----------
+
+export async function getCertificateEligibility(userId) {
+  const res = await fetch(
+    `${API_BASE_URL}/certificate/eligibility/${userId}`
+  );
+
+  return handleResponse(res);
+}
+
+export async function downloadCertificate(userId, learnerName) {
+  const res = await fetch(
+    `${API_BASE_URL}/certificate/issue/${userId}?learner_name=${encodeURIComponent(learnerName)}`,
+    {
+      method: "POST",
+    }
+  );
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || "Failed to download certificate.");
+  }
+
+  return res.blob();
+}
