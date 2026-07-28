@@ -26,6 +26,11 @@ if DATABASE_URL is None:
 print("DATABASE_URL =", DATABASE_URL)
 
 engine = create_engine(DATABASE_URL)
+from sqlalchemy import text
+
+with engine.connect() as conn:
+    print("Connected Database:", conn.execute(text("SELECT current_database()")).scalar())
+    print("Current Schema:", conn.execute(text("SELECT current_schema()")).scalar())
 
 SessionLocal = sessionmaker(
     autocommit=False,

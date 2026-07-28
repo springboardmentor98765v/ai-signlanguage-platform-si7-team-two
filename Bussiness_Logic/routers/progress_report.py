@@ -9,7 +9,7 @@ from services.progress_report_pdf import generate_progress_report_pdf
 from schemas.progress_report_schema import ProgressReportResponse
 from datetime import datetime
 from uuid import UUID
-
+from fastapi.responses import FileResponse
 router = APIRouter(prefix="/progress-report", tags=["Progress Report Service"])
 
 def get_db():
@@ -54,6 +54,14 @@ def get_progress_report_pdf(user_id: UUID, learner_name: str = Query("Learner"),
     certificates = db.query(Certificate).filter(Certificate.learner_id == user_id).all()
 
     report_data = build_progress_report(sessions, assessments, certificates)
-    file_path = generate_progress_report_pdf(learner_name, report_data, str(user_id))
+    file_path = generate_progress_report_pdf(
+        learner_name,
+        report_data,
+        str(user_id)
+    )
 
-    return {"file_path": file_path}
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename=f"Progress_Report_{learner_name}.pdf",
+    )

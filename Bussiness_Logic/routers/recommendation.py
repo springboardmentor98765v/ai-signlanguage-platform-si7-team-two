@@ -23,14 +23,20 @@ def get_recommendations(learner_id: UUID, db: Session = Depends(get_db)):
     sessions = db.query(PracticeSession).filter(PracticeSession.user_id == learner_id).all()
     session_ids = [s.id for s in sessions]
 
-    assessments = (
-        db.query(Assessment)
-        .filter(Assessment.session_id.in_(session_ids))
+    assessment_session_pairs = (
+        db.query(Assessment, PracticeSession)
+        .join(
+            PracticeSession,
+            Assessment.session_id == PracticeSession.id
+        )
+        .filter(
+            Assessment.session_id.in_(session_ids)
+        )
         .all()
         if session_ids else []
     )
 
-    weak_letters = find_weak_letters(assessments)
+    weak_letters = find_weak_letters(assessment_session_pairs)
     weak_letter_names = {w["letter"] for w in weak_letters}
 
     # 1. Deactivate recommendations for letters that are no longer weak
