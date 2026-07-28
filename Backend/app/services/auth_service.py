@@ -5,6 +5,7 @@ from db.models.users import User
 from db.models.roles import Role
 
 from app.utils.hashing import hash_password, verify_password
+from app.utils.jwt_handler import create_access_token
 from app.schemas.user import (
     UserRegister,
     UserLogin,
@@ -64,7 +65,19 @@ class AuthService:
         ):
             raise ValueError("Invalid email or password")
 
-        return existing_user
+        token = create_access_token(
+            {
+                "sub": str(existing_user.id),
+                "email": existing_user.email,
+                "role": existing_user.role.name,
+            }
+        )
+
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "user": existing_user,
+        }
 
     @staticmethod
     def update_profile(
