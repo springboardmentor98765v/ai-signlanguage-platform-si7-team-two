@@ -17,7 +17,11 @@ from app.services.auth_service import AuthService
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserResponse)
+@router.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def register(user: UserRegister, db: Session = Depends(get_db)):
     try:
         return AuthService.register(db, user)

@@ -12,6 +12,8 @@ IMPORTANT: Intern 5's `feedback` table only allows these categories:
 gesture/shape corrections.
 """
 
+import random
+
 THRESHOLD = 70.0
 EXCELLENT_THRESHOLD = 90.0
 
@@ -73,7 +75,6 @@ def generate_feedback(scores: dict, possible_issue: str = None) -> list:
         })
 
     if not feedback:
-        import random
         if scores["overall_score"] >= EXCELLENT_THRESHOLD:
             message = random.choice(ENCOURAGEMENT_MESSAGES)
         else:

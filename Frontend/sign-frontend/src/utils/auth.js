@@ -1,14 +1,33 @@
-const TOKEN_KEY = 'signlearn_token'
-const ROLE_KEY = 'signlearn_role'
+const USER_KEY = "signlearn_user";
 
-export function saveSession(token, role) {
-  localStorage.setItem(TOKEN_KEY, token)
-  localStorage.setItem(ROLE_KEY, role)
+export function saveSession(user) {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
-export function getToken() { return localStorage.getItem(TOKEN_KEY) }
-export function getRole() { return localStorage.getItem(ROLE_KEY) }
-export function isAuthenticated() { return Boolean(getToken()) }
+
+export function getUser() {
+    const user = localStorage.getItem(USER_KEY);
+
+    if (!user) return null;
+
+    return JSON.parse(user);
+}
+
+export function getUserId() {
+    const user = getUser();
+
+    return user?.id;
+}
+
+export function getUserRole() {
+    const user = getUser();
+
+    return user?.role_id;
+}
+
+export function isAuthenticated() {
+    return getUser() !== null;
+}
+
 export function clearSession() {
-  localStorage.removeItem(TOKEN_KEY)
-  localStorage.removeItem(ROLE_KEY)
+    localStorage.removeItem(USER_KEY);
 }
