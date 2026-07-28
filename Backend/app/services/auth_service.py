@@ -26,20 +26,24 @@ class AuthService:
         if existing_user:
             raise ValueError("Email already registered")
 
-        # Get Learner role
-        learner_role = db.execute(
-            select(Role).where(Role.name == "Learner")
+        # Get the requested role (defaults to "Learner" if not specified —
+        # see UserRegister.role default in app/schemas/user.py)
+        requested_role = db.execute(
+            select(Role).where(Role.name == user.role)
         ).scalar_one_or_none()
 
-        if learner_role is None:
-            raise ValueError("Learner role not found")
+        if requested_role is None:
+            raise ValueError(
+                f"'{user.role}' is not a valid role. "
+                "It must match a role seeded in the roles table."
+            )
 
         # Create user
         new_user = User(
             full_name=user.full_name,
             email=user.email,
             password_hash=hash_password(user.password),
-            role_id=learner_role.id,
+            role_id=requested_role.id,
         )
 
         db.add(new_user)
