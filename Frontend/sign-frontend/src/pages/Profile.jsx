@@ -1,60 +1,29 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { updateProfile, changePassword } from "../services/api";
+import { useState } from "react";
 
-import { getUser, clearSession } from "../utils/auth";
+// Mock current user — swap for real data once Intern 2's Profile API is ready (Day 9)
+const mockUser = {
+  name: "Aisha Khan",
+  email: "aisha.khan@example.com",
+  role: "Learner",
+};
 
 export default function ProfilePage() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-
-  const [draft, setDraft] = useState({
-    full_name: "",
-    email: "",
-  });
-  useEffect(() => {
-    const loggedUser = getUser();
-
-    if (loggedUser) {
-      setUser(loggedUser);
-
-      setDraft({
-        full_name: loggedUser.full_name,
-        email: loggedUser.email,
-      });
-    }
-  }, []);
-
+  const [user, setUser] = useState(mockUser);
   const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(mockUser);
 
-  const [passwords, setPasswords] = useState({
-    oldPassword: "",
-    newPassword: "",
-  });
+  const [passwords, setPasswords] = useState({ oldPassword: "", newPassword: "" });
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState(false);
-  if (!user) {
-    return <div>Loading...</div>;
+
+  function startEditing() {
+    setDraft(user);
+    setEditing(true);
   }
 
-  async function saveProfile() {
-    try {
-      const updatedUser = await updateProfile(user.id, {
-        full_name: draft.full_name,
-        email: draft.email,
-      });
-
-      setUser(updatedUser);
-
-      localStorage.setItem("signlearn_user", JSON.stringify(updatedUser));
-
-      setEditing(false);
-
-      alert("Profile updated successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update profile.");
-    }
+  function saveProfile() {
+    setUser(draft);
+    setEditing(false);
   }
 
   function cancelEditing() {
@@ -67,63 +36,31 @@ export default function ProfilePage() {
     setPasswordError("");
     setPasswordSuccess(false);
   }
-  function startEditing() {
-    setDraft({
-      full_name: user.full_name,
-      email: user.email,
-    });
 
-    setEditing(true);
-  }
+  function submitPasswordChange(e) {
+    e.preventDefault();
+    const { oldPassword, newPassword } = passwords;
 
-  async function submitPasswordChange(e) {
-  e.preventDefault();
+    if (!oldPassword) {
+      setPasswordError("Enter your current password.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordError("New password must be at least 6 characters.");
+      return;
+    }
+    if (newPassword === oldPassword) {
+      setPasswordError("New password must be different from the old one.");
+      return;
+    }
 
-  const { oldPassword, newPassword } = passwords;
-
-  if (!oldPassword) {
-    setPasswordError("Enter your current password.");
-    return;
-  }
-
-  if (newPassword.length < 6) {
-    setPasswordError("New password must be at least 6 characters.");
-    return;
-  }
-
-  if (newPassword === oldPassword) {
-    setPasswordError("New password must be different from the old one.");
-    return;
-  }
-
-  try {
-    await changePassword(user.id, {
-      old_password: oldPassword,
-      new_password: newPassword,
-    });
-
+    // TODO: replace with real Change Password API call (Intern 2, Day 2)
     setPasswordSuccess(true);
-    setPasswordError("");
-    setPasswords({
-      oldPassword: "",
-      newPassword: "",
-    });
-
-    // Password changed successfully — force logout so the old session
-    // can't keep being used, then send the user back to the login page.
-    setTimeout(() => {
-      clearSession();
-      navigate("/");
-    }, 1500);
-
-  } catch (err) {
-    setPasswordSuccess(false);
-    setPasswordError(err.message || "Failed to change password.");
+    setPasswords({ oldPassword: "", newPassword: "" });
   }
-}
 
-  const initials = user?.full_name
-    ?.split(" ")
+  const initials = user.name
+    .split(" ")
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
@@ -141,8 +78,8 @@ export default function ProfilePage() {
         <div className="profile-identity">
           <div className="avatar">{initials}</div>
           <div>
-            <p className="profile-name">{user.full_name}</p>
-            <span className="badge badge-beginner">Learner</span>
+            <p className="profile-name">{user.name}</p>
+            <span className="badge badge-beginner">{user.role}</span>
           </div>
         </div>
 
@@ -151,13 +88,11 @@ export default function ProfilePage() {
           {editing ? (
             <input
               type="text"
-              value={draft.full_name}
-              onChange={(e) =>
-                setDraft({ ...draft, full_name: e.target.value })
-              }
+              value={draft.name}
+              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
           ) : (
-            <p className="field-static">{user.full_name}</p>
+            <p className="field-static">{user.name}</p>
           )}
         </div>
 
@@ -176,9 +111,7 @@ export default function ProfilePage() {
 
         <div className="field">
           <label>Role</label>
-          <p className="field-static field-static-muted">
-            Learner (set by admin)
-          </p>
+          <p className="field-static field-static-muted">{user.role} (set by admin)</p>
         </div>
 
         <div className="profile-actions">
@@ -202,9 +135,7 @@ export default function ProfilePage() {
       {/* Change password */}
       <div className="profile-card">
         <h2 className="label">Change password</h2>
-        <p className="page-sub">
-          Use at least 6 characters, different from your current password.
-        </p>
+        <p className="page-sub">Use at least 6 characters, different from your current password.</p>
 
         <form onSubmit={submitPasswordChange}>
           <div className="field">
@@ -212,9 +143,7 @@ export default function ProfilePage() {
             <input
               type="password"
               value={passwords.oldPassword}
-              onChange={(e) =>
-                handlePasswordChange("oldPassword", e.target.value)
-              }
+              onChange={(e) => handlePasswordChange("oldPassword", e.target.value)}
             />
           </div>
 
@@ -223,22 +152,12 @@ export default function ProfilePage() {
             <input
               type="password"
               value={passwords.newPassword}
-              onChange={(e) =>
-                handlePasswordChange("newPassword", e.target.value)
-              }
+              onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
             />
           </div>
 
-          {passwordError && (
-            <p className="form-error" role="alert">
-              {passwordError}
-            </p>
-          )}
-          {passwordSuccess && (
-            <p className="form-success" role="status">
-              Password updated. Logging you out...
-            </p>
-          )}
+          {passwordError && <p className="form-error" role="alert">{passwordError}</p>}
+          {passwordSuccess && <p className="form-success" role="status">Password updated.</p>}
 
           <button type="submit" className="btn-primary btn-inline">
             Update password

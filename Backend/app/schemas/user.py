@@ -6,7 +6,6 @@ class UserRegister(BaseModel):
     full_name: str
     email: EmailStr
     password: str
-    role: str = "Learner"
 
 
 class UserLogin(BaseModel):

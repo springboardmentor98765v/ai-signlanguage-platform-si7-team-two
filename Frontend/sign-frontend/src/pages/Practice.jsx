@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
-import { predictSign, assessAttempt, getLessons } from "../services/api.js";
+import { predictSign, assessAttempt } from "../services/api.js";
 import { useParams, useNavigate } from "react-router-dom";
+import { lessons } from "../data/mockData.js";
 
 const TARGET_ATTEMPTS = 5;
 
@@ -25,23 +26,7 @@ export default function Practice() {
 
   const [isPracticing, setIsPracticing] = useState(false);
   const [cameraError, setCameraError] = useState("");
-  const [lessonList, setLessonList] = useState([]);
   const { letter } = useParams();
-
-  // Real lesson catalogue (Intern 2's Course Service), replacing mock data
-  useEffect(() => {
-    async function loadLessons() {
-      try {
-        const data = await getLessons();
-        setLessonList(data);
-      } catch (err) {
-        console.error("Failed to load lessons:", err);
-        setLessonList([]);
-      }
-    }
-
-    loadLessons();
-  }, []);
 
   const targetLetter = letter || "A";
 
@@ -227,16 +212,11 @@ export default function Practice() {
           <div className="letter-picker">
             <label htmlFor="letter-select">Pick a letter</label>
             <select id="letter-select" value={targetLetter} onChange={handleLetterChange}>
-              {lessonList.length === 0 ? (
-                <option value={targetLetter}>{targetLetter}</option>
-              ) : (
-                lessonList.map((l) => (
-                  <option key={l.id} value={l.letter}>
-                    {l.title}
-                    {l.difficulty ? ` · ${l.difficulty}` : ""}
-                  </option>
-                ))
-              )}
+              {lessons.map((l) => (
+                <option key={l.id} value={l.letter}>
+                  {l.title} · {l.difficulty}
+                </option>
+              ))}
             </select>
           </div>
         </div>

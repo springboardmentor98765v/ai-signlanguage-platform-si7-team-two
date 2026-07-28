@@ -1,59 +1,15 @@
-import { useEffect, useState } from "react";
-import { getStudents, getStudentProgress } from "../services/api";
+import { useState } from 'react'
+import { instructorStudents } from '../data/mockData.js'
 
 export default function Instructor() {
-  const [students, setStudents] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [selectedProgress, setSelectedProgress] = useState(null);
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('')
+  const [selectedId, setSelectedId] = useState(instructorStudents[0]?.id ?? null)
 
-  // Load all students
-  useEffect(() => {
-    async function loadStudents() {
-      try {
-        const data = await getStudents();
-        setStudents(data);
+  const filteredStudents = instructorStudents.filter((s) =>
+    s.name.toLowerCase().includes(search.toLowerCase())
+  )
 
-        if (data.length > 0) {
-          setSelectedId(data[0].id);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadStudents();
-  }, []);
-
-  // Load selected student's progress
-  useEffect(() => {
-    if (!selectedId) return;
-
-    async function loadProgress() {
-      try {
-        const data = await getStudentProgress(selectedId);
-        setSelectedProgress(data);
-      } catch (err) {
-        console.error(err);
-        setSelectedProgress(null);
-      }
-    }
-
-    loadProgress();
-  }, [selectedId]);
-
-  const filteredStudents = students.filter((student) =>
-    student.full_name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const selectedStudent = students.find((s) => s.id === selectedId);
-
-  if (loading) {
-    return <div>Loading students...</div>;
-  }
+  const selectedStudent = instructorStudents.find((s) => s.id === selectedId)
 
   return (
     <div>
@@ -63,10 +19,7 @@ export default function Instructor() {
       </div>
 
       <div className="field search-field">
-        <label htmlFor="student-search" className="sr-only">
-          Search student by name
-        </label>
-
+        <label htmlFor="student-search" className="sr-only">Search student by name</label>
         <input
           id="student-search"
           type="text"
@@ -77,41 +30,48 @@ export default function Instructor() {
       </div>
 
       <div className="reports-grid">
-        {/* LEFT PANEL */}
-
         <div className="report-panel">
-          <p className="panel-title">
-            Students ({filteredStudents.length})
-          </p>
+          <p className="panel-title" id="students-table-caption">Students ({filteredStudents.length})</p>
 
           {filteredStudents.length === 0 ? (
-            <p className="lessons-status">
-              No students found.
-            </p>
+            <p className="lessons-status">No students match that search.</p>
           ) : (
-            <div className="table-scroll">
+            <div className="table-scroll" role="region" aria-labelledby="students-table-caption" tabIndex={0}>
               <table className="attempts-table">
                 <thead>
                   <tr>
                     <th>Name</th>
-                    <th>Email</th>
+                    <th>Accuracy</th>
+                    <th>Lessons</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  {filteredStudents.map((student) => (
+                  {filteredStudents.map((s) => (
                     <tr
-                      key={student.id}
-                      className={
-                        student.id === selectedId
-                          ? "student-row selected"
-                          : "student-row"
-                      }
-                      onClick={() => setSelectedId(student.id)}
-                      style={{ cursor: "pointer" }}
+                      key={s.id}
+                      className={`student-row ${s.id === selectedId ? 'selected' : ''}`}
+                      onClick={() => setSelectedId(s.id)}
+                      tabIndex={0}
+                      role="button"
+                      aria-pressed={s.id === selectedId}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setSelectedId(s.id)
+                        }
+                      }}
                     >
-                      <td>{student.full_name}</td>
-                      <td>{student.email}</td>
+                      <td className="letter-cell student-name">{s.name}</td>
+                      <td>
+                        <div className="accuracy-bar-wrap">
+                          <div
+                            className={`accuracy-bar ${s.accuracy < 70 ? 'low' : ''}`}
+                            style={{ width: `${s.accuracy}%` }}
+                          />
+                          <span>{s.accuracy}%</span>
+                        </div>
+                      </td>
+                      <td>{s.lessonsCompleted}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -120,84 +80,46 @@ export default function Instructor() {
           )}
         </div>
 
-        {/* RIGHT PANEL */}
-
         <div className="report-panel">
-          <p className="panel-title">
-            Student Detail
-          </p>
+          <p className="panel-title">Student Detail</p>
 
           {selectedStudent ? (
-            <>
-              <p className="profile-name">
-                {selectedStudent.full_name}
+            <div>
+              <p className="profile-name">{selectedStudent.name}</p>
+              <p className="page-sub" style={{ marginBottom: 16 }}>
+                Last active {selectedStudent.lastActive}
               </p>
 
-              <p className="page-sub">
-                {selectedStudent.email}
-              </p>
+              <div className="summary-row">
+                <span>Overall accuracy</span>
+                <span>{selectedStudent.accuracy}%</span>
+              </div>
+              <div className="summary-row">
+                <span>Lessons completed</span>
+                <span>{selectedStudent.lessonsCompleted}</span>
+              </div>
 
-              {selectedProgress ? (
-                <>
-                  <div className="summary-row">
-                    <span>Overall Accuracy</span>
-                    <span>
-                      {selectedProgress.average_accuracy}%
-                    </span>
-                  </div>
-
-                  <div className="summary-row">
-                    <span>Lessons Completed</span>
-                    <span>
-                      {selectedProgress.lessons_completed}
-                    </span>
-                  </div>
-
-                  <p
-                    className="label"
-                    style={{ marginTop: 16 }}
-                  >
-                    Weak Letters
-                  </p>
-
-                  {selectedProgress.weak_letters.length === 0 ? (
-                    <p className="lessons-status">
-                      No weak letters.
-                    </p>
-                  ) : (
-                    <div className="weak-letter-list">
-                      {selectedProgress.weak_letters.map(
-                        (letter) => (
-                          <div
-                            key={letter}
-                            className="weak-letter-item"
-                          >
-                            <div className="weak-letter-badge">
-                              {letter}
-                            </div>
-
-                            <div>
-                              <p className="weak-letter-hint">
-                                Recommend extra practice
-                              </p>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  )}
-                </>
+              <p className="label" style={{ marginTop: 16 }}>Weak letters</p>
+              {selectedStudent.weakLetters.length === 0 ? (
+                <p className="lessons-status">No weak letters — great progress.</p>
               ) : (
-                <p className="lessons-status">
-                  No analytics available for this student.
-                </p>
+                <div className="weak-letter-list">
+                  {selectedStudent.weakLetters.map((letter) => (
+                    <div className="weak-letter-item" key={letter}>
+                      <div className="weak-letter-badge">{letter}</div>
+                      <div>
+                        <p className="weak-letter-hint">Recommend extra practice</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
-            </>
+            </div>
           ) : (
-            <p>Select a student.</p>
+            <p className="lessons-status">Select a student to view their progress.</p>
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }

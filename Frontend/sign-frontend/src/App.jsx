@@ -3,7 +3,6 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import AppLayout from './components/layout/AppLayout.jsx'
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx'
-import RoleRoute from './components/auth/RoleRoute.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Lessons from './pages/Lessons.jsx'
 import Practice from './pages/Practice.jsx'
@@ -24,62 +23,13 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        {/* Learner-only pages */}
-        <Route
-          path="/dashboard"
-          element={
-            <RoleRoute allowedRoles={["learner"]}>
-              <Dashboard />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="/lessons"
-          element={
-            <RoleRoute allowedRoles={["learner"]}>
-              <Lessons />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="/practice/:letter"
-          element={
-            <RoleRoute allowedRoles={["learner"]}>
-              <Practice />
-            </RoleRoute>
-          }
-        />
-        <Route
-          path="/reports"
-          element={
-            <RoleRoute allowedRoles={["learner"]}>
-              <Reports />
-            </RoleRoute>
-          }
-        />
-
-        {/* Any logged-in role can manage their own profile */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/lessons" element={<Lessons />} />
+        <Route path="/practice/:letter" element={<Practice />} />
+        <Route path="/reports" element={<Reports />} />
         <Route path="/profile" element={<Profile />} />
-
-        {/* Instructor-only */}
-        <Route
-          path="/instructor"
-          element={
-            <RoleRoute allowedRoles={["instructor"]}>
-              <Instructor />
-            </RoleRoute>
-          }
-        />
-
-        {/* Admin-only */}
-        <Route
-          path="/admin"
-          element={
-            <RoleRoute allowedRoles={["admin"]}>
-              <Admin />
-            </RoleRoute>
-          }
-        />
+        <Route path="/instructor" element={<Instructor />} />
+        <Route path="/admin" element={<Admin />} />
       </Route>
     </Routes>
   )

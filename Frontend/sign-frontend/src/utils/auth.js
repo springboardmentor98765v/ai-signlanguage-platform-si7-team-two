@@ -1,48 +1,14 @@
-const USER_KEY = "signlearn_user";
+const TOKEN_KEY = 'signlearn_token'
+const ROLE_KEY = 'signlearn_role'
 
-const ROLE_HOME = {
-    learner: "/dashboard",
-    instructor: "/instructor",
-    admin: "/admin",
-};
-
-export function saveSession(user) {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+export function saveSession(token, role) {
+  localStorage.setItem(TOKEN_KEY, token)
+  localStorage.setItem(ROLE_KEY, role)
 }
-
-export function getUser() {
-    const user = localStorage.getItem(USER_KEY);
-
-    if (!user) return null;
-
-    return JSON.parse(user);
-}
-
-export function getUserId() {
-    const user = getUser();
-
-    return user?.id;
-}
-
-export function getUserRole() {
-    const user = getUser();
-
-    // Prefer a real role name (e.g. "learner") once the backend sends one.
-    // Falls back to role_id (currently a raw UUID from the backend, which
-    // won't match any known role until Intern 2 ships the role name).
-    const role = user?.role || user?.role_id;
-
-    return typeof role === "string" ? role.toLowerCase() : role;
-}
-
-export function getRoleHomePath(role) {
-    return ROLE_HOME[role] || "/dashboard";
-}
-
-export function isAuthenticated() {
-    return getUser() !== null;
-}
-
+export function getToken() { return localStorage.getItem(TOKEN_KEY) }
+export function getRole() { return localStorage.getItem(ROLE_KEY) }
+export function isAuthenticated() { return Boolean(getToken()) }
 export function clearSession() {
-    localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(ROLE_KEY)
 }
