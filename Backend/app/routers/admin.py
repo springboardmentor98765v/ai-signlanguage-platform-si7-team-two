@@ -3,7 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from db.database import get_db
+from app.database.database import get_db
+from app.core.security import require_admin
 from app.schemas.admin_schema import UserResponse
 from app.services.admin_service import AdminService
 
@@ -14,7 +15,10 @@ router = APIRouter()
     "/users",
     response_model=list[UserResponse],
 )
-def get_users(db: Session = Depends(get_db)):
+def get_users(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
     return AdminService.get_all_users(db)
 
 
@@ -22,6 +26,7 @@ def get_users(db: Session = Depends(get_db)):
 def delete_user(
     user_id: UUID,
     db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
 ):
     try:
         return AdminService.delete_user(
