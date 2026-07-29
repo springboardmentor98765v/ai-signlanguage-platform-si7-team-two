@@ -1,10 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from routers import (
+    ai,
+    practice,
+    assessment,
+    feedback,
+    analytics,
+    integration,
+    streak,
+    badge,
+    progress_report,
+)
 from routers.certificate import router as certificate_router
-from routers import ai, practice, assessment, feedback, analytics, integration
 from routers.recommendation import router as recommendation_router
 from routers.weekly_analytics import router as weekly_analytics_router
-from routers import ai, practice, assessment, feedback, analytics, integration, certificate, progress_report
+
 app = FastAPI(title="Business Logic Service")
 
 app.add_middleware(
@@ -21,13 +31,15 @@ app.add_middleware(
 )
 
 app.include_router(ai.router)
-app.include_router(progress_report.router)
 app.include_router(weekly_analytics_router)
 app.include_router(practice.router)
 app.include_router(assessment.router)
 app.include_router(certificate_router)
 app.include_router(feedback.router)
 app.include_router(analytics.router)
+app.include_router(streak.router)
+app.include_router(badge.router)
+app.include_router(progress_report.router)
 app.include_router(integration.router)
 app.include_router(recommendation_router)
 

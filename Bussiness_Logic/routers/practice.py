@@ -2,7 +2,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from services.streak_service import update_streak
+from services.badge_service import evaluate_badges
+from datetime import date
 from database import SessionLocal
 from models.practice_model import Lesson, PracticeSession
 from schemas.practice_schema import (
@@ -88,8 +90,6 @@ def log_attempt(
         "session_id": session.id,
         "attempt_count": session.attempt_count,
     }
-
-
 @router.post("/end", response_model=EndSessionResponse)
 def end_session(
     request: EndSessionRequest,
@@ -102,20 +102,20 @@ def end_session(
     )
 
     if not session:
-        raise HTTPException(
-            status_code=404,
-            detail="Session not found",
-        )
+        raise HTTPException(status_code=404, detail="Session not found")
 
     session.end_time = datetime.utcnow()
     session.status = "completed"
-
     db.commit()
     db.refresh(session)
+
+    update_streak(db, session.user_id, date.today())
+    newly_earned = evaluate_badges(db, session.user_id)
 
     return EndSessionResponse(
         session_id=session.id,
         status=session.status,
         ended_at=session.end_time,
         attempt_count=session.attempt_count,
+        newly_earned_badges=newly_earned,
     )
