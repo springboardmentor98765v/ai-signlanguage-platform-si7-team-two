@@ -157,15 +157,13 @@ export async function getUsers() {
   return response.json();
 }
 
-export async function toggleUserStatus(id, isActive) {
-  const response = await fetch(`${API_BASE_URL}/admin/users/${id}/status`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ is_active: isActive }),
+export async function deleteUser(id) {
+  const response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+    method: "DELETE",
   });
 
   if (!response.ok) {
-    throw new Error("Failed to update user status");
+    throw new Error("Failed to delete user");
   }
 
   return response.json();

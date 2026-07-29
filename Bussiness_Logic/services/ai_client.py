@@ -6,12 +6,17 @@ load_dotenv()
 
 AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://127.0.0.1:8001")
 
+def _normalize_sign(value: str) -> str:
+    """Ensure predicted sign fits the DB's varchar(2) column."""
+    if not value:
+        return "?"
+    value = value.strip().upper()
+    return value[:2] if len(value) > 2 else value
+
 async def get_ai_prediction(image_bytes: bytes, filename: str = "frame.jpg") -> dict:
     """
     Calls Intern 3's real AI service (POST /predict, multipart/form-data).
-    Returns predicted_sign, confidence (0-1 scale), and possible_issue —
-    a real, letter-specific hint generated from landmark analysis
-    (e.g. "Fold your thumb outside the fist.").
+    Returns predicted_sign, confidence (0-1 scale), and possible_issue.
     Falls back to a safe mock response if the service is unreachable.
     """
     try:
@@ -22,8 +27,8 @@ async def get_ai_prediction(image_bytes: bytes, filename: str = "frame.jpg") -> 
             data = response.json()
 
             return {
-                "predicted_sign": data["prediction"],
-                "confidence": data["confidence"] / 100.0,  # normalize to 0-1
+                "predicted_sign": _normalize_sign(data["prediction"]),
+                "confidence": data["confidence"] / 100.0,
                 "possible_issue": data.get("possible_issue", "No major issue detected."),
             }
     except Exception as e:

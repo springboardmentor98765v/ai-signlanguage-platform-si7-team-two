@@ -121,3 +121,31 @@ user, recomputed as sessions complete.
    lists "PostgreSQL (or MySQL)" as a choice. Postgres is used here for
    `jsonb` (weak_letters) and native `uuid` generation. If the team prefers
    MySQL, `schema.sql` needs the noted swaps (see comments in that file).
+
+## certificates
+Stores a record every time a learner earns a certificate.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | |
+| learner_id | uuid FK -> users.id | |
+| average_score | numeric | |
+| lessons_completed | int default 0 | |
+| certificate_code | varchar(64) unique | Human-shareable code |
+| file_path | varchar(255) nullable | Path to generated PDF |
+| issued_at | timestamptz | |
+| is_valid | boolean default true | |
+
+## recommendations
+Holds suggestions for practice based on past performance.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | |
+| learner_id | uuid FK -> users.id | |
+| letter_or_word | varchar(50) | Which letter/word needs practice |
+| reason | varchar(255) | Plain-language reason |
+| recent_avg_accuracy | numeric nullable | The accuracy that triggered this |
+| status | varchar(20) | active, completed, dismissed |
+| created_at | timestamptz | |
+| resolved_at | timestamptz nullable | |

@@ -35,14 +35,19 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
     try:
-        logged_user = AuthService.login(db, user)
+        login_data = AuthService.login(db, user)
+
+        logged_user = login_data["user"]
 
         return {
             "message": "Login successful",
+            "access_token": login_data["access_token"],
+            "token_type": login_data["token_type"],
             "user": {
                 "id": str(logged_user.id),
                 "full_name": logged_user.full_name,
                 "email": logged_user.email,
+                "role": logged_user.role.name,
                 "role_id": str(logged_user.role_id),
             },
         }
@@ -107,7 +112,8 @@ def forgot_password(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
-        
+
+
 @router.post("/reset-password/{user_id}")
 def reset_password(
     user_id: UUID,

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models.practice_model import PracticeSession
+from models.practice_model import PracticeSession,Lesson
 from models.assessment_model import Assessment
 from models.feedback_model import Feedback
 from services.scoring import calculate_scores
@@ -29,6 +29,10 @@ async def submit_attempt(
     session = db.query(PracticeSession).filter(PracticeSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Practice session not found")
+    lesson = db.query(Lesson).filter(Lesson.id == session.lesson_id).first()
+    if not lesson:
+        raise HTTPException(status_code=404, detail="Lesson not found for this session")
+    expected_sign = lesson.letter
 
     # 2. Call AI service (Intern 3) with the real image
     image_bytes = await file.read()
@@ -43,7 +47,7 @@ async def submit_attempt(
 
     # 4. Score it (Assessment Service)
     scores = calculate_scores(
-        expected_sign=session.expected_sign,
+        expected_sign=expected_sign,
         predicted_sign=predicted_sign,
         confidence=confidence,
         duration_seconds=duration_seconds
@@ -51,7 +55,7 @@ async def submit_attempt(
     new_assessment = Assessment(
         session_id=session.id,
         predicted_sign=predicted_sign,
-        expected_sign=session.expected_sign, 
+        expected_sign=expected_sign, 
         confidence=confidence,
         # expected_sign=expected_sign,
         hand_shape_score=scores["hand_shape_score"],
@@ -86,7 +90,7 @@ async def submit_attempt(
         "session_id": str(session.id),
         "attempt_count": session.attempt_count,
         "predicted_sign": predicted_sign,
-        "expected_sign": session.expected_sign,
+        "expected_sign": expected_sign,
         "confidence": confidence,
         "scores": scores,
         "feedback": feedback_list

@@ -1,11 +1,5 @@
 const USER_KEY = "signlearn_user";
 
-const ROLE_HOME = {
-    learner: "/dashboard",
-    instructor: "/instructor",
-    admin: "/admin",
-};
-
 export function saveSession(user) {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
@@ -27,16 +21,7 @@ export function getUserId() {
 export function getUserRole() {
     const user = getUser();
 
-    // Prefer a real role name (e.g. "learner") once the backend sends one.
-    // Falls back to role_id (currently a raw UUID from the backend, which
-    // won't match any known role until Intern 2 ships the role name).
-    const role = user?.role || user?.role_id;
-
-    return typeof role === "string" ? role.toLowerCase() : role;
-}
-
-export function getRoleHomePath(role) {
-    return ROLE_HOME[role] || "/dashboard";
+    return user?.role_id;
 }
 
 export function isAuthenticated() {
