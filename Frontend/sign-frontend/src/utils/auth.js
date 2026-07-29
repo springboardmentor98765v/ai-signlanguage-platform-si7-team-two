@@ -12,26 +12,18 @@ export function saveSession(user) {
 
 export function getUser() {
     const user = localStorage.getItem(USER_KEY);
-
     if (!user) return null;
-
     return JSON.parse(user);
 }
 
 export function getUserId() {
     const user = getUser();
-
     return user?.id;
 }
 
 export function getUserRole() {
     const user = getUser();
-
-    // Prefer a real role name (e.g. "learner") once the backend sends one.
-    // Falls back to role_id (currently a raw UUID from the backend, which
-    // won't match any known role until Intern 2 ships the role name).
     const role = user?.role || user?.role_id;
-
     return typeof role === "string" ? role.toLowerCase() : role;
 }
 
