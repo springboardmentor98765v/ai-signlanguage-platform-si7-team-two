@@ -163,6 +163,75 @@ if (data.length > 0) {
     loadUsers();
   }, []);
 
+  async function handleUpdateLesson() {
+    try {
+      await updateLesson(editingLessonId, {
+        ...newLesson,
+        order_index: Number(newLesson.order_index),
+      });
+
+      const updated = await getLessons();
+
+      setLessons(updated);
+      setEditingLessonId(null);
+      setShowForm(false);
+
+      setNewLesson({
+        course_id: updated[0].course_id,
+        letter: "",
+        title: "",
+        description: "",
+        reference_image_url: "",
+        order_index: "",
+      });
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  async function handleDeleteLesson(id, title) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${title}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteLesson(id);
+
+      const updated = await getLessons();
+
+      setLessons(updated);
+
+      alert("Lesson deleted successfully.");
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  useEffect(() => {
+    async function loadLessons() {
+      try {
+        const data = await getLessons();
+        setLessons(data);
+
+        if (data.length > 0) {
+          setNewLesson((prev) => ({
+            ...prev,
+            course_id: data[0].course_id,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to load lessons:", err);
+      } finally {
+        setLoadingLessons(false);
+      }
+    }
+
+    loadLessons();
+    loadUsers();
+  }, []);
+
   return (
     <div>
       <div className="reports-header">
@@ -231,10 +300,51 @@ if (data.length > 0) {
                       </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+
+                <tbody>
+                  {users.map((u) => {
+                    const isActive = u.is_active !== false;
+
+                    return (
+                      <tr key={u.id}>
+                        <td>
+                          <p className="user-name">{u.full_name}</p>
+                          <p className="user-email">{u.email}</p>
+                        </td>
+
+                        <td>
+                          <span className="badge badge-beginner">
+                            {u.role_id}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span
+                            className={`status-pill ${isActive ? "active" : "inactive"}`}
+                          >
+                            {isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+
+                        <td>
+                          <button
+                            type="button"
+                            className="btn-secondary btn-inline btn-toggle"
+                            onClick={() =>
+                              handleToggleStatus(u.id, u.full_name, isActive)
+                            }
+                          >
+                            {isActive ? "Deactivate" : "Activate"}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* LESSONS PANEL */}
