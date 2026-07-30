@@ -19,3 +19,4 @@ class EndSessionResponse(BaseModel):
     status: str
     ended_at: datetime
     attempt_count: int
+    newly_earned_badges: list[str] = []

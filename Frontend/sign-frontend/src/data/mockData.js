@@ -112,3 +112,96 @@ export const weakLetters = [
   { letter: 'N', averageAccuracy: 63, sessionsRecommended: 4 },
   { letter: 'R', averageAccuracy: 66, sessionsRecommended: 3 },
 ]
+
+// DEV ONLY (Milestone 3, Day 2): stands in for Intern 2's Notification API (due Day 4)
+export const notifications = [
+  {
+    id: 1,
+    type: 'badge',
+    message: "You earned the 'Alphabet Master' badge!",
+    createdAt: '2026-07-18T09:15:00',
+    read: false,
+  },
+  {
+    id: 2,
+    type: 'recommendation',
+    message: 'New recommendation available: practice letter M',
+    createdAt: '2026-07-18T08:02:00',
+    read: false,
+  },
+  {
+    id: 3,
+    type: 'streak',
+    message: "You're on a 7-day streak! Keep it going.",
+    createdAt: '2026-07-17T19:40:00',
+    read: false,
+  },
+  {
+    id: 4,
+    type: 'certificate',
+    message: 'Your certificate for Beginner Level is ready to download',
+    createdAt: '2026-07-15T12:00:00',
+    read: true,
+  },
+  {
+    id: 5,
+    type: 'system',
+    message: 'Welcome to SignLearn! Start with Letter A to begin your journey.',
+    createdAt: '2026-07-10T10:00:00',
+    read: true,
+  },
+]
+
+// DEV ONLY (Milestone 3, Day 3): stands in for Intern 4's Badge/Streak logic (due Day 3-4)
+export const streakData = {
+  currentStreak: 7,
+  longestStreak: 12,
+}
+
+export const badges = [
+  {
+    id: 1,
+    name: 'Alphabet Master',
+    description: 'Completed every letter above 80% accuracy',
+    icon: '🏆',
+    unlocked: true,
+    unlockedOn: '2026-07-18',
+  },
+  {
+    id: 2,
+    name: '7-Day Streak',
+    description: 'Practiced 7 days in a row',
+    icon: '🔥',
+    unlocked: true,
+    unlockedOn: '2026-07-17',
+  },
+  {
+    id: 3,
+    name: 'First Steps',
+    description: 'Completed your first lesson',
+    icon: '👣',
+    unlocked: true,
+    unlockedOn: '2026-07-08',
+  },
+  {
+    id: 4,
+    name: 'Perfect Score',
+    description: 'Scored 100% accuracy on a letter',
+    icon: '⭐',
+    unlocked: false,
+  },
+  {
+    id: 5,
+    name: '30-Day Streak',
+    description: 'Practiced 30 days in a row',
+    icon: '💎',
+    unlocked: false,
+  },
+  {
+    id: 6,
+    name: 'Speed Signer',
+    description: 'Completed 5 lessons in a single day',
+    icon: '⚡',
+    unlocked: false,
+  },
+]

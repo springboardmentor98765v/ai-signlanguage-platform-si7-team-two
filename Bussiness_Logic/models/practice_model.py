@@ -23,7 +23,11 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True)
-    letter = Column(String(2), nullable=True)
+
+    full_name = Column(
+        String(120),
+        nullable=False,
+    )
 
 
 class Lesson(Base):
