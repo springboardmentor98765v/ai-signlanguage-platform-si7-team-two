@@ -17,6 +17,7 @@ from db.models.feedback import Feedback
 from db.models.learner_analytics import LearnerAnalytics
 from db.models.certificates import Certificate
 from db.models.recommendations import Recommendation
+from db.models.notifications import Notification
 
 __all__ = [
     "Base",
@@ -30,4 +31,5 @@ __all__ = [
     "LearnerAnalytics",
     "Certificate",
     "Recommendation",
+    "Notification",
 ]
