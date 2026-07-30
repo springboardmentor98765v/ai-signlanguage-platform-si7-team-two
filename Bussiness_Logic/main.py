@@ -9,6 +9,7 @@ from routers import (
     integration,
     streak,
     badge,
+    leaderboard,
     progress_report,
 )
 from routers.certificate import router as certificate_router
@@ -39,6 +40,7 @@ app.include_router(feedback.router)
 app.include_router(analytics.router)
 app.include_router(streak.router)
 app.include_router(badge.router)
+app.include_router(leaderboard.router)
 app.include_router(progress_report.router)
 app.include_router(integration.router)
 app.include_router(recommendation_router)
