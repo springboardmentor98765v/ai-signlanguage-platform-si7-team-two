@@ -14,7 +14,7 @@ Q,Q
 D,D
 J,J
 I,I
-B,D
+B,O
 P,P
 F,F
 T,T
@@ -62,7 +62,7 @@ Z,Z
 Q,Q
 G,G
 J,E
-V,U
+V,V
 O,O
 I,I
 T,T
@@ -128,7 +128,7 @@ Z,Z
 D,D
 E,E
 K,K
-K,K
+K,R
 K,K
 H,H
 S,S
@@ -147,7 +147,7 @@ del,H
 H,H
 P,P
 K,K
-R,R
+R,U
 W,W
 H,H
 A,A
@@ -155,7 +155,7 @@ E,E
 N,N
 H,H
 V,R
-H,H
+H,V
 A,A
 O,D
 F,F
@@ -164,7 +164,7 @@ space,space
 Z,Z
 O,O
 Z,Z
-U,K
+U,V
 E,Z
 A,A
 Q,Q
@@ -197,7 +197,7 @@ R,R
 T,T
 M,M
 V,K
-L,T
+L,L
 K,K
 V,V
 K,K
@@ -234,7 +234,7 @@ H,H
 O,O
 Z,Z
 Z,Z
-D,O
+D,D
 N,N
 L,L
 E,E
@@ -296,7 +296,7 @@ U,U
 U,U
 X,U
 W,W
-S,A
+S,S
 A,A
 T,T
 B,B
@@ -304,17 +304,17 @@ J,J
 L,L
 Y,Y
 S,S
-R,U
+R,R
 L,L
 R,R
 D,D
 G,G
 G,G
 J,J
-Z,J
+Z,S
 V,V
 X,X
-V,U
+V,V
 Z,Z
 Z,Z
 R,R
@@ -326,7 +326,7 @@ T,T
 L,L
 L,L
 G,G
-R,R
+R,U
 E,E
 W,W
 J,J
@@ -336,7 +336,7 @@ Q,Q
 L,L
 E,E
 N,M
-O,C
+O,D
 Y,Y
 L,L
 G,G
@@ -363,12 +363,12 @@ M,N
 V,V
 Y,Y
 W,W
-H,H
+H,V
 G,G
 J,J
 Z,Z
 H,H
-U,R
+U,K
 P,P
 U,U
 Z,S
@@ -397,7 +397,7 @@ W,W
 Q,Q
 K,K
 N,N
-K,V
+K,K
 Q,H
 J,J
 G,G
@@ -418,14 +418,14 @@ U,R
 F,F
 W,W
 del,del
-W,W
+W,U
 I,I
-A,S
+A,E
 P,G
 Z,Z
 V,V
 P,P
-S,E
+S,S
 G,G
 R,R
 W,W
@@ -439,4 +439,4 @@ Y,Y
 J,J
 X,X
 W,W
-T,Y
+T,T

@@ -1,10 +1,10 @@
 {
-    "accuracy": 0.8571,
-    "prediction_time_seconds": 0.0443,
-    "macro_precision": 0.8657,
-    "macro_recall": 0.8576,
-    "macro_f1": 0.8589,
-    "weighted_precision": 0.8622,
-    "weighted_recall": 0.8571,
-    "weighted_f1": 0.8573
+    "accuracy": 0.8639,
+    "prediction_time_seconds": 0.1843,
+    "macro_precision": 0.8754,
+    "macro_recall": 0.8639,
+    "macro_f1": 0.8667,
+    "weighted_precision": 0.8716,
+    "weighted_recall": 0.8639,
+    "weighted_f1": 0.8652
 }
