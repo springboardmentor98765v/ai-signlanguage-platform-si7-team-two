@@ -7,8 +7,10 @@ import { getUserRole, getRoleHomePath } from "../../utils/auth.js";
 // /dashboard instead of being logged out.
 export default function RoleRoute({ children, allowedRoles }) {
   const role = getUserRole();
+  const normalizedRole = (role || "").toLowerCase();
+  const normalizedAllowed = (allowedRoles || []).map((r) => r.toLowerCase());
 
-  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+  if (normalizedAllowed.length > 0 && !normalizedAllowed.includes(normalizedRole)) {
     return <Navigate to={getRoleHomePath(role)} replace />;
   }
 

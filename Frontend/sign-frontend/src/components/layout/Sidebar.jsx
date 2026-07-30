@@ -16,7 +16,8 @@ const links = [
 
 export default function Sidebar({ open = false, onClose }) {
   const role = getUserRole()
-  const visibleLinks = links.filter((link) => link.roles.includes(role))
+  const normalizedRole = (role || '').toLowerCase()
+  const visibleLinks = links.filter((link) => link.roles.includes(normalizedRole))
 
   return (
     <aside
