@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/api.js";
-import { saveSession, getUserRole, getRoleHomePath } from "../utils/auth.js";
+import { saveSession } from "../utils/auth.js";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,17 +11,18 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // DEV ONLY — one button per role, so role-gating can be tested before
-  // the backend sends real role names on login.
-  function handleSkipLogin(role) {
+  // DEV ONLY
+  function handleSkipLoginAs(roleId) {
     saveSession({
       id: "dev-user",
-      full_name: `Developer (${role})`,
+      full_name: "Developer",
       email: "developer@example.com",
-      role,
+      role_id: roleId,
     });
 
-    navigate(getRoleHomePath(role));
+    if (roleId === "instructor") navigate("/instructor");
+    else if (roleId === "admin") navigate("/admin");
+    else navigate("/dashboard");
   }
 
   async function handleSubmit(e) {
@@ -36,7 +37,7 @@ export default function Login() {
       // Save complete user object
       saveSession(response.user);
 
-      navigate(getRoleHomePath(getUserRole()));
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
     } finally {
@@ -93,12 +94,6 @@ export default function Login() {
             />
           </div>
 
-          <div className="forgot-password-row">
-            <Link to="/forgot-password" className="forgot-password-link">
-              Forgot password?
-            </Link>
-          </div>
-
           <button
             type="submit"
             className="btn-primary"
@@ -119,25 +114,25 @@ export default function Login() {
           <button
             type="button"
             className="btn-dev-skip"
-            onClick={() => handleSkipLogin("learner")}
+            onClick={() => handleSkipLoginAs("learner")}
           >
-            Skip Login as Learner (Dev Mode)
+            Skip Login as Learner
           </button>
 
           <button
             type="button"
             className="btn-dev-skip"
-            onClick={() => handleSkipLogin("instructor")}
+            onClick={() => handleSkipLoginAs("instructor")}
           >
-            Skip Login as Instructor (Dev Mode)
+            Skip Login as Instructor
           </button>
 
           <button
             type="button"
             className="btn-dev-skip"
-            onClick={() => handleSkipLogin("admin")}
+            onClick={() => handleSkipLoginAs("admin")}
           >
-            Skip Login as Admin (Dev Mode)
+            Skip Login as Admin
           </button>
 
           <p className="dev-note">

@@ -19,7 +19,7 @@ router = APIRouter()
 @router.get("/")
 def list_lessons(
     page: int = 1,
-    limit: int = 10,
+    limit: int = 100,
     search: str | None = None,
     db: Session = Depends(get_db),
 ):

@@ -22,8 +22,8 @@ export default function Register() {
     }
     setIsLoading(true)
     try {
-      const response = await register(name, email, password, role)
-      saveSession(response.user)
+      const { token, role: userRole } = await register(name, email, password, role)
+      saveSession(token, userRole)
       navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.')
@@ -70,7 +70,7 @@ export default function Register() {
             <select id="role" value={role} onChange={(e) => setRole(e.target.value)} disabled={isLoading}>
               <option value="learner">Learner</option>
               <option value="instructor">Instructor</option>
-              <option value="admin">Admin</option>
+              <option value="trainer">Trainer</option>
             </select>
           </div>
           <button type="submit" className="btn-primary" disabled={isLoading}>

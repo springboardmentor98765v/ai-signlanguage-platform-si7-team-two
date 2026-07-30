@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from db.models import Base  # noqa: E402  (import after sys.path fix)
 
 # Load repo-root .env
-_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 load_dotenv(_REPO_ROOT / ".env")
 
 config = context.config

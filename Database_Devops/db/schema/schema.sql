@@ -113,3 +113,33 @@ CREATE TABLE learner_analytics (
     weak_letters        JSONB NOT NULL DEFAULT '[]',
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ---------- certificates ----------
+CREATE TABLE certificates (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    learner_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    average_score       REAL NOT NULL,
+    lessons_completed   INT NOT NULL DEFAULT 0,
+    certificate_code    VARCHAR(64) NOT NULL UNIQUE,
+    file_path           VARCHAR(255),
+    issued_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+    is_valid            BOOLEAN NOT NULL DEFAULT true
+);
+
+CREATE INDEX idx_certificates_learner_id ON certificates(learner_id);
+CREATE INDEX idx_certificates_certificate_code ON certificates(certificate_code);
+
+-- ---------- recommendations ----------
+CREATE TABLE recommendations (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    learner_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    letter_or_word      VARCHAR(50) NOT NULL,
+    reason              VARCHAR(255) NOT NULL,
+    recent_avg_accuracy REAL,
+    status              VARCHAR(20) NOT NULL DEFAULT 'active',
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    resolved_at         TIMESTAMPTZ
+);
+
+CREATE INDEX idx_recommendations_learner_id ON recommendations(learner_id);
+CREATE INDEX idx_recommendations_status ON recommendations(status);

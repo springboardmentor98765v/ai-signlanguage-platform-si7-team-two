@@ -5,7 +5,7 @@ import {
   updateLesson,
   deleteLesson,
   getUsers,
-  toggleUserStatus,
+  deleteUser,
 } from "../services/api.js";
 
 export default function Admin() {
@@ -25,6 +25,22 @@ export default function Admin() {
     order_index: "",
   });
 
+  function toggleUser(id) {
+    setUsers((prev) =>
+      prev.map((user) => {
+        if (user.id !== id) return user;
+
+        const isActive = user.is_active !== false;
+
+        return {
+          ...user,
+          is_active: !isActive,
+          active: !isActive,
+        };
+      }),
+    );
+  }
+
   async function loadUsers() {
     try {
       const data = await getUsers();
@@ -36,15 +52,15 @@ export default function Admin() {
     }
   }
 
-  async function handleToggleStatus(id, name, currentlyActive) {
-    const confirmed = window.confirm(
-      `${currentlyActive ? "Deactivate" : "Activate"} ${name}?`
-    );
+  async function handleDeleteUser(id, name) {
+    const confirmed = window.confirm(`Delete ${name}?`);
+
     if (!confirmed) return;
 
     try {
-      await toggleUserStatus(id, !currentlyActive);
+      await deleteUser(id);
       await loadUsers();
+      alert("User deleted successfully.");
     } catch (err) {
       alert(err.message);
     }
@@ -58,12 +74,11 @@ export default function Admin() {
       });
 
       const updated = await getLessons();
-
       setLessons(updated);
       setShowForm(false);
 
       setNewLesson({
-        course_id: updated[0].course_id,
+        course_id: updated[0]?.course_id || "",
         letter: "",
         title: "",
         description: "",
@@ -98,13 +113,12 @@ export default function Admin() {
       });
 
       const updated = await getLessons();
-
       setLessons(updated);
       setEditingLessonId(null);
       setShowForm(false);
 
       setNewLesson({
-        course_id: updated[0].course_id,
+        course_id: updated[0]?.course_id || "",
         letter: "",
         title: "",
         description: "",
@@ -118,7 +132,7 @@ export default function Admin() {
 
   async function handleDeleteLesson(id, title) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${title}"?`
+      `Are you sure you want to delete "${title}"?`,
     );
 
     if (!confirmed) return;
@@ -127,7 +141,6 @@ export default function Admin() {
       await deleteLesson(id);
 
       const updated = await getLessons();
-
       setLessons(updated);
 
       alert("Lesson deleted successfully.");
@@ -175,29 +188,31 @@ export default function Admin() {
             All users ({users.length})
           </p>
 
-          {loadingUsers ? (
-            <p>Loading users...</p>
-          ) : (
-            <div
-              className="table-scroll"
-              role="region"
-              aria-labelledby="users-table-caption"
-              tabIndex={0}
-            >
-              <table className="attempts-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
+          <div
+            className="table-scroll"
+            role="region"
+            aria-labelledby="users-table-caption"
+            tabIndex={0}
+          >
+            <table className="attempts-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>
+                    <span className="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
 
-                <tbody>
-                  {users.map((u) => {
+              <tbody>
+                {loadingUsers ? (
+                  <tr>
+                    <td colSpan={4}>Loading users...</td>
+                  </tr>
+                ) : (
+                  users.map((u) => {
                     const isActive = u.is_active !== false;
 
                     return (
@@ -225,20 +240,26 @@ export default function Admin() {
                           <button
                             type="button"
                             className="btn-secondary btn-inline btn-toggle"
-                            onClick={() =>
-                              handleToggleStatus(u.id, u.full_name, isActive)
-                            }
+                            onClick={() => toggleUser(u.id)}
                           >
                             {isActive ? "Deactivate" : "Activate"}
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn-secondary btn-inline"
+                            onClick={() => handleDeleteUser(u.id, u.full_name)}
+                          >
+                            Delete
                           </button>
                         </td>
                       </tr>
                     );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* LESSONS PANEL */}
@@ -251,9 +272,7 @@ export default function Admin() {
               marginBottom: "15px",
             }}
           >
-            <p className="panel-title">
-              Lessons ({lessons.length})
-            </p>
+            <p className="panel-title">Lessons ({lessons.length})</p>
 
             <button
               className="btn-secondary"
@@ -262,72 +281,91 @@ export default function Admin() {
             >
               + Add Lesson
             </button>
-          </div>
 
-          {showForm && (
-            <div
-              style={{
-                marginBottom: "20px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}
-            >
-              <input
-                placeholder="Letter"
-                value={newLesson.letter}
-                onChange={(e) =>
-                  setNewLesson({
-                    ...newLesson,
-                    letter: e.target.value.toUpperCase(),
-                  })
-                }
-              />
+            {showForm && (
+              <div
+                style={{
+                  marginBottom: "20px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <input
+                  placeholder="Letter"
+                  value={newLesson.letter}
+                  onChange={(e) =>
+                    setNewLesson({
+                      ...newLesson,
+                      letter: e.target.value.toUpperCase(),
+                    })
+                  }
+                />
 
-              <input
-                placeholder="Title"
-                value={newLesson.title}
-                onChange={(e) =>
-                  setNewLesson({ ...newLesson, title: e.target.value })
-                }
-              />
+                <input
+                  placeholder="Title"
+                  value={newLesson.title}
+                  onChange={(e) =>
+                    setNewLesson({
+                      ...newLesson,
+                      title: e.target.value,
+                    })
+                  }
+                />
 
-              <textarea
-                placeholder="Description"
-                value={newLesson.description}
-                onChange={(e) =>
-                  setNewLesson({ ...newLesson, description: e.target.value })
-                }
-              />
+                <textarea
+                  placeholder="Description"
+                  value={newLesson.description}
+                  onChange={(e) =>
+                    setNewLesson({
+                      ...newLesson,
+                      description: e.target.value,
+                    })
+                  }
+                />
 
-              <input
-                type="number"
-                placeholder="Order Index"
-                value={newLesson.order_index}
-                onChange={(e) =>
-                  setNewLesson({ ...newLesson, order_index: e.target.value })
-                }
-              />
+                <input
+                  type="number"
+                  placeholder="Order Index"
+                  value={newLesson.order_index}
+                  onChange={(e) =>
+                    setNewLesson({
+                      ...newLesson,
+                      order_index: e.target.value,
+                    })
+                  }
+                />
 
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  className="btn-secondary"
-                  onClick={editingLessonId ? handleUpdateLesson : handleAddLesson}
-                >
-                  {editingLessonId ? "Update" : "Save"}
-                </button>
-                <button
-                  className="btn-secondary"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingLessonId(null);
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
                   }}
                 >
-                  Cancel
-                </button>
+                  <button
+                    className="btn-secondary"
+                    type="button"
+                    onClick={
+                      editingLessonId ? handleUpdateLesson : handleAddLesson
+                    }
+                  >
+                    {editingLessonId ? "Update" : "Save"}
+                  </button>
+
+                  <button
+                    className="btn-secondary"
+                    type="button"
+                    onClick={() => {
+                      setShowForm(false);
+                      setEditingLessonId(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {loadingLessons ? (
             <p>Loading lessons...</p>
@@ -337,23 +375,13 @@ export default function Admin() {
                 <div key={lesson.id} className="admin-lesson-row">
                   <div>
                     <p className="admin-lesson-title">{lesson.title}</p>
-                    <span className="badge badge-beginner">{lesson.letter}</span>
-                    {lesson.difficulty && (
-                      <span
-                        className={`badge badge-${lesson.difficulty.toLowerCase()}`}
-                        style={{ marginLeft: 6 }}
-                      >
-                        {lesson.difficulty}
-                      </span>
-                    )}
+
+                    <span className="badge badge-beginner">
+                      {lesson.letter}
+                    </span>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    {typeof lesson.learners_count === "number" && (
-                      <p className="admin-lesson-learners">
-                        {lesson.learners_count} learner{lesson.learners_count === 1 ? "" : "s"}
-                      </p>
-                    )}
+                  <div style={{ display: "flex", gap: "8px" }}>
                     <button
                       className="btn-secondary btn-inline"
                       type="button"
@@ -361,10 +389,13 @@ export default function Admin() {
                     >
                       Edit
                     </button>
+
                     <button
                       className="btn-secondary btn-inline"
                       type="button"
-                      onClick={() => handleDeleteLesson(lesson.id, lesson.title)}
+                      onClick={() =>
+                        handleDeleteLesson(lesson.id, lesson.title)
+                      }
                     >
                       Delete
                     </button>

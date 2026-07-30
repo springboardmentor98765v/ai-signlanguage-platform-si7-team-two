@@ -1,14 +1,15 @@
 from datetime import datetime, timezone
-
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from uuid import UUID
+
 from database import SessionLocal
 from models.assessment_model import Assessment
 from models.feedback_model import Feedback
-from models.practice_model import PracticeSession
+from models.practice_model import PracticeSession, Lesson, Recommendation
 from schemas.assessment_schema import AssessmentRequest, AssessmentResponse
+from services.recommendation_engine import find_weak_letters
 from services.scoring import calculate_scores, normalize_confidence
 
 router = APIRouter(prefix="/assessment", tags=["Assessment Service"])
@@ -50,6 +51,7 @@ def assessment_feedback(scores: dict, is_correct: bool, confidence: float) -> li
         feedback.append("Excellent consistency.")
     return feedback or ["Good hand shape. Keep practicing for consistency."]
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -80,9 +82,11 @@ def score_attempt(request: ScoreRequest, db: Session = Depends(get_db)):
         session = db.query(PracticeSession).filter(PracticeSession.id == request.session_id).first()
         if not session:
             raise HTTPException(status_code=404, detail="Practice session not found")
-        if session.expected_sign.strip().upper() != expected_sign:
-            raise HTTPException(status_code=400, detail="Expected sign does not match the practice session")
-
+        
+        lesson = db.query(Lesson).filter(Lesson.id == session.lesson_id).first()
+        if not lesson or lesson.letter.strip().upper() != expected_sign:
+            raise HTTPException(status_code=400, detail="Expected sign does not match the practice session's lesson")
+        
         new_assessment = Assessment(
             session_id=session.id,
             predicted_sign=predicted_sign,
@@ -101,14 +105,76 @@ def score_attempt(request: ScoreRequest, db: Session = Depends(get_db)):
         for message in feedback_messages:
             db.add(Feedback(
                 assessment_id=new_assessment.id,
-                category="assessment",
-                severity=None,
+                category="hand_shape",
+                severity="moderate",
                 message=message,
             ))
 
         session.attempt_count += 1
         db.commit()
         db.refresh(new_assessment)
+
+        # ------------------------------
+        # Auto-update Recommendations
+        # ------------------------------
+        assessment_session_pairs = (
+            db.query(Assessment, PracticeSession)
+            .join(
+                PracticeSession,
+                Assessment.session_id == PracticeSession.id
+            )
+            .filter(
+                PracticeSession.user_id == session.user_id
+            )
+            .all()
+        )
+
+        weak_letters = find_weak_letters(assessment_session_pairs)
+        weak_letter_names = {w["letter"] for w in weak_letters}
+
+        # Mark improved recommendations as completed
+        existing_recommendations = (
+            db.query(Recommendation)
+            .filter(
+                Recommendation.learner_id == session.user_id,
+                Recommendation.status == "active",
+            )
+            .all()
+        )
+
+        for rec in existing_recommendations:
+            if rec.letter_or_word not in weak_letter_names:
+                rec.status = "completed"
+
+        # Add new recommendations
+        for w in weak_letters:
+            existing = (
+                db.query(Recommendation)
+                .filter(
+                    Recommendation.learner_id == session.user_id,
+                    Recommendation.letter_or_word == w["letter"],
+                    Recommendation.status == "active",
+                )
+                .first()
+            )
+
+            if not existing:
+                db.add(
+                    Recommendation(
+                        learner_id=session.user_id,
+                        letter_or_word=w["letter"],
+                        reason=(
+                                f"Practice the sign '{w['letter']}' again. "
+                                f"Your recent average accuracy is {w['average_score']:.1f}%. "
+                                "Keep practicing to improve your performance."
+                            ),
+                        recent_avg_accuracy=w["average_score"],
+                        status="active",
+                    )
+                )
+
+        db.commit()
+
         assessment_id = str(new_assessment.id)
         completed_at = new_assessment.created_at
 
@@ -125,48 +191,3 @@ def score_attempt(request: ScoreRequest, db: Session = Depends(get_db)):
         "completed_at": completed_at.isoformat(),
         "feedback": feedback_messages,
     }
-
-@router.post("/evaluate", response_model=AssessmentResponse)
-def evaluate_attempt(request: AssessmentRequest, db: Session = Depends(get_db)):
-    session = db.query(PracticeSession).filter(PracticeSession.id == request.session_id).first()
-    if not session:
-        raise HTTPException(status_code=404, detail="Practice session not found")
-
-    scores = calculate_scores(
-        expected_sign=request.expected_sign,
-        predicted_sign=request.predicted_sign,
-        confidence=request.confidence,
-        duration_seconds=request.duration_seconds
-    )
-
-    new_assessment = Assessment(
-        session_id=request.session_id,
-        predicted_sign=request.predicted_sign,
-        expected_sign=request.expected_sign,
-        confidence=request.confidence,
-        hand_shape_score=scores["hand_shape_score"],
-        finger_position_score=scores["finger_position_score"],
-        timing_score=scores["timing_score"],
-        motion_score=scores["motion_score"],
-        position_score=scores["position_score"],
-        overall_score=scores["overall_score"],
-        is_correct=scores["is_correct"]
-    )
-    db.add(new_assessment)
-    db.commit()
-    db.refresh(new_assessment)
-
-    return AssessmentResponse(
-        assessment_id=new_assessment.id,
-        session_id=new_assessment.session_id,
-        predicted_sign=new_assessment.predicted_sign,
-        confidence=float(new_assessment.confidence),
-        hand_shape_score=float(new_assessment.hand_shape_score),
-        finger_position_score=float(new_assessment.finger_position_score),
-        timing_score=float(new_assessment.timing_score),
-        motion_score=float(new_assessment.motion_score),
-        position_score=float(new_assessment.position_score),
-        overall_score=float(new_assessment.overall_score),
-        is_correct=new_assessment.is_correct,
-        created_at=new_assessment.created_at
-    )
