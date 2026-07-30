@@ -24,6 +24,16 @@ export function getUserRole() {
     return user?.role_id;
 }
 
+export function getRoleHomePath(role) {
+    const normalized = (role || "").toLowerCase();
+
+    if (normalized === "instructor") return "/instructor";
+    if (normalized === "admin") return "/admin";
+
+    // Default: learner, or any unrecognised/missing role
+    return "/dashboard";
+}
+
 export function isAuthenticated() {
     return getUser() !== null;
 }

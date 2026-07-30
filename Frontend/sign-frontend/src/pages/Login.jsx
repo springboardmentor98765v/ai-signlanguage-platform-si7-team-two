@@ -12,15 +12,17 @@ export default function Login() {
   const [error, setError] = useState("");
 
   // DEV ONLY
-  function handleSkipLogin() {
+  function handleSkipLoginAs(roleId) {
     saveSession({
       id: "dev-user",
       full_name: "Developer",
       email: "developer@example.com",
-      role_id: "Learner",
+      role_id: roleId,
     });
 
-    navigate("/dashboard");
+    if (roleId === "instructor") navigate("/instructor");
+    else if (roleId === "admin") navigate("/admin");
+    else navigate("/dashboard");
   }
 
   async function handleSubmit(e) {
@@ -112,9 +114,25 @@ export default function Login() {
           <button
             type="button"
             className="btn-dev-skip"
-            onClick={handleSkipLogin}
+            onClick={() => handleSkipLoginAs("learner")}
           >
-            Skip Login (Dev Mode)
+            Skip Login as Learner
+          </button>
+
+          <button
+            type="button"
+            className="btn-dev-skip"
+            onClick={() => handleSkipLoginAs("instructor")}
+          >
+            Skip Login as Instructor
+          </button>
+
+          <button
+            type="button"
+            className="btn-dev-skip"
+            onClick={() => handleSkipLoginAs("admin")}
+          >
+            Skip Login as Admin
           </button>
 
           <p className="dev-note">
