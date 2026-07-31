@@ -6,7 +6,7 @@ Application Configuration
 # Model Configuration
 # -------------------------
 
-MODEL_PATH = "models/sign_language_xgb.pkl"
+MODEL_PATH = "models/best_xgb_tuned.pkl"
 LABEL_ENCODER_PATH = "models/label_encoder.pkl"
 
 # -------------------------

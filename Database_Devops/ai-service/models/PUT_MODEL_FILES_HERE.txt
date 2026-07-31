@@ -1,5 +1,5 @@
 Drop Koushik's real files here before building the Docker image:
-  - sign_language_xgb.pkl
+  - best_xgb_tuned.pkl
   - label_encoder.pkl
 
 These are the trained model + label encoder shared at the end of
