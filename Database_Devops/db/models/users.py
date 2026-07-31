@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from db.models.learner_analytics import LearnerAnalytics
     from db.models.certificates import Certificate
     from db.models.recommendations import Recommendation
+    from db.models.notifications import Notification
 
 
 class User(Base):
@@ -57,6 +58,9 @@ class User(Base):
     )
     recommendations: Mapped[list["Recommendation"]] = relationship(
         back_populates="learner", cascade="all, delete-orphan"
+    )
+    notifications: Mapped[list["Notification"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
