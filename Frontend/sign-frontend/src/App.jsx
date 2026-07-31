@@ -12,6 +12,7 @@ import Reports from './pages/Reports.jsx'
 import Profile from './pages/Profile.jsx'
 import Instructor from './pages/Instructor.jsx'
 import Admin from './pages/Admin.jsx'
+import Leaderboard from './pages/Leaderboard.jsx'
 
 export default function App() {
   return (
@@ -56,6 +57,14 @@ export default function App() {
           element={
             <RoleRoute allowedRoles={["learner"]}>
               <Reports />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <RoleRoute allowedRoles={["learner"]}>
+              <Leaderboard />
             </RoleRoute>
           }
         />
