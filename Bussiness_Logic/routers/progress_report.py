@@ -10,6 +10,11 @@ from schemas.progress_report_schema import ProgressReportResponse
 from datetime import datetime
 from uuid import UUID
 from fastapi.responses import FileResponse
+from services.progress_report_excel import (
+    generate_progress_report_excel,
+    generate_instructor_summary_excel,
+)
+from models.practice_model import User
 router = APIRouter(prefix="/progress-report", tags=["Progress Report Service"])
 
 def get_db():
@@ -18,6 +23,55 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@router.get("/instructor/excel")
+def export_instructor_summary(
+    db: Session = Depends(get_db),
+):
+    learners = db.query(User).all()
+
+    report_rows = []
+
+    for learner in learners:
+
+        sessions = db.query(PracticeSession).filter(
+            PracticeSession.user_id == learner.id
+        ).all()
+
+        if not sessions:
+            continue
+
+        session_ids = [session.id for session in sessions]
+
+        assessments = db.query(Assessment).filter(
+            Assessment.session_id.in_(session_ids)
+        ).all()
+
+        certificates = db.query(Certificate).filter(
+            Certificate.learner_id == learner.id
+        ).all()
+
+        report = build_progress_report(
+            sessions,
+            assessments,
+            certificates,
+        )
+
+        report_rows.append({
+            "user_id": str(learner.id),
+            "lessons_completed": report["lessons_completed"],
+            "average_accuracy": report["average_accuracy"],
+            "total_attempts": report["total_attempts"],
+            "certificates_earned": len(report["certificates_earned"]),
+        })
+
+    file_path = generate_instructor_summary_excel(report_rows)
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="Instructor_Summary.xlsx",
+    )
 
 @router.get("/{user_id}", response_model=ProgressReportResponse)
 def get_progress_report(user_id: UUID, db: Session = Depends(get_db)):
@@ -64,4 +118,48 @@ def get_progress_report_pdf(user_id: UUID, learner_name: str = Query("Learner"),
         path=file_path,
         media_type="application/pdf",
         filename=f"Progress_Report_{learner_name}.pdf",
+    )
+
+@router.get("/{user_id}/excel")
+def get_progress_report_excel(
+    user_id: UUID,
+    learner_name: str = Query("Learner"),
+    db: Session = Depends(get_db),
+):
+    sessions = db.query(PracticeSession).filter(
+        PracticeSession.user_id == user_id
+    ).all()
+
+    if not sessions:
+        raise HTTPException(
+            status_code=404,
+            detail="No practice history found for this user"
+        )
+
+    session_ids = [session.id for session in sessions]
+
+    assessments = db.query(Assessment).filter(
+        Assessment.session_id.in_(session_ids)
+    ).all()
+
+    certificates = db.query(Certificate).filter(
+        Certificate.learner_id == user_id
+    ).all()
+
+    report_data = build_progress_report(
+        sessions,
+        assessments,
+        certificates,
+    )
+
+    file_path = generate_progress_report_excel(
+        learner_name=learner_name,
+        report_data=report_data,
+        user_id=str(user_id),
+    )
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=f"Progress_Report_{learner_name}.xlsx",
     )
