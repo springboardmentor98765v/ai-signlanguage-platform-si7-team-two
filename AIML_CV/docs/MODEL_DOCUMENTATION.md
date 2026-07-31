@@ -129,7 +129,7 @@ Advantages
 
 Saved Model
 
-models/sign_language_xgb.pkl
+models/best_xgb_tuned.pkl
 
 ---
 
@@ -241,7 +241,7 @@ Temporal Smoothing Window
 
 models/
 
-- sign_language_xgb.pkl
+- best_xgb_tuned.pkl
 - label_encoder.pkl
 
 services/
