@@ -1,6 +1,6 @@
 # Milestone 2, Day 9 — AI service Dockerfile, updated to package the
 # trained model artifacts Intern 3 (Koushik) shared at the end of Day 9:
-#   models/sign_language_xgb.pkl
+#   models/best_xgb_tuned.pkl
 #   models/label_encoder.pkl
 #
 # Assumes Intern 3's existing FastAPI prediction app lives at app/main.py
@@ -25,11 +25,11 @@ COPY app/ ./app/
 
 # Trained model artifacts (Intern 3, shared end of Day 9).
 # Drop the real files here before building:
-#   ai-service/models/sign_language_xgb.pkl
+#   ai-service/models/best_xgb_tuned.pkl
 #   ai-service/models/label_encoder.pkl
 COPY models/ ./models/
 
-ENV MODEL_PATH=/app/models/sign_language_xgb.pkl
+ENV MODEL_PATH=/app/models/best_xgb_tuned.pkl
 ENV LABEL_ENCODER_PATH=/app/models/label_encoder.pkl
 
 ENV PORT=8500
