@@ -32,7 +32,7 @@ Output:
 
 ## Model Files
 
-models/sign_language_xgb.pkl
+models/best_xgb_tuned.pkl
 
 models/label_encoder.pkl
 
