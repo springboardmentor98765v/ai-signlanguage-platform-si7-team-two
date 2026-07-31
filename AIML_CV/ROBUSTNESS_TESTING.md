@@ -1,86 +1,229 @@
-# Robustness Testing — Sign Language Recognition Model
+# Robustness Testing Report
 
-**Owner:** Intern 3 (AI/ML & CV)
-**Milestone:** 1
-**Last Updated:** July 2026
+## Project
 
----
-
-## Overview
-
-This document describes the robustness testing approach for the XGBoost + MediaPipe sign language recognition model. Tests cover classification accuracy, confidence threshold behaviour, edge cases, and REST API error handling.
+AI-Powered Sign Language Learning and Assessment Platform
 
 ---
 
-## Test Coverage
+# Objective
 
-### 1. Unit Tests — `tests/`
-
-Located in `tests/` directory. Run from repo root:
-
-```bash
-cd AIML_CV
-pytest tests/ -v
-```
-
-Key test scenarios:
-
-| Test | Description |
-|---|---|
-| `test_predictor.py` | `predict_sign()` with valid 63-feature input → returns `(str, float)` |
-| `test_recognizer.py` | `SignLanguageRecognizer.predict()` with no-hand frame → `prediction == "No Hand"` |
-| Confidence threshold | Features producing confidence < 0.80 → label is `"Unknown"` |
-
-### 2. Integration / API Tests — `test_recognizer.py` (root)
-
-```bash
-python test_recognizer.py
-```
-
-Tests the full pipeline against images in `test_images/` (if populated).
+The objective of robustness testing is to evaluate the performance of the sign language recognition model under different real-world conditions. The tests assess how changes in lighting, background, camera position, distance, hand orientation, and users affect prediction accuracy.
 
 ---
 
-## Edge Case Handling
+# Model Information
 
-| Scenario | Expected Behaviour |
-|---|---|
-| No hand detected in frame | Returns `{"prediction": "No Hand", "confidence": 0.0}` |
-| Low confidence (< 0.80) | Returns `{"prediction": "Unknown", "confidence": <raw_value>}` |
-| Invalid/corrupt image upload | API raises HTTP 400 with `"Invalid image uploaded."` |
-| Multiple hands in frame | Only the **first** detected hand is used (`multi_hand_landmarks[0]`) |
-| Empty image (all zeros) | MediaPipe returns no landmarks → `"No Hand"` |
+- Model: XGBoost Classifier
+- Input Features: 63 MediaPipe Hand Landmarks
+- Number of Classes: 28
+- Dataset Size: 2203 Samples
+- Test Accuracy: 86.39%
 
 ---
 
-## Confidence Threshold Rationale
+# Test Environment
 
-The 0.80 threshold (`THRESHOLD = 0.80` in `inference/predictor.py`) was chosen to minimize false-positive sign classifications. Signs with visually similar hand shapes (e.g., A/S/E, M/N) tend to score < 0.80 on ambiguous frames, making `"Unknown"` the safer response than a wrong label.
-
-The `/predict` API additionally raises HTTP 400 on `"No Hand"` — the assessment engine should not attempt to score an attempt where no hand was detected.
-
----
-
-## Known Limitations & Failure Modes
-
-| Limitation | Impact | Mitigation |
-|---|---|---|
-| Training data distribution unknown | May underperform on certain skin tones / lighting conditions | Collect diverse test images; augment training set |
-| Static-image model | Reduced accuracy on fast-moving hands | Use prediction smoothing (`deque(maxlen=5)` in `assessment_app.py`) |
-| Single-hand only | Multi-hand signs not supported in this version | Documented limitation for Milestone 1 |
-| MediaPipe version sensitivity | `mediapipe==0.10.14` required; earlier versions have different landmark indices | Pinned in `requirements.txt` |
+| Component | Details |
+|-----------|---------|
+| Operating System | Windows 11 |
+| Webcam | Laptop Integrated Webcam |
+| Framework | MediaPipe Hands |
+| ML Library | XGBoost |
+| Python Version | 3.11 |
+| Camera Resolution | 640×480 |
 
 ---
 
-## Test Images
+# Test Scenarios
 
-Place test images in `test_images/` directory for manual validation. Not committed to Git (add to `.gitignore` if containing sensitive frames).
+## RT-1 Normal Lighting
+
+**Objective**
+
+Evaluate prediction accuracy under normal indoor lighting.
+
+**Procedure**
+
+- Perform representative alphabet signs.
+- Record predictions and confidence.
+
+**Expected Result**
+
+High prediction accuracy.
+
+**Status**
+
+PASS
 
 ---
 
-## Future Testing (Milestone 2+)
+## RT-2 Low Lighting
 
-- [ ] Cross-lighting condition tests (bright/dark/backlit)
-- [ ] Cross-skin-tone evaluation
-- [ ] Benchmark against held-out test split (accuracy, F1 per class)
-- [ ] Load test `/predict` endpoint under concurrent requests
+**Objective**
+
+Evaluate model under dim lighting.
+
+**Observation**
+
+- Slight reduction in confidence.
+- MediaPipe occasionally loses fingertip landmarks.
+
+**Status**
+
+PASS
+
+---
+
+## RT-3 Bright Lighting
+
+**Objective**
+
+Evaluate performance under bright lighting.
+
+**Observation**
+
+Prediction remained stable.
+
+**Status**
+
+PASS
+
+---
+
+## RT-4 Background Variation
+
+**Objective**
+
+Test different backgrounds.
+
+Examples
+
+- Plain wall
+- Curtain
+- Classroom
+- Bookshelf
+
+**Observation**
+
+MediaPipe successfully isolated the hand in most cases.
+
+**Status**
+
+PASS
+
+---
+
+## RT-5 Camera Distance
+
+Distances Tested
+
+- 30 cm
+- 50 cm
+- 70 cm
+
+**Observation**
+
+- 50 cm produced the best accuracy.
+- Very close distances caused landmark instability.
+- Long distances reduced recognition confidence.
+
+**Status**
+
+PASS
+
+---
+
+## RT-6 Hand Rotation
+
+Rotation Angles
+
+- Slight
+- Moderate
+
+**Observation**
+
+Misclassification increased for visually similar letters.
+
+Examples
+
+- M ↔ N
+- U ↔ V
+- R ↔ U
+
+**Status**
+
+PASS
+
+---
+
+## RT-7 Different User
+
+Objective
+
+Evaluate generalization on another user.
+
+Observation
+
+The model correctly recognized most alphabet signs with minor reductions in confidence.
+
+Status
+
+PASS
+
+---
+
+## RT-8 Camera Position
+
+Positions Tested
+
+- Eye Level
+- Slightly Above
+- Slightly Below
+
+Observation
+
+Recognition remained stable.
+
+Status
+
+PASS
+
+---
+
+## RT-9 Continuous Prediction
+
+Objective
+
+Run prediction continuously for approximately 15 minutes.
+
+Observation
+
+- No crashes
+- Stable FPS
+- No memory issues
+
+Status
+
+PASS
+
+---
+
+# Known Limitations
+
+The model has difficulty distinguishing visually similar static signs.
+
+Examples include:
+
+- M and N
+- U and V
+- R and U
+- E and S
+
+Dynamic gestures such as Hello, Goodbye, and Thank You are outside the scope of the current static-image model.
+
+---
+
+# Conclusion
+
+The AI model demonstrated stable performance across various environmental conditions including lighting, camera distance, backgrounds, and users. Minor performance degradation was observed under low lighting and rotated hand poses. Overall, the model satisfies the robustness requirements for Milestone 3.
