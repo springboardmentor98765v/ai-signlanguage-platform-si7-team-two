@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom'
-import { clearSession } from '../../utils/auth.js'
+import { clearSession, getUser } from '../../utils/auth.js'
 import NotificationBell from './NotificationBell.jsx'
 
 export default function Navbar({ onMenuClick, sidebarOpen }) {
   const navigate = useNavigate()
+  const user = getUser()
+
   function handleLogout() {
     clearSession()
     navigate('/')
@@ -25,7 +27,9 @@ export default function Navbar({ onMenuClick, sidebarOpen }) {
       </div>
       <div className="navbar-right">
         <NotificationBell />
-        <div className="user-chip">Signed in as Guest</div>
+        <div className="user-chip">
+          {user ? `Signed in as ${user.full_name}` : 'Signed in as Guest'}
+        </div>
         <button className="btn-logout" onClick={handleLogout}>Log out</button>
       </div>
     </header>

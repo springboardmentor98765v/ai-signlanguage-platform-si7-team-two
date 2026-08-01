@@ -1,6 +1,13 @@
 import { useRef, useState, useEffect } from "react";
-import { predictSign, assessAttempt, getLessons } from "../services/api.js";
+import {
+  predictSign,
+  assessAttempt,
+  getLessons,
+  startPracticeSession,
+  endPracticeSession,
+} from "../services/api.js";
 import { useParams, useNavigate } from "react-router-dom";
+import { getUser } from "../utils/auth.js";
 
 const TARGET_ATTEMPTS = 5;
 
@@ -28,7 +35,6 @@ export default function Practice() {
   const [lessonList, setLessonList] = useState([]);
   const { letter } = useParams();
 
-  // Real lesson catalogue (Intern 2's Course Service), replacing mock data
   useEffect(() => {
     async function loadLessons() {
       try {
@@ -51,12 +57,13 @@ export default function Practice() {
   const [assessment, setAssessment] = useState(null);
   const [attemptTime, setAttemptTime] = useState(null);
 
-  // Day 7: session timer + attempts progress
+  const [sessionId, setSessionId] = useState(null);
+  const sessionIdRef = useRef(null);
+
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [attemptCount, setAttemptCount] = useState(0);
   const timerRef = useRef(null);
 
-  // Attach stream AFTER the video element is rendered
   useEffect(() => {
     if (isPracticing && videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
@@ -71,7 +78,6 @@ export default function Practice() {
     }
   }, [isPracticing]);
 
-  // Run the session timer while practicing
   useEffect(() => {
     if (isPracticing) {
       timerRef.current = setInterval(() => {
@@ -87,13 +93,15 @@ export default function Practice() {
     };
   }, [isPracticing]);
 
-  // Cleanup ONLY when component unmounts
-
   useEffect(() => {
     return () => {
       stopStream();
+      if (sessionIdRef.current) {
+        endPracticeSession(sessionIdRef.current).catch(() => {});
+      }
     };
   }, []);
+
   function stopStream() {
     if (!streamRef.current) return;
 
@@ -130,6 +138,23 @@ export default function Practice() {
       streamRef.current = stream;
 
       setIsPracticing(true);
+
+      try {
+        const user = getUser();
+        const lesson = lessonList.find((l) => l.letter === targetLetter);
+
+        if (user && lesson) {
+          const session = await startPracticeSession(user.id, lesson.id);
+          setSessionId(session.session_id);
+          sessionIdRef.current = session.session_id;
+        } else {
+          console.warn(
+            "Could not start a practice session (missing user or lesson) — attempts won't be saved.",
+          );
+        }
+      } catch (err) {
+        console.error("Failed to start practice session:", err);
+      }
     } catch (err) {
       console.error(err);
 
@@ -141,12 +166,23 @@ export default function Practice() {
     }
   }
 
-  function handleStop() {
+  async function handleStop() {
     stopStream();
 
     if (videoRef.current) videoRef.current.srcObject = null;
 
     setIsPracticing(false);
+
+    if (sessionIdRef.current) {
+      try {
+        await endPracticeSession(sessionIdRef.current);
+      } catch (err) {
+        console.error("Failed to end practice session:", err);
+      } finally {
+        setSessionId(null);
+        sessionIdRef.current = null;
+      }
+    }
   }
 
   async function handleCheckSign() {
@@ -181,6 +217,7 @@ export default function Practice() {
       setPrediction(predictionResult);
 
       const assessmentResult = await assessAttempt(
+        sessionIdRef.current,
         targetLetter,
         predictionResult.prediction ?? predictionResult.predicted_sign,
         predictionResult.confidence,
