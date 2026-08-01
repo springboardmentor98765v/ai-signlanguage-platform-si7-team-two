@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { updateProfile, changePassword } from "../services/api";
 
-import { getUser } from "../utils/auth";
+import { getUser, clearSession } from "../utils/auth";
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
   const [draft, setDraft] = useState({
@@ -106,6 +108,12 @@ export default function ProfilePage() {
       oldPassword: "",
       newPassword: "",
     });
+
+    // Log the user out and send them back to login
+    setTimeout(() => {
+      clearSession();
+      navigate("/");
+    }, 1500);
 
   } catch (err) {
     setPasswordSuccess(false);
