@@ -49,7 +49,16 @@ class User(Base):
     )
 
     role: Mapped["Role"] = relationship(back_populates="users")
+    streak: Mapped["Streak | None"] = relationship(
+    back_populates="learner",
+    uselist=False,
+    cascade="all, delete-orphan",
+    )
 
+    badges: Mapped[list["Badge"]] = relationship(
+        back_populates="learner",
+        cascade="all, delete-orphan",
+    )
     practice_sessions: Mapped[list["PracticeSession"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
