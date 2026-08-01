@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from services.notification_client import send_notification
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from services.streak_service import update_streak
@@ -110,7 +110,18 @@ def end_session(
     db.refresh(session)
 
     update_streak(db, session.user_id, date.today())
-    newly_earned = evaluate_badges(db, session.user_id)
+
+    newly_earned = evaluate_badges(
+    db,
+    session.user_id,
+    )
+
+    for badge in newly_earned:
+        send_notification(
+        user_id=session.user_id,
+        title="New Badge Earned",
+        message=f"You earned the '{badge.badge_name}' badge!",
+   )
 
     return EndSessionResponse(
         session_id=session.id,

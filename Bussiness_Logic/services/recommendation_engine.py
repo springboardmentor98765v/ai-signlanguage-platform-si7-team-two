@@ -6,7 +6,11 @@ Find letters whose recent performance is below the threshold.
 
 RECOMMENDATION_THRESHOLD = 70.0
 ATTEMPTS_TO_CONSIDER = 3
-
+RECENCY_WEIGHTS = [
+    1.0,
+    0.7,
+    0.4,
+]
 
 def find_weak_letters(assessment_session_pairs):
     """
@@ -54,8 +58,13 @@ def find_weak_letters(assessment_session_pairs):
         if len(recent_scores) < ATTEMPTS_TO_CONSIDER:
             continue
 
-        avg = sum(recent_scores) / len(recent_scores)
-
+        weighted_sum = 0
+        total_weight = 0
+        for score, weight in zip(recent_scores, RECENCY_WEIGHTS):
+            weighted_sum += score * weight
+            total_weight += weight
+        avg = weighted_sum / total_weight
+        
         if avg < RECOMMENDATION_THRESHOLD:
             weak.append(
                 {

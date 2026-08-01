@@ -6,6 +6,7 @@ from models.assessment_model import Assessment
 from services.recommendation_engine import find_weak_letters
 from schemas.recommendation_schema import RecommendationResponse
 from uuid import UUID
+from services.notification_client import send_notification
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendation Engine"])
 
@@ -54,6 +55,7 @@ def get_recommendations(learner_id: UUID, db: Session = Depends(get_db)):
             rec.status = "completed"
 
     # 2. Add new active recommendations for weak letters
+    notification_needed = False
     for w in weak_letters:
         existing = (
             db.query(Recommendation)
@@ -77,8 +79,17 @@ def get_recommendations(learner_id: UUID, db: Session = Depends(get_db)):
                 status="active",
             )
             db.add(new_rec)
+            notification_needed = True
 
     db.commit()
+    
+    if notification_needed:
+        send_notification(
+             user_id=learner_id,
+                title="New Recommendations Available",
+                message="We have new practice recommendations for you based on your recent performance. Check them out to improve your skills!"
+        )
+              
 
     # 3. Fetch and return active recommendations
     active_recs = (
