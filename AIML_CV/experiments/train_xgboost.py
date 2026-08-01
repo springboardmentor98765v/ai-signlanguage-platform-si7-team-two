@@ -154,7 +154,7 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 
 MODEL_PATH = os.path.join(
     MODEL_DIR,
-    "sign_language_xgb.pkl"
+    "best_xgb_tuned.pkl"
 )
 
 ENCODER_PATH = os.path.join(

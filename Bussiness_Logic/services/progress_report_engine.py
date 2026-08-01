@@ -22,9 +22,9 @@ def build_progress_report(
     total_practice_time = 0
 
     for session in completed_sessions:
-        if session.start_time and session.end_time:
+        if session.started_at and session.ended_at:
             total_practice_time += int(
-                (session.end_time - session.start_time).total_seconds()
+                (session.ended_at - session.started_at).total_seconds()
             )
 
     # Average accuracy

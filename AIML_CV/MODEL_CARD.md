@@ -1,95 +1,216 @@
-# Model Card — Sign Language Recognition (XGBoost + MediaPipe)
+# Model Card
 
-**Owner:** Intern 3 (AI/ML & CV)
-**Milestone:** 1
-**Last Updated:** July 2026
+## Model Name
 
----
-
-## Model Overview
-
-| Field | Value |
-|---|---|
-| **Model Type** | XGBoost Classifier (`xgboost==3.2.0`) |
-| **Task** | Multi-class classification of ASL hand signs (A–Z) |
-| **Input** | 63 normalized landmark features extracted from a single hand |
-| **Output** | Predicted sign label + confidence probability |
-| **Model File** | `models/sign_language_xgb.pkl` (~5.5 MB) |
-| **Encoder File** | `models/label_encoder.pkl` (~590 bytes) |
-| **Confidence Threshold** | 0.80 — predictions below this are returned as `"Unknown"` |
+Sign Language Recognition Model (Milestone 3)
 
 ---
 
-## Feature Extraction
+# Overview
 
-Features are extracted via **MediaPipe Hands** landmark detection:
+This model is developed as part of the **AI-Powered Sign Language Learning and Assessment Platform**. It recognizes static American Sign Language (ASL) alphabet gestures using MediaPipe hand landmarks and an XGBoost classifier.
 
-- 21 hand landmarks × (x, y, z) coordinates = **63 features**
-- Extracted by `src/feature_extractor.py` via `extract_features(hand_landmarks)`
-- MediaPipe config: `max_num_hands=1`, `min_detection_confidence=0.5`, `min_tracking_confidence=0.5`
+The model is designed to assist learners by providing real-time sign recognition, confidence scores, and automated assessment during practice sessions.
 
 ---
 
-## Inference Pipeline
+# Model Details
+
+| Property | Value |
+|----------|-------|
+| Model Type | XGBoost Classifier |
+| Framework | XGBoost |
+| Computer Vision | MediaPipe Hands |
+| Input | 21 Hand Landmarks (63 Features) |
+| Output | Alphabet Prediction |
+| Number of Classes | 28 |
+| Language | American Sign Language (ASL) |
+| Prediction Type | Multi-class Classification |
+
+---
+
+# Supported Classes
+
+### Alphabet
 
 ```
-Webcam frame (BGR)
-    ↓  cv2.cvtColor → RGB
-    ↓  mediapipe.Hands.process()
-    ↓  extract_features(hand_landmarks)  → float[63]
-    ↓  XGBoost.predict_proba()
-    ↓  label_encoder.inverse_transform()
-    → (sign_label: str, confidence: float)
+A B C D E F G H I J
+K L M N O P Q R S T
+U V W X Y Z
 ```
 
-Entry points:
-- **REST API:** `api/main.py` → `POST /predict` (accepts image upload)
-- **Live Assessment:** `assessment_app.py` (webcam loop with prediction smoothing)
-- **Direct inference:** `inference/predictor.py::predict_sign(features)`
+### Additional Classes
 
----
-
-## Response Schema
-
-The `/predict` API endpoint returns:
-
-```json
-{
-  "prediction": "A",
-  "confidence": 95.42
-}
+```
+DEL
+SPACE
 ```
 
-This matches the contract consumed by Intern 4's Assessment Service (`predicted_sign`, `confidence` as percentage).
+---
 
-> **Note on Intern 5's DB contract:** The `assessments` table stores `predicted_sign` (VARCHAR) and `confidence` (NUMERIC). The API returns confidence as a percentage (`confidence * 100`, rounded to 2dp), which is what gets stored.
+# Dataset
+
+| Property | Value |
+|----------|-------|
+| Total Samples | 2203 |
+| Features | 63 |
+| Classes | 28 |
+| Feature Type | MediaPipe Hand Landmarks |
+
+Each sample contains:
+
+```
+x0,y0,z0,
+x1,y1,z1,
+...
+x20,y20,z20
+```
+
+along with the corresponding class label.
 
 ---
 
-## Feedback Category Mapping
+# Feature Extraction
 
-When the model's `possible_issue` output indicates finger-level errors (e.g., incorrect curl or extension), these are mapped to the `hand_shape` feedback category in the assessment layer. This is consistent with the DB constraint in `Database_Devops/db/models/feedback.py`.
+The model uses **MediaPipe Hands** to detect 21 hand landmarks from webcam images.
 
-| AI Issue Type | DB Feedback Category |
-|---|---|
-| hand orientation | `hand_shape` |
-| finger position / curl | `hand_shape` (mapped — see TODO in feedback.py) |
-| sign timing / hold duration | `timing` |
-| hand position in frame | `position` |
-| movement trajectory | `motion` |
+Each landmark contains:
 
----
+- x coordinate
+- y coordinate
+- z coordinate
 
-## Known Limitations
-
-- Trained on static images; real-time performance depends on lighting and background
-- `"Unknown"` returned for low-confidence predictions (< 0.80) — this is intentional to avoid noisy feedback
-- Currently supports single-hand detection only (`max_num_hands=1`)
-- Model covers the ASL alphabet (A–Z static signs); dynamic signs (J, Z) may have reduced accuracy
+These values are flattened into a 63-dimensional feature vector and passed to the classifier.
 
 ---
 
-## Dataset
+# Training Pipeline
 
-See `ROBUSTNESS_TESTING.md` for test performance breakdown.
-Training dataset: `dataset/` directory (not committed — contact Intern 3 for access).
+1. Collect dataset
+2. Detect hand landmarks using MediaPipe
+3. Extract landmark coordinates
+4. Store features in CSV format
+5. Encode labels using LabelEncoder
+6. Split dataset into training and testing sets
+7. Train XGBoost classifier
+8. Save trained model
+9. Evaluate model performance
+
+---
+
+# Hyperparameters
+
+| Parameter | Value |
+|-----------|------:|
+| n_estimators | 300 |
+| learning_rate | 0.05 |
+| max_depth | 4 |
+| subsample | 0.8 |
+| colsample_bytree | 0.8 |
+
+These values were obtained using RandomizedSearchCV hyperparameter tuning.
+
+---
+
+# Performance
+
+| Metric | Value |
+|---------|------:|
+| Accuracy | 86.39% |
+| Macro Precision | 87.54% |
+| Macro Recall | 86.39% |
+| Macro F1 Score | 86.67% |
+| Weighted F1 Score | 86.52% |
+
+---
+
+# Evaluation Artifacts
+
+The following evaluation outputs are included in the project:
+
+- Classification Report
+- Confusion Matrix
+- Confusion Matrix Heatmap
+- Predictions CSV
+- Weak Letters Report
+- Metrics JSON
+
+---
+
+# Known Limitations
+
+The model performs best on static alphabet signs.
+
+Performance decreases for visually similar letters, including:
+
+- M and N
+- U and V
+- R and U
+- E and S
+
+The model does not recognize:
+
+- Dynamic gestures
+- Continuous signing
+- Two-handed word signs
+- Sentences
+
+These capabilities are considered future enhancements.
+
+---
+
+# Intended Use
+
+This model is intended for:
+
+- Sign language learning
+- Alphabet practice
+- Educational assessment
+- Student feedback
+
+It is not intended for:
+
+- Medical applications
+- Emergency communication
+- Official sign language interpretation
+- Continuous sentence recognition
+
+---
+
+# Ethical Considerations
+
+- The model is designed as an educational tool.
+- Predictions may be incorrect under poor environmental conditions.
+- Users should not rely on the model for critical communication.
+- The dataset should contain diverse users to improve fairness and generalization.
+
+---
+
+# Future Improvements
+
+Possible future enhancements include:
+
+- Dynamic gesture recognition
+- Word-level sign recognition
+- Sentence recognition
+- Two-hand sign detection
+- Transformer/LSTM-based sequence models
+- Larger and more diverse datasets
+- Mobile device optimization
+
+---
+
+# Project Information
+
+**Project:** AI-Powered Sign Language Learning and Assessment Platform
+
+**Milestone:** Milestone 3
+
+**AI Module:**
+
+- MediaPipe Hand Landmark Detection
+- Feature Extraction
+- XGBoost Classification
+- Real-Time Webcam Prediction
+- Automated Assessment
+- Confidence Score Generation

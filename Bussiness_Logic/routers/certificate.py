@@ -1,5 +1,5 @@
 from uuid import UUID
-
+from services.notification_client import send_notification
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -169,6 +169,11 @@ def issue_certificate(
     db.commit()
     db.refresh(existing_certificate)
 
+    send_notification(
+        user_id=learner_id,
+        title="Certificate Issued",
+        message="Congratulations! You have earned your certificate. Click to download it.",
+    )
     return FileResponse(
         path=file_path,
         media_type="application/pdf",

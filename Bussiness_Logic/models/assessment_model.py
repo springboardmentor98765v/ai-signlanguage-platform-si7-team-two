@@ -9,7 +9,7 @@ from sqlalchemy import (
     String,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import  UUID
 
 from database import Base
 
@@ -47,7 +47,7 @@ class Assessment(Base):
 
     is_correct = Column(Boolean, nullable=False)
 
-    raw_landmarks = Column(JSONB)
+    
 
     created_at = Column(
         DateTime(timezone=True),

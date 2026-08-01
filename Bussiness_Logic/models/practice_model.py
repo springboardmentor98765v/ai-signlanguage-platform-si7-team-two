@@ -76,13 +76,13 @@ class PracticeSession(Base):
         default=0,
     )
 
-    start_time = Column(
+    started_at = Column(
         DateTime(timezone=True),
         nullable=False,
         default=datetime.utcnow,
     )
 
-    end_time = Column(
+    ended_at = Column(
         DateTime(timezone=True),
         nullable=True,
     )

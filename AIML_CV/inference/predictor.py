@@ -11,8 +11,10 @@ PROJECT_DIR = os.path.dirname(BASE_DIR)
 MODEL_PATH = os.path.join(
     PROJECT_DIR,
     "models",
-    "sign_language_xgb.pkl"
+    "best_xgb_tuned.pkl"
 )
+
+
 
 ENCODER_PATH = os.path.join(
     PROJECT_DIR,
@@ -52,3 +54,4 @@ if __name__ == "__main__":
     prediction = predict_sign(dummy_features)
 
     print("Prediction:", prediction)
+    print("Loaded model from:", MODEL_PATH)

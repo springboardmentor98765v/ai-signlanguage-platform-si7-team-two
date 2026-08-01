@@ -94,6 +94,12 @@ export default function Login() {
             />
           </div>
 
+          <div className="forgot-password-row">
+            <Link to="/forgot-password" className="forgot-password-link">
+              Forgot password?
+            </Link>
+          </div>
+
           <button
             type="submit"
             className="btn-primary"
