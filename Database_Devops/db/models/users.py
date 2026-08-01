@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from db.models.streaks import Streak
     from db.models.badges import Badge
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -81,6 +82,17 @@ class User(Base):
 
     notifications: Mapped[list["Notification"]] = relationship(
         back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    streak: Mapped["Streak | None"] = relationship(
+        back_populates="learner",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    badges: Mapped[list["Badge"]] = relationship(
+        back_populates="learner",
         cascade="all, delete-orphan",
     )
 
