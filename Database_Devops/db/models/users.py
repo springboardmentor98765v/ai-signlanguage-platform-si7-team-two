@@ -25,6 +25,8 @@ if TYPE_CHECKING:
     from db.models.certificates import Certificate
     from db.models.recommendations import Recommendation
     from db.models.notifications import Notification
+    from db.models.streaks import Streak
+    from db.models.badges import Badge
 
 
 class User(Base):
@@ -61,6 +63,12 @@ class User(Base):
     )
     notifications: Mapped[list["Notification"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
+    )
+    streak: Mapped["Streak | None"] = relationship(
+        back_populates="learner", uselist=False, cascade="all, delete-orphan"
+    )
+    badges: Mapped[list["Badge"]] = relationship(
+        back_populates="learner", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:

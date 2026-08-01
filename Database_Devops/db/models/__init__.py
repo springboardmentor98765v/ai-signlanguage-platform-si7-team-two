@@ -18,6 +18,8 @@ from db.models.learner_analytics import LearnerAnalytics
 from db.models.certificates import Certificate
 from db.models.recommendations import Recommendation
 from db.models.notifications import Notification
+from db.models.streaks import Streak
+from db.models.badges import Badge
 
 __all__ = [
     "Base",
@@ -32,4 +34,6 @@ __all__ = [
     "Certificate",
     "Recommendation",
     "Notification",
+    "Streak",
+    "Badge",
 ]

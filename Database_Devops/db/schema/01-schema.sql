@@ -144,3 +144,35 @@ CREATE TABLE recommendations (
 
 CREATE INDEX idx_recommendations_learner_id ON recommendations(learner_id);
 CREATE INDEX idx_recommendations_status ON recommendations(status);
+
+-- ---------- notifications ----------
+CREATE TABLE notifications (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title       VARCHAR(100) NOT NULL,
+    message     VARCHAR(500) NOT NULL,
+    is_read     BOOLEAN NOT NULL DEFAULT false,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+
+-- ---------- streaks ----------
+CREATE TABLE streaks (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    learner_id          UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    current_streak      INT NOT NULL DEFAULT 1,
+    longest_streak      INT NOT NULL DEFAULT 1,
+    last_practice_date  DATE
+);
+
+-- ---------- badges ----------
+CREATE TABLE badges (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    learner_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    badge_name  VARCHAR(100) NOT NULL,
+    earned_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_badges_learner_id ON badges(learner_id);
+
