@@ -158,6 +158,19 @@ export const streakData = {
   longestStreak: 12,
 }
 
+// DEV ONLY (Milestone 3, Day 4): stands in for Intern 4's Leaderboard ranking
+// API (due Day 4) — see FR-4 / dependency matrix: Leaderboard ranking API ->
+// Leaderboard page. `isCurrentUser` marks the logged-in learner (Aisha Khan,
+// matches `currentUser` above) so their row can be highlighted.
+export const leaderboardData = [
+  { id: 1, name: 'Ananya Iyer', accuracy: 92, streak: 14, isCurrentUser: false },
+  { id: 2, name: 'Meera Nair', accuracy: 88, streak: 9, isCurrentUser: false },
+  { id: 3, name: 'Aisha Khan', accuracy: 84, streak: 7, isCurrentUser: true },
+  { id: 4, name: 'Karan Shah', accuracy: 71, streak: 4, isCurrentUser: false },
+  { id: 5, name: 'Rohan Verma', accuracy: 64, streak: 2, isCurrentUser: false },
+  { id: 6, name: 'Divya Reddy', accuracy: 55, streak: 1, isCurrentUser: false },
+]
+
 export const badges = [
   {
     id: 1,
