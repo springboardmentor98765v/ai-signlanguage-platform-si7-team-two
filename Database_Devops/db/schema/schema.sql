@@ -79,7 +79,13 @@ CREATE TABLE assessments (
     predicted_sign  VARCHAR(2) NOT NULL,
     confidence      NUMERIC(5,4) NOT NULL CHECK (confidence BETWEEN 0 AND 1),
     expected_sign   VARCHAR(2) NOT NULL,
-    accuracy_score  NUMERIC(5,2) NOT NULL CHECK (accuracy_score BETWEEN 0 AND 100),
+    hand_shape_score NUMERIC(5,2) NOT NULL,
+    finger_position_score NUMERIC(5,2) NOT NULL,
+    timing_score    NUMERIC(5,2) NOT NULL,
+    motion_score    NUMERIC(5,2) NOT NULL,
+    position_score  NUMERIC(5,2) NOT NULL,
+    overall_score   NUMERIC(5,2) NOT NULL CHECK (overall_score BETWEEN 0 AND 100),
+    is_correct      BOOLEAN NOT NULL DEFAULT false,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -91,6 +97,7 @@ CREATE TABLE feedback (
     assessment_id   UUID NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
     category        VARCHAR(30) NOT NULL
                         CHECK (category IN ('hand_shape', 'timing', 'position', 'motion')),
+    severity        VARCHAR(20) NOT NULL DEFAULT 'moderate',
     message         TEXT NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );

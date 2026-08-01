@@ -1,8 +1,24 @@
 import { useState, useEffect } from 'react'
 import { getUser } from '../utils/auth.js'
-import { getLearnerAnalytics, getWeeklyAnalytics } from '../services/api.js'
 import AccuracyOverTimeChart from '../components/charts/AccuracyOverTimeChart.jsx'
 import LessonsCompletedChart from '../components/charts/LessonsCompletedChart.jsx'
+import BadgesStreaks from '../components/dashboard/BadgesStreaks.jsx'
+
+// DEV ONLY: mock stats/weekly-stats shaped exactly like the real
+// /analytics/{id} and /weekly-analytics/{id} responses, so this can be
+// swapped back to the live API calls later with no other changes needed.
+const MOCK_STATS = {
+  average_accuracy: 78,
+  lessons_completed: 12,
+  total_practice_time: 19800, // seconds -> 5.5h
+}
+
+const MOCK_WEEKLY_STATS = [
+  { week_start: '2026-07-06', average_accuracy: 62, attempts_count: 3 },
+  { week_start: '2026-07-13', average_accuracy: 68, attempts_count: 5 },
+  { week_start: '2026-07-20', average_accuracy: 74, attempts_count: 4 },
+  { week_start: '2026-07-27', average_accuracy: 81, attempts_count: 7 },
+]
 
 function formatWeekLabel(weekStartIso) {
   const d = new Date(weekStartIso)
@@ -14,50 +30,19 @@ export default function Dashboard() {
   const user = getUser()
 
   const [stats, setStats] = useState(null)
-  const [weeklyStats, setWeeklyStats] = useState([]);
+  const [weeklyStats, setWeeklyStats] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!user) {
+    // Simulate a quick load so the loading state still renders briefly,
+    // matching the real (API-driven) version's behavior.
+    const timer = setTimeout(() => {
+      setStats(MOCK_STATS)
+      setWeeklyStats(MOCK_WEEKLY_STATS)
       setIsLoading(false)
-      return
-    }
-
-    let isMounted = true
-
-    async function loadDashboard() {
-      setIsLoading(true)
-      setError('')
-      try {
-        const [analytics, weekly] = await Promise.all([
-          getLearnerAnalytics(user.id),
-          getWeeklyAnalytics(user.id),
-        ])
-        if (isMounted) {
-          setStats(analytics)
-          setWeeklyStats(weekly.weekly_stats || [])
-        }
-      } catch (err) {
-        if (isMounted) {
-          // Both /analytics/{id} and /weekly-analytics/{id} 404 until the learner has
-          // at least one practice session recorded — this is the expected first-run state,
-          // not a broken integration, so we show a friendly empty state instead of a scary error.
-          setError(err.message || 'Could not load your dashboard yet.')
-        }
-      } finally {
-        if (isMounted) setIsLoading(false)
-      }
-    }
-
-    loadDashboard()
-    return () => { isMounted = false }
-    // NOTE: depend on user?.id, not the whole user object. getUser() re-parses
-    // localStorage on every render and returns a brand-new object each time, so
-    // using [user] here made this effect re-fire on every single render forever
-    // (infinite fetch loop). user?.id is a stable primitive, so this now only
-    // re-runs when the actual logged-in user changes.
-  }, [user?.id])
+    }, 200)
+    return () => clearTimeout(timer)
+  }, [])
 
   if (!user) {
     return <p className="lessons-status error">You need to be logged in to view your dashboard.</p>
@@ -67,24 +52,11 @@ export default function Dashboard() {
     return <p className="lessons-status">Loading your dashboard...</p>
   }
 
-  if (error || !stats) {
-    return (
-      <div>
-        <p className="lessons-status">
-          No practice history yet. Head to Practice and try a letter to start building your stats.
-        </p>
-      </div>
-    )
-  }
-
   const accuracyData = weeklyStats.map((w) => ({
     day: formatWeekLabel(w.week_start),
     accuracy: Math.round(w.average_accuracy),
   }))
 
-  // The Business Logic service's weekly stats give attempts_count, not a
-  // lessons-completed-per-week figure — labeling this "lessons completed" would
-  // misrepresent the data, so the chart is honestly relabeled to what it is.
   const attemptsData = weeklyStats.map((w) => ({
     week: formatWeekLabel(w.week_start),
     attempts: w.attempts_count,
@@ -120,6 +92,8 @@ export default function Dashboard() {
           valueLabel="Attempts"
         />
       </div>
+
+      <BadgesStreaks />
     </div>
   )
 }

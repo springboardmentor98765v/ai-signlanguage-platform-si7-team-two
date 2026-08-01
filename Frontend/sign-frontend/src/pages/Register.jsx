@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { register } from '../services/api.js'
-import { saveSession } from '../utils/auth.js'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -12,6 +11,7 @@ export default function Register() {
   const [role, setRole] = useState('learner')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -22,9 +22,13 @@ export default function Register() {
     }
     setIsLoading(true)
     try {
-      const { token, role: userRole } = await register(name, email, password, role)
-      saveSession(token, userRole)
-      navigate('/dashboard')
+      // NOTE: /auth/register does not return a token or role — it only
+      // creates the account (always as a Learner, regardless of the
+      // dropdown below, since the backend doesn't accept a role field yet).
+      // So we can't auto-login here; send the user to the login page instead.
+      await register(name, email, password, role)
+      setSuccess(true)
+      setTimeout(() => navigate('/'), 1500)
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.')
     } finally {
@@ -42,7 +46,12 @@ export default function Register() {
         <h1>Create your account</h1>
         <p className="sub">Start learning sign language today.</p>
 
-        {error && <div className="form-error">{error}</div>}
+        {error && <div className="form-error" role="alert">{error}</div>}
+        {success && (
+          <div className="form-success" role="status">
+            Account created! Redirecting you to log in...
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -70,7 +79,7 @@ export default function Register() {
             <select id="role" value={role} onChange={(e) => setRole(e.target.value)} disabled={isLoading}>
               <option value="learner">Learner</option>
               <option value="instructor">Instructor</option>
-              <option value="trainer">Trainer</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
           <button type="submit" className="btn-primary" disabled={isLoading}>

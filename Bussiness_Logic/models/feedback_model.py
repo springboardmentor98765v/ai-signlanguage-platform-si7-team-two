@@ -10,6 +10,6 @@ class Feedback(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
     assessment_id = Column(UUID(as_uuid=True), ForeignKey("assessments.id", ondelete="CASCADE"), nullable=False)
     category = Column(String(30), nullable=False)
-    severity = Column(String(20), nullable=True)
+    severity = Column(String(20), nullable=False, default="moderate")
     message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)

@@ -1,0 +1,26 @@
+# Milestone 2, Day 9 — free frontend hosting via Netlify.
+#
+# Drop this at the root of Intern 1's React project, then:
+#   1. Push to GitHub.
+#   2. On netlify.com: "Add new site" -> "Import an existing project" ->
+#      pick the repo. Netlify reads this file automatically.
+#   3. Set the environment variable below in Netlify's dashboard
+#      (Site settings -> Environment variables) so the Frontend knows
+#      where the live backend (Day 5) is.
+
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  # React (Create React App) requires the REACT_APP_ prefix to expose env
+  # vars to the browser bundle. If the Frontend uses Vite instead, use
+  # VITE_API_BASE_URL and adjust here.
+  REACT_APP_API_BASE_URL = "https://sign-language-backend.onrender.com"
+
+# Client-side routing (React Router) — without this, refreshing on any
+# route other than "/" gives a 404 on Netlify.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

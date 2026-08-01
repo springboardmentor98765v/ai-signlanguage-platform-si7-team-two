@@ -6,6 +6,7 @@ import {
   getRecommendations,
   getCertificateEligibility,
   issueCertificate,
+  downloadProgressReport,
 } from '../services/api.js'
 
 const today = new Date().toLocaleDateString('en-GB', {
@@ -25,6 +26,9 @@ export default function Reports() {
   const [isIssuing, setIsIssuing] = useState(false)
   const [issuedCertificate, setIssuedCertificate] = useState(null)
   const [issueError, setIssueError] = useState('')
+
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
 
   useEffect(() => {
     if (!user) {
@@ -82,6 +86,28 @@ export default function Reports() {
     }
   }
 
+  async function handleExportReport() {
+    if (!user) return
+    setIsExporting(true)
+    setExportError('')
+    try {
+      const blob = await downloadProgressReport(user.id, user.full_name)
+      const extension = blob.type.includes('csv') ? 'csv' : blob.type.includes('sheet') ? 'xlsx' : 'pdf'
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `progress-report-${user.full_name.replace(/\s+/g, '-').toLowerCase()}.${extension}`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      setExportError(err.message || 'Could not export your report.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   function handlePrint() {
     window.print()
   }
@@ -110,9 +136,17 @@ export default function Reports() {
 
   return (
     <div>
-      <div className="reports-header">
-        <h2>Your Progress Report</h2>
-        <p className="sub">A summary of your accuracy, activity, and areas to improve.</p>
+      <div className="reports-header reports-header-row">
+        <div>
+          <h2>Your Progress Report</h2>
+          <p className="sub">A summary of your accuracy, activity, and areas to improve.</p>
+        </div>
+        <div className="reports-header-actions">
+          {exportError && <p className="form-error" role="alert">{exportError}</p>}
+          <button className="btn-secondary btn-inline" onClick={handleExportReport} disabled={isExporting}>
+            {isExporting ? 'Preparing...' : 'Export Report'}
+          </button>
+        </div>
       </div>
 
       <div className="stats-grid">

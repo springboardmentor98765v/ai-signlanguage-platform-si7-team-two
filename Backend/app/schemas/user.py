@@ -26,3 +26,24 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+# -----------------------------
+# Milestone 2 Schemas
+# -----------------------------
+
+class UpdateProfile(BaseModel):
+    full_name: str
+    email: EmailStr
+
+
+class ChangePassword(BaseModel):
+    old_password: str
+    new_password: str
+
+
+class ForgotPassword(BaseModel):
+    email: EmailStr
+    
+class ResetPassword(BaseModel):
+    new_password: str

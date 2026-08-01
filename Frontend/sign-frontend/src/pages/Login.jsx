@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { login } from '../services/api.js'
-import { saveSession } from '../utils/auth.js'
+import { saveSession, getRoleHomePath, resolveRoleName } from '../utils/auth.js'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -10,11 +10,16 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // DEV ONLY: lets us preview protected pages before the real Auth
-  // API (Intern 2) is live. Remove this before final submission.
-  function handleSkipLogin() {
-    saveSession('dev-token', 'learner')
-    navigate('/dashboard')
+  // DEV ONLY: lets us preview protected pages for any role before real
+  // Instructor/Admin accounts exist. Remove this before final submission.
+  function handleSkipLoginAs(role) {
+    saveSession('dev-token', {
+      id: 'dev-user',
+      full_name: 'Developer',
+      email: 'developer@example.com',
+      role,
+    })
+    navigate(getRoleHomePath(role))
   }
 
   async function handleSubmit(e) {
@@ -22,9 +27,16 @@ export default function Login() {
     setError('')
     setIsLoading(true)
     try {
-      const { token, role } = await login(email, password)
-      saveSession(token, role)
-      navigate('/dashboard')
+      const response = await login(email, password)
+      // TEMPORARY WORKAROUND: the backend's /auth/login response currently
+      // returns only role_id (a UUID), not a readable role name, and does
+      // not return an access_token at all. resolveRoleName() maps the
+      // known role_id UUIDs to names on the frontend as a stopgap — see
+      // the comment on ROLE_ID_MAP in auth.js for details/caveats.
+      const roleName = resolveRoleName(response.user)
+      const userWithRole = { ...response.user, role: roleName }
+      saveSession(response.access_token, userWithRole)
+      navigate(getRoleHomePath(roleName))
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.')
     } finally {
@@ -42,7 +54,7 @@ export default function Login() {
         <h1>Welcome back</h1>
         <p className="sub">Log in to continue your lessons.</p>
 
-        {error && <div className="form-error">{error}</div>}
+        {error && <div className="form-error" role="alert">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -55,6 +67,13 @@ export default function Login() {
             <input id="password" type="password" placeholder="••••••••"
               value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
           </div>
+
+          <div className="forgot-password-row">
+            <Link to="/forgot-password" className="forgot-password-link">
+              Forgot password?
+            </Link>
+          </div>
+
           <button type="submit" className="btn-primary" disabled={isLoading}>
             {isLoading ? 'Logging in...' : 'Log in'}
           </button>
@@ -65,8 +84,14 @@ export default function Login() {
         </div>
 
         <div className="dev-skip">
-          <button type="button" className="btn-dev-skip" onClick={handleSkipLogin}>
-            Skip Login (Dev Mode)
+          <button type="button" className="btn-dev-skip" onClick={() => handleSkipLoginAs('learner')}>
+            Skip Login as Learner
+          </button>
+          <button type="button" className="btn-dev-skip" onClick={() => handleSkipLoginAs('instructor')}>
+            Skip Login as Instructor
+          </button>
+          <button type="button" className="btn-dev-skip" onClick={() => handleSkipLoginAs('admin')}>
+            Skip Login as Admin
           </button>
           <p className="dev-note">For previewing pages before the real Auth API is connected.</p>
         </div>

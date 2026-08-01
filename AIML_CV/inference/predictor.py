@@ -35,11 +35,11 @@ def predict_sign(features):
 
     probabilities = model.predict_proba(features)[0]
 
-    confidence = np.max(probabilities)
+    confidence = round(float(np.max(probabilities) * 100), 2)
 
     label = label_encoder.inverse_transform([prediction])[0]
 
-    THRESHOLD = 0.80
+    THRESHOLD = 80.0
 
     if confidence < THRESHOLD:
         label = "Unknown"

@@ -1,70 +1,100 @@
-import { useState } from "react";
-
-// Mock current user — swap for real data once Intern 2's Profile API is ready (Day 9)
-const mockUser = {
-  name: "Aisha Khan",
-  email: "aisha.khan@example.com",
-  role: "Learner",
-};
+import { useState } from "react"
+import { getUser, saveSession, getToken } from "../utils/auth.js"
+import { updateProfile, changePassword } from "../services/api.js"
 
 export default function ProfilePage() {
-  const [user, setUser] = useState(mockUser);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(mockUser);
+  const [user, setUser] = useState(getUser())
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState({ full_name: user?.full_name || "", email: user?.email || "" })
+  const [profileError, setProfileError] = useState("")
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
 
-  const [passwords, setPasswords] = useState({ oldPassword: "", newPassword: "" });
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [passwords, setPasswords] = useState({ oldPassword: "", newPassword: "" })
+  const [passwordError, setPasswordError] = useState("")
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   function startEditing() {
-    setDraft(user);
-    setEditing(true);
+    setDraft({ full_name: user.full_name, email: user.email })
+    setProfileError("")
+    setEditing(true)
   }
 
-  function saveProfile() {
-    setUser(draft);
-    setEditing(false);
+  async function saveProfile() {
+    if (!user) return
+    setIsSavingProfile(true)
+    setProfileError("")
+    try {
+      const updated = await updateProfile(user.id, {
+        full_name: draft.full_name,
+        email: draft.email,
+      })
+      // Preserve role locally since /auth/profile/{id} doesn't return it
+      const mergedUser = { ...user, ...updated, role: user.role }
+      setUser(mergedUser)
+      saveSession(getToken(), mergedUser)
+      setEditing(false)
+    } catch (err) {
+      setProfileError(err.message || "Could not update your profile.")
+    } finally {
+      setIsSavingProfile(false)
+    }
   }
 
   function cancelEditing() {
-    setDraft(user);
-    setEditing(false);
+    setDraft({ full_name: user.full_name, email: user.email })
+    setProfileError("")
+    setEditing(false)
   }
 
   function handlePasswordChange(field, value) {
-    setPasswords((prev) => ({ ...prev, [field]: value }));
-    setPasswordError("");
-    setPasswordSuccess(false);
+    setPasswords((prev) => ({ ...prev, [field]: value }))
+    setPasswordError("")
+    setPasswordSuccess(false)
   }
 
-  function submitPasswordChange(e) {
-    e.preventDefault();
-    const { oldPassword, newPassword } = passwords;
+  async function submitPasswordChange(e) {
+    e.preventDefault()
+    const { oldPassword, newPassword } = passwords
 
     if (!oldPassword) {
-      setPasswordError("Enter your current password.");
-      return;
+      setPasswordError("Enter your current password.")
+      return
     }
     if (newPassword.length < 6) {
-      setPasswordError("New password must be at least 6 characters.");
-      return;
+      setPasswordError("New password must be at least 6 characters.")
+      return
     }
     if (newPassword === oldPassword) {
-      setPasswordError("New password must be different from the old one.");
-      return;
+      setPasswordError("New password must be different from the old one.")
+      return
     }
 
-    // TODO: replace with real Change Password API call (Intern 2, Day 2)
-    setPasswordSuccess(true);
-    setPasswords({ oldPassword: "", newPassword: "" });
+    setIsChangingPassword(true)
+    try {
+      await changePassword(user.id, {
+        old_password: oldPassword,
+        new_password: newPassword,
+      })
+      setPasswordSuccess(true)
+      setPasswords({ oldPassword: "", newPassword: "" })
+    } catch (err) {
+      setPasswordError(err.message || "Could not update your password.")
+    } finally {
+      setIsChangingPassword(false)
+    }
   }
 
-  const initials = user.name
+  if (!user) {
+    return <p className="lessons-status error">You need to be logged in to view your profile.</p>
+  }
+
+  const initials = (user.full_name || "")
     .split(" ")
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
-    .toUpperCase();
+    .toUpperCase()
 
   return (
     <div className="profile-shell">
@@ -78,21 +108,23 @@ export default function ProfilePage() {
         <div className="profile-identity">
           <div className="avatar">{initials}</div>
           <div>
-            <p className="profile-name">{user.name}</p>
+            <p className="profile-name">{user.full_name}</p>
             <span className="badge badge-beginner">{user.role}</span>
           </div>
         </div>
+
+        {profileError && <p className="form-error" role="alert">{profileError}</p>}
 
         <div className="field">
           <label>Name</label>
           {editing ? (
             <input
               type="text"
-              value={draft.name}
-              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              value={draft.full_name}
+              onChange={(e) => setDraft({ ...draft, full_name: e.target.value })}
             />
           ) : (
-            <p className="field-static">{user.name}</p>
+            <p className="field-static">{user.full_name}</p>
           )}
         </div>
 
@@ -117,10 +149,10 @@ export default function ProfilePage() {
         <div className="profile-actions">
           {editing ? (
             <>
-              <button onClick={saveProfile} className="btn-primary btn-inline">
-                Save changes
+              <button onClick={saveProfile} className="btn-primary btn-inline" disabled={isSavingProfile}>
+                {isSavingProfile ? "Saving..." : "Save changes"}
               </button>
-              <button onClick={cancelEditing} className="btn-secondary">
+              <button onClick={cancelEditing} className="btn-secondary" disabled={isSavingProfile}>
                 Cancel
               </button>
             </>
@@ -144,6 +176,7 @@ export default function ProfilePage() {
               type="password"
               value={passwords.oldPassword}
               onChange={(e) => handlePasswordChange("oldPassword", e.target.value)}
+              disabled={isChangingPassword}
             />
           </div>
 
@@ -153,17 +186,18 @@ export default function ProfilePage() {
               type="password"
               value={passwords.newPassword}
               onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
+              disabled={isChangingPassword}
             />
           </div>
 
-          {passwordError && <p className="form-error">{passwordError}</p>}
-          {passwordSuccess && <p className="form-success">Password updated.</p>}
+          {passwordError && <p className="form-error" role="alert">{passwordError}</p>}
+          {passwordSuccess && <p className="form-success" role="status">Password updated.</p>}
 
-          <button type="submit" className="btn-primary btn-inline">
-            Update password
+          <button type="submit" className="btn-primary btn-inline" disabled={isChangingPassword}>
+            {isChangingPassword ? "Updating..." : "Update password"}
           </button>
         </form>
       </div>
     </div>
-  );
+  )
 }
