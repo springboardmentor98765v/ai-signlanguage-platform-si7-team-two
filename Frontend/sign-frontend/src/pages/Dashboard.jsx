@@ -6,6 +6,8 @@ import BadgesStreaks from '../components/dashboard/BadgesStreaks.jsx'
 export default function Dashboard() {
   return (
     <div>
+      <h1 className="sr-only">Dashboard Overview</h1>
+
       <div className="stats-grid">
         <div className="stat-card">
           <p className="label">Accuracy</p>

@@ -1443,6 +1443,10 @@ select:focus-visible,
 .badge-card.locked {
   background: var(--panel);
   filter: grayscale(1);
+}
+
+.badge-card.locked .badge-icon,
+.badge-card.locked .badge-name {
   opacity: 0.6;
 }
 
@@ -1468,7 +1472,7 @@ select:focus-visible,
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink);
   background: var(--line);
   padding: 2px 8px;
   border-radius: 999px;

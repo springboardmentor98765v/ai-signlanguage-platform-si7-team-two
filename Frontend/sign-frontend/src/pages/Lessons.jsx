@@ -48,18 +48,26 @@ export default function Lessons() {
     };
   }, []);
 
-  if (isLoading) {
-    return <p className="lessons-status">Loading lessons...</p>;
-  }
-if (error) {
   return (
-    <p className="lessons-status error">
-      {error}
-    </p>
-  )
-}
+    <div>
+      <h1 className="sr-only">Lessons</h1>
 
-  return <LessonGrid lessons={lessons} navigate={navigate} />;
+      {isLoading ? (
+        <p className="lessons-status" role="status">
+          Loading lessons...
+        </p>
+      ) : error ? (
+        <p className="lessons-status error" role="alert">
+          {error}
+        </p>
+      ) : (
+        <>
+          <h2 className="sr-only">Available Lessons</h2>
+          <LessonGrid lessons={lessons} navigate={navigate} />
+        </>
+      )}
+    </div>
+  );
 }
 
 function LessonGrid({ lessons, navigate }) {
