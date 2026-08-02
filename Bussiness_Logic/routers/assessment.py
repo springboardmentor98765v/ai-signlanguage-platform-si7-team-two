@@ -90,6 +90,7 @@ def score_attempt(request: ScoreRequest, db: Session = Depends(get_db)):
         new_assessment = Assessment(
             session_id=session.id,
             predicted_sign=predicted_sign,
+            expected_sign=expected_sign,
             confidence=confidence / 100,
             hand_shape_score=scores["hand_shape_score"],
             finger_position_score=scores["finger_position_score"],
