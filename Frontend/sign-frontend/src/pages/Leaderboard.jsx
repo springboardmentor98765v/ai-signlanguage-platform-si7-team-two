@@ -55,9 +55,12 @@ export default function Leaderboard() {
       </div>
 
       {ranked.length === 0 ? (
-        <p className="lessons-status">
-          No leaderboard data yet. Start practicing to appear on the board!
-        </p>
+        // Milestone 3, Day 7: empty state — consistent styling with
+        // Lessons.jsx's empty/error states (.empty-page pattern).
+        <div className="empty-page" role="status">
+          <h2>No leaderboard data yet</h2>
+          <p>Start practicing to appear on the board!</p>
+        </div>
       ) : (
         <div className="report-panel">
           <p className="panel-title" id="leaderboard-table-caption">
