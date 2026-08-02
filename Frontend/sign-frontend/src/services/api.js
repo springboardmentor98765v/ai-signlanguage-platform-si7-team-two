@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const BUSINESS_LOGIC_URL = import.meta.env.VITE_BUSINESS_LOGIC_URL || 'http://localhost:8002'
 
 async function handleResponse(res) {
   const data = await res.json().catch(() => ({}))
@@ -30,7 +31,7 @@ export async function register(name, email, password, role) {
   const res = await fetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ full_name: name, email, password,}),
+    body: JSON.stringify({ full_name: name, email, password, role }),
   })
   return handleResponse(res)
 }
@@ -56,11 +57,29 @@ export async function predictSign(imageBlob) {
 }
 
 
-export async function assessAttempt(expectedSign, predictedSign, confidence) {
+export async function assessAttempt(sessionId, expectedSign, predictedSign, confidence) {
   const res = await fetch(`${API_BASE_URL}/assessment/score`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ expected_sign: expectedSign, predicted_sign: predictedSign, confidence }),
+    body: JSON.stringify({ session_id: sessionId, expected_sign: expectedSign, predicted_sign: predictedSign, confidence }),
+  })
+  return handleResponse(res)
+}
+
+export async function startPracticeSession(userId, lessonId) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/practice/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId, lesson_id: lessonId }),
+  })
+  return handleResponse(res)
+}
+
+export async function endPracticeSession(sessionId) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/practice/end`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_id: sessionId }),
   })
   return handleResponse(res)
 }
