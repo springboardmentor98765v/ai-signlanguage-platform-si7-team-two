@@ -60,7 +60,7 @@ def start_session(
     return StartSessionResponse(
         session_id=new_session.id,
         status=new_session.status,
-        started_at=new_session.start_time,
+        started_at=new_session.started_at,
     )
 
 
@@ -104,7 +104,7 @@ def end_session(
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    session.end_time = datetime.utcnow()
+    session.ended_at = datetime.utcnow()
     session.status = "completed"
     db.commit()
     db.refresh(session)
@@ -126,7 +126,7 @@ def end_session(
     return EndSessionResponse(
         session_id=session.id,
         status=session.status,
-        ended_at=session.end_time,
+        ended_at=session.ended_at,
         attempt_count=session.attempt_count,
         newly_earned_badges=newly_earned,
     )
