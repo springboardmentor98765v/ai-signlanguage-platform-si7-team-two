@@ -28,7 +28,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="auth-shell">
-      <div className="auth-card">
+      <main className="auth-card">
         <div className="auth-brand">
           <div className="mark">SL</div>
           <div className="name">SignLearn</div>
@@ -83,7 +83,7 @@ export default function ForgotPassword() {
           Remembered your password?{" "}
           <Link to="/">Log in</Link>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

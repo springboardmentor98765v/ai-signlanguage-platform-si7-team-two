@@ -252,6 +252,7 @@ export default function Practice() {
 
   return (
     <div>
+      <h1 className="sr-only">Practice</h1>
       <div className="practice-header">
         <div className="practice-header-row">
           <div>

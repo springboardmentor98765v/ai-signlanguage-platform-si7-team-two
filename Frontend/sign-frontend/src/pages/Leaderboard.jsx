@@ -28,6 +28,7 @@ export default function Leaderboard() {
 
   return (
     <div>
+      <h1 className="sr-only">Leaderboard</h1>
       <div className="reports-header">
         <h2>Leaderboard</h2>
         <p className="sub">
