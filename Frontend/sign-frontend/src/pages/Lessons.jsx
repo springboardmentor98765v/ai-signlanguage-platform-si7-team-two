@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getLessons } from "../services/api.js";
 
@@ -16,37 +16,27 @@ export default function Lessons() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchLessons = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
 
-    async function fetchLessons() {
-      console.log("Fetching lessons...");
-      setIsLoading(true);
-      setError("");
-
-      try {
-        const data = await getLessons();
-
-        if (isMounted) {
-          setLessons(data);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err.message || "Could not load lessons.");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+    try {
+      const data = await getLessons();
+      setLessons(data);
+    } catch (err) {
+      // Milestone 3, Day 7: friendly, non-technical error message instead
+      // of raw fetch/network error text.
+      setError(
+        "We couldn't load your lessons right now. Please check your connection and try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    fetchLessons();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    fetchLessons();
+  }, [fetchLessons]);
 
   return (
     <div>
@@ -57,9 +47,18 @@ export default function Lessons() {
           Loading lessons...
         </p>
       ) : error ? (
-        <p className="lessons-status error" role="alert">
-          {error}
-        </p>
+        <div className="empty-page" role="alert">
+          <h2>Something went wrong</h2>
+          <p>{error}</p>
+          <button className="btn-secondary btn-inline" onClick={fetchLessons}>
+            Try Again
+          </button>
+        </div>
+      ) : lessons.length === 0 ? (
+        <div className="empty-page" role="status">
+          <h2>No lessons available yet</h2>
+          <p>Check back soon — new lessons are added regularly!</p>
+        </div>
       ) : (
         <>
           <h2 className="sr-only">Available Lessons</h2>

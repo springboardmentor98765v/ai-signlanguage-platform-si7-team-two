@@ -64,6 +64,51 @@ export default function Practice() {
   const [attemptCount, setAttemptCount] = useState(0);
   const timerRef = useRef(null);
 
+  // Milestone 3, Day 8: score-reveal count-up. Animates the displayed
+  // accuracy from 0 up to the real value whenever a new result comes in.
+  // Skips straight to the final value if the user has requested reduced
+  // motion at the OS level.
+  const [displayAccuracy, setDisplayAccuracy] = useState(0);
+  const countUpRef = useRef(null);
+
+  useEffect(() => {
+    if (!assessment) return;
+
+    const target = assessment.accuracy;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (countUpRef.current) clearInterval(countUpRef.current);
+
+    if (prefersReducedMotion) {
+      setDisplayAccuracy(target);
+      return;
+    }
+
+    setDisplayAccuracy(0);
+
+    const durationMs = 600;
+    const steps = 24;
+    const stepTime = durationMs / steps;
+    let currentStep = 0;
+
+    countUpRef.current = setInterval(() => {
+      currentStep += 1;
+      const progress = currentStep / steps;
+      setDisplayAccuracy(Math.round(target * Math.min(progress, 1)));
+
+      if (currentStep >= steps) {
+        clearInterval(countUpRef.current);
+        countUpRef.current = null;
+      }
+    }, stepTime);
+
+    return () => {
+      if (countUpRef.current) clearInterval(countUpRef.current);
+    };
+  }, [assessment]);
+
   useEffect(() => {
     if (isPracticing && videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
@@ -345,6 +390,27 @@ export default function Practice() {
 
           {assessment && (
             <div role="status" aria-live="polite">
+              <div className="result-card">
+                <div
+                  key={assessment.accuracy}
+                  className="result-score score-animate"
+                >
+                  <span className="score-value">{displayAccuracy}%</span>
+                  <span className="score-label">Accuracy</span>
+                </div>
+
+                <ul className="feedback-list">
+                  <li>
+                    <span className="feedback-icon">
+                      {isCorrect ? "✓" : "•"}
+                    </span>
+                    {isCorrect
+                      ? `Great job — that's a match for Letter ${targetLetter}!`
+                      : `Not quite a match for Letter ${targetLetter} yet.`}
+                  </li>
+                </ul>
+              </div>
+
               <div className="practice-result-row">
                 <div>
                   <p className="label">Letter</p>
