@@ -34,5 +34,9 @@ class Streak(Base):
 
     learner: Mapped["User"] = relationship(back_populates="streak")
 
+    @property
+    def user(self) -> User:
+        return self.learner
+
     def __repr__(self) -> str:
         return f"<Streak id={self.id} learner_id={self.learner_id} current_streak={self.current_streak}>"

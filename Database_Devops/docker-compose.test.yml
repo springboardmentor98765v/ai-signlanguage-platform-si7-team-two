@@ -1,0 +1,44 @@
+version: "3.9"
+# Milestone 3 - Day 6
+# Local-only integration test stack: frontend + backend + AI service + database.
+# No live/public deployment involved — everything runs on localhost via Docker Compose,
+# per the Milestone 3 rule (deployment is reserved for Milestone 4).
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: sign_language_db_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/sign_language_db_test
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+
+  ai-service:
+    build: ../ai_service
+    ports:
+      - "8501:8500"
+
+  frontend:
+    build: ../frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:8001
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
