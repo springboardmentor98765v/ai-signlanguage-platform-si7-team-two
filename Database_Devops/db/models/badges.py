@@ -35,5 +35,9 @@ class Badge(Base):
 
     learner: Mapped["User"] = relationship(back_populates="badges")
 
+    @property
+    def user(self) -> User:
+        return self.learner
+
     def __repr__(self) -> str:
         return f"<Badge id={self.id} learner_id={self.learner_id} badge_name={self.badge_name!r}>"
