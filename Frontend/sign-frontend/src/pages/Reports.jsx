@@ -5,6 +5,7 @@ import {
   getCertificateEligibility,
   downloadCertificate,
   downloadProgressReport,
+  downloadProgressReportExcel,
 } from "../services/api";
 
 export default function Reports() {
@@ -13,6 +14,7 @@ export default function Reports() {
   const [eligibility, setEligibility] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -35,6 +37,21 @@ export default function Reports() {
     a.download=name;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function handleExportExcel() {
+    setExporting(true);
+    try {
+      const blob = await downloadProgressReportExcel(
+        user.id,
+        user.name || user.full_name || "Learner"
+      );
+      await saveBlob(blob, "Progress_Report.xlsx");
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setExporting(false);
+    }
   }
 
   if(loading) return <h2>Loading...</h2>;
@@ -71,7 +88,12 @@ export default function Reports() {
       </>}
 
       <br/><br/>
-      <button onClick={async()=>saveBlob(await downloadProgressReport(user.id,user.name||user.full_name||"Learner"),"Progress_Report.pdf")}>Download Progress Report</button>
+      <button onClick={async()=>saveBlob(await downloadProgressReport(user.id,user.name||user.full_name||"Learner"),"Progress_Report.pdf")}>Download Progress Report (PDF)</button>
+
+      <br/><br/>
+      <button disabled={exporting} onClick={handleExportExcel}>
+        {exporting ? "Preparing your file..." : "Export Report (Excel)"}
+      </button>
     </div>
   );
 }

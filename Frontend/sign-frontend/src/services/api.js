@@ -207,6 +207,22 @@ export async function downloadProgressReport(userId, learnerName) {
   return res.blob();
 }
 
+// Milestone 3, Day 5: CSV/Excel export (SRS FR-1 / Intern 1 Day 5).
+// Hits the Bussiness_Logic service directly (Intern 4's export endpoint),
+// same pattern as startPracticeSession/endPracticeSession above.
+export async function downloadProgressReportExcel(userId, learnerName) {
+  const res = await fetch(
+    `${BUSINESS_LOGIC_URL}/progress-report/${userId}/excel?learner_name=${encodeURIComponent(learnerName)}`
+  );
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || "Failed to download Excel report.");
+  }
+
+  return res.blob();
+}
+
 // ---------- Certificate ----------
 
 export async function getCertificateEligibility(userId) {
