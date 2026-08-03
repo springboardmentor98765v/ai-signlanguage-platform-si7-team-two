@@ -11,8 +11,10 @@ import {
 export default function Admin() {
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [usersError, setUsersError] = useState("");
   const [lessons, setLessons] = useState([]);
   const [loadingLessons, setLoadingLessons] = useState(true);
+  const [lessonsError, setLessonsError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState(null);
 
@@ -42,11 +44,19 @@ export default function Admin() {
   }
 
   async function loadUsers() {
+    setLoadingUsers(true);
     try {
       const data = await getUsers();
       setUsers(data);
+      setUsersError("");
     } catch (err) {
       console.error(err);
+      // Milestone 3, Day 7: previously this only logged to the console —
+      // an admin whose user list failed to load saw an empty table with
+      // no way to tell "no users" apart from "failed to load".
+      setUsersError(
+        "We couldn't load the user list. Please check your connection and try again.",
+      );
     } finally {
       setLoadingUsers(false);
     }
@@ -149,25 +159,32 @@ export default function Admin() {
     }
   }
 
-  useEffect(() => {
-    async function loadLessons() {
-      try {
-        const data = await getLessons();
-        setLessons(data);
+  async function loadLessons() {
+    setLoadingLessons(true);
+    try {
+      const data = await getLessons();
+      setLessons(data);
+      setLessonsError("");
 
-        if (data.length > 0) {
-          setNewLesson((prev) => ({
-            ...prev,
-            course_id: data[0].course_id,
-          }));
-        }
-      } catch (err) {
-        console.error("Failed to load lessons:", err);
-      } finally {
-        setLoadingLessons(false);
+      if (data.length > 0) {
+        setNewLesson((prev) => ({
+          ...prev,
+          course_id: data[0].course_id,
+        }));
       }
+    } catch (err) {
+      console.error("Failed to load lessons:", err);
+      // Milestone 3, Day 7: same fix as loadUsers — show a real error
+      // instead of silently rendering an empty lesson list.
+      setLessonsError(
+        "We couldn't load the lesson list. Please check your connection and try again.",
+      );
+    } finally {
+      setLoadingLessons(false);
     }
+  }
 
+  useEffect(() => {
     loadLessons();
     loadUsers();
   }, []);
@@ -211,6 +228,23 @@ export default function Admin() {
                   <tr>
                     <td colSpan={4}>Loading users...</td>
                   </tr>
+                ) : usersError ? (
+                  <tr>
+                    <td colSpan={4} role="alert">
+                      {usersError}{" "}
+                      <button
+                        type="button"
+                        className="btn-secondary btn-inline"
+                        onClick={loadUsers}
+                      >
+                        Try Again
+                      </button>
+                    </td>
+                  </tr>
+                ) : users.length === 0 ? (
+                  <tr>
+                    <td colSpan={4}>No users found.</td>
+                  </tr>
                 ) : (
                   users.map((u) => {
                     const isActive = u.is_active !== false;
@@ -223,6 +257,10 @@ export default function Admin() {
                         </td>
 
                         <td>
+                          {/* Note: backend currently returns role_id (a
+                              UUID), not a resolved role name. Displaying
+                              the raw ID here until that's fixed — see
+                              the note sent to the Backend owner. */}
                           <span className="badge badge-beginner">
                             {u.role_id}
                           </span>
@@ -369,6 +407,17 @@ export default function Admin() {
 
           {loadingLessons ? (
             <p>Loading lessons...</p>
+          ) : lessonsError ? (
+            <div className="empty-page" role="alert">
+              <p>{lessonsError}</p>
+              <button
+                type="button"
+                className="btn-secondary btn-inline"
+                onClick={loadLessons}
+              >
+                Try Again
+              </button>
+            </div>
           ) : (
             <div className="admin-lesson-list">
               {lessons.map((lesson) => (

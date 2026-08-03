@@ -12,6 +12,9 @@ const hasActivity = dashboardStats.lessonsCompleted > 0
 export default function Dashboard() {
   return (
     <div>
+      {/* Milestone 3, Day 6: accessibility fix — every page needs an
+          announced title for screen reader users. Visually hidden via
+          .sr-only so the layout is unchanged. */}
       <h1 className="sr-only">Dashboard Overview</h1>
 
       {!hasActivity ? (

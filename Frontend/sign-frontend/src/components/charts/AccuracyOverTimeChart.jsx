@@ -25,7 +25,13 @@ export default function AccuracyOverTimeChart({ data = mockAccuracyData }) {
       <p className="label">Accuracy over time</p>
       <p className="chart-sub">Your sign recognition accuracy across the last 7 days.</p>
 
-      <div style={{ width: "100%", height: 240 }}>
+      <div
+        style={{ width: "100%", height: 240 }}
+        role="img"
+        aria-label={`Line chart of accuracy over the last 7 days, ranging from ${Math.min(
+          ...data.map((d) => d.accuracy)
+        )}% to ${Math.max(...data.map((d) => d.accuracy))}%.`}
+      >
         <ResponsiveContainer>
           <LineChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />

@@ -248,3 +248,13 @@ export async function downloadCertificate(userId, learnerName) {
 
   return res.blob();
 }
+
+// ---------- Leaderboard (Intern 4 — Business Logic) ----------
+// Milestone 3, Day 4/7 (SRS FR-4 / Intern 1 Day 4): connects the
+// Leaderboard page to Intern 4's real ranking API instead of mock data.
+// sortBy must be "accuracy" or "streak" — matches the backend's
+// Query(pattern="^(accuracy|streak)$") validation.
+export async function getLeaderboard(sortBy = "accuracy") {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/leaderboard/?sort_by=${sortBy}`);
+  return handleResponse(res); // [{ learner_id, learner_name, score, rank }, ...]
+}
