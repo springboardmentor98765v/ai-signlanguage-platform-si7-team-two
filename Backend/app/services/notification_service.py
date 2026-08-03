@@ -3,7 +3,6 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from db.models.notifications import Notification
-
 from app.schemas.notification import NotificationCreate
 
 
@@ -11,7 +10,6 @@ class NotificationService:
 
     @staticmethod
     def create_notification(db: Session, notification: NotificationCreate):
-
         new_notification = Notification(
             user_id=notification.user_id,
             title=notification.title,
@@ -26,7 +24,6 @@ class NotificationService:
 
     @staticmethod
     def get_user_notifications(db: Session, user_id: UUID):
-
         notifications = (
             db.query(Notification)
             .filter(Notification.user_id == user_id)
@@ -38,11 +35,8 @@ class NotificationService:
 
     @staticmethod
     def mark_as_read(db: Session, notification_id: UUID):
-
         notification = (
-            db.query(Notification)
-            .filter(Notification.id == notification_id)
-            .first()
+            db.query(Notification).filter(Notification.id == notification_id).first()
         )
 
         if notification is None:
