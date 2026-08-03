@@ -1,5 +1,5 @@
 from uuid import UUID
-
+from fastapi import UploadFile, File
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -9,6 +9,17 @@ from app.schemas.admin_schema import UserResponse
 from app.services.admin_service import AdminService
 
 router = APIRouter()
+
+@router.post("/lessons/upload")
+def upload_lessons_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    # current_user=Depends(require_admin),
+):
+    return AdminService.upload_lessons_csv(
+    db,
+    file,
+)
 
 
 @router.get(
@@ -39,3 +50,15 @@ def delete_user(
             status_code=404,
             detail=str(e),
         )
+
+
+@router.post("/lessons/upload")
+def upload_lessons_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    return AdminService.upload_lessons_csv(
+        db,
+        file,
+    )
