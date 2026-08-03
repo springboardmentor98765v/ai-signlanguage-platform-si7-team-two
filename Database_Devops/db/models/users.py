@@ -49,26 +49,51 @@ class User(Base):
     )
 
     role: Mapped["Role"] = relationship(back_populates="users")
-    practice_sessions: Mapped[list["PracticeSession"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-    analytics: Mapped["LearnerAnalytics | None"] = relationship(
-        back_populates="user", uselist=False, cascade="all, delete-orphan"
-    )
-    certificates: Mapped[list["Certificate"]] = relationship(
-        back_populates="learner", cascade="all, delete-orphan"
-    )
-    recommendations: Mapped[list["Recommendation"]] = relationship(
-        back_populates="learner", cascade="all, delete-orphan"
-    )
-    notifications: Mapped[list["Notification"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
     streak: Mapped["Streak | None"] = relationship(
-        back_populates="learner", uselist=False, cascade="all, delete-orphan"
+    back_populates="learner",
+    uselist=False,
+    cascade="all, delete-orphan",
     )
+
     badges: Mapped[list["Badge"]] = relationship(
-        back_populates="learner", cascade="all, delete-orphan"
+        back_populates="learner",
+        cascade="all, delete-orphan",
+    )
+    practice_sessions: Mapped[list["PracticeSession"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    analytics: Mapped["LearnerAnalytics | None"] = relationship(
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    certificates: Mapped[list["Certificate"]] = relationship(
+        back_populates="learner",
+        cascade="all, delete-orphan",
+    )
+
+    recommendations: Mapped[list["Recommendation"]] = relationship(
+        back_populates="learner",
+        cascade="all, delete-orphan",
+    )
+
+    notifications: Mapped[list["Notification"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    streak: Mapped["Streak | None"] = relationship(
+        back_populates="learner",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    badges: Mapped[list["Badge"]] = relationship(
+        back_populates="learner",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

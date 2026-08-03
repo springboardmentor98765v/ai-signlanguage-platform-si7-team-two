@@ -19,12 +19,10 @@ EXCELLENT_THRESHOLD = 90.0
 
 NON_ISSUE_MESSAGES = {
     "No major issue detected.",
-    "Good 'A' hand shape.",
-    "Good 'B' hand shape.",
-    "Good 'C' hand shape.",
-    "Good 'D' hand shape.",
-    "Good 'E' hand shape.",
 }
+
+for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+    NON_ISSUE_MESSAGES.add(f"Good '{letter}' hand shape.")
 
 ENCOURAGEMENT_MESSAGES = [
     "Excellent! Your sign was very accurate.",

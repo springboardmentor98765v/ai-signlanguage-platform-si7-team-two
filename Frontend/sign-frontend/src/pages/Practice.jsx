@@ -1,6 +1,13 @@
 import { useRef, useState, useEffect } from "react";
-import { predictSign, assessAttempt, getLessons } from "../services/api.js";
+import {
+  predictSign,
+  assessAttempt,
+  getLessons,
+  startPracticeSession,
+  endPracticeSession,
+} from "../services/api.js";
 import { useParams, useNavigate } from "react-router-dom";
+import { getUser } from "../utils/auth.js";
 
 const TARGET_ATTEMPTS = 5;
 
@@ -28,7 +35,6 @@ export default function Practice() {
   const [lessonList, setLessonList] = useState([]);
   const { letter } = useParams();
 
-  // Real lesson catalogue (Intern 2's Course Service), replacing mock data
   useEffect(() => {
     async function loadLessons() {
       try {
@@ -51,12 +57,58 @@ export default function Practice() {
   const [assessment, setAssessment] = useState(null);
   const [attemptTime, setAttemptTime] = useState(null);
 
-  // Day 7: session timer + attempts progress
+  const [sessionId, setSessionId] = useState(null);
+  const sessionIdRef = useRef(null);
+
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [attemptCount, setAttemptCount] = useState(0);
   const timerRef = useRef(null);
 
-  // Attach stream AFTER the video element is rendered
+  // Milestone 3, Day 8: score-reveal count-up. Animates the displayed
+  // accuracy from 0 up to the real value whenever a new result comes in.
+  // Skips straight to the final value if the user has requested reduced
+  // motion at the OS level.
+  const [displayAccuracy, setDisplayAccuracy] = useState(0);
+  const countUpRef = useRef(null);
+
+  useEffect(() => {
+    if (!assessment) return;
+
+    const target = assessment.accuracy;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (countUpRef.current) clearInterval(countUpRef.current);
+
+    if (prefersReducedMotion) {
+      setDisplayAccuracy(target);
+      return;
+    }
+
+    setDisplayAccuracy(0);
+
+    const durationMs = 600;
+    const steps = 24;
+    const stepTime = durationMs / steps;
+    let currentStep = 0;
+
+    countUpRef.current = setInterval(() => {
+      currentStep += 1;
+      const progress = currentStep / steps;
+      setDisplayAccuracy(Math.round(target * Math.min(progress, 1)));
+
+      if (currentStep >= steps) {
+        clearInterval(countUpRef.current);
+        countUpRef.current = null;
+      }
+    }, stepTime);
+
+    return () => {
+      if (countUpRef.current) clearInterval(countUpRef.current);
+    };
+  }, [assessment]);
+
   useEffect(() => {
     if (isPracticing && videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
@@ -71,7 +123,6 @@ export default function Practice() {
     }
   }, [isPracticing]);
 
-  // Run the session timer while practicing
   useEffect(() => {
     if (isPracticing) {
       timerRef.current = setInterval(() => {
@@ -87,13 +138,15 @@ export default function Practice() {
     };
   }, [isPracticing]);
 
-  // Cleanup ONLY when component unmounts
-
   useEffect(() => {
     return () => {
       stopStream();
+      if (sessionIdRef.current) {
+        endPracticeSession(sessionIdRef.current).catch(() => {});
+      }
     };
   }, []);
+
   function stopStream() {
     if (!streamRef.current) return;
 
@@ -130,6 +183,23 @@ export default function Practice() {
       streamRef.current = stream;
 
       setIsPracticing(true);
+
+      try {
+        const user = getUser();
+        const lesson = lessonList.find((l) => l.letter === targetLetter);
+
+        if (user && lesson) {
+          const session = await startPracticeSession(user.id, lesson.id);
+          setSessionId(session.session_id);
+          sessionIdRef.current = session.session_id;
+        } else {
+          console.warn(
+            "Could not start a practice session (missing user or lesson) — attempts won't be saved.",
+          );
+        }
+      } catch (err) {
+        console.error("Failed to start practice session:", err);
+      }
     } catch (err) {
       console.error(err);
 
@@ -141,12 +211,23 @@ export default function Practice() {
     }
   }
 
-  function handleStop() {
+  async function handleStop() {
     stopStream();
 
     if (videoRef.current) videoRef.current.srcObject = null;
 
     setIsPracticing(false);
+
+    if (sessionIdRef.current) {
+      try {
+        await endPracticeSession(sessionIdRef.current);
+      } catch (err) {
+        console.error("Failed to end practice session:", err);
+      } finally {
+        setSessionId(null);
+        sessionIdRef.current = null;
+      }
+    }
   }
 
   async function handleCheckSign() {
@@ -181,6 +262,7 @@ export default function Practice() {
       setPrediction(predictionResult);
 
       const assessmentResult = await assessAttempt(
+        sessionIdRef.current,
         targetLetter,
         predictionResult.prediction ?? predictionResult.predicted_sign,
         predictionResult.confidence,
@@ -215,6 +297,7 @@ export default function Practice() {
 
   return (
     <div>
+      <h1 className="sr-only">Practice</h1>
       <div className="practice-header">
         <div className="practice-header-row">
           <div>
@@ -307,6 +390,27 @@ export default function Practice() {
 
           {assessment && (
             <div role="status" aria-live="polite">
+              <div className="result-card">
+                <div
+                  key={assessment.accuracy}
+                  className="result-score score-animate"
+                >
+                  <span className="score-value">{displayAccuracy}%</span>
+                  <span className="score-label">Accuracy</span>
+                </div>
+
+                <ul className="feedback-list">
+                  <li>
+                    <span className="feedback-icon">
+                      {isCorrect ? "✓" : "•"}
+                    </span>
+                    {isCorrect
+                      ? `Great job — that's a match for Letter ${targetLetter}!`
+                      : `Not quite a match for Letter ${targetLetter} yet.`}
+                  </li>
+                </ul>
+              </div>
+
               <div className="practice-result-row">
                 <div>
                   <p className="label">Letter</p>

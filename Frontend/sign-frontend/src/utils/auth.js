@@ -21,7 +21,7 @@ export function getUserId() {
 export function getUserRole() {
     const user = getUser();
 
-    return user?.role_id;
+    return user?.role;
 }
 
 export function getRoleHomePath(role) {

@@ -57,6 +57,7 @@ export default function Instructor() {
 
   return (
     <div>
+      <h1 className="sr-only">Instructor Dashboard</h1>
       <div className="reports-header">
         <h2>Instructor Dashboard</h2>
         <p className="sub">See how each of your students is progressing.</p>

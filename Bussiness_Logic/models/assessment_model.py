@@ -28,6 +28,11 @@ class Assessment(Base):
         ForeignKey("practice_sessions.id", ondelete="CASCADE"),
         nullable=False,
     )
+    expected_sign = Column(
+    String(2),
+    nullable=False,
+    )
+
 
     predicted_sign = Column(String(2), nullable=False)
 

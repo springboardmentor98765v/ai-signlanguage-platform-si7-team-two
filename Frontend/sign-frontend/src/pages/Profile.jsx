@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { updateProfile, changePassword } from "../services/api";
 
-import { getUser } from "../utils/auth";
+import { getUser, clearSession } from "../utils/auth";
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
   const [draft, setDraft] = useState({
@@ -107,6 +109,12 @@ export default function ProfilePage() {
       newPassword: "",
     });
 
+    // Log the user out and send them back to login
+    setTimeout(() => {
+      clearSession();
+      navigate("/");
+    }, 1500);
+
   } catch (err) {
     setPasswordSuccess(false);
     setPasswordError(err.message || "Failed to change password.");
@@ -138,9 +146,10 @@ export default function ProfilePage() {
         </div>
 
         <div className="field">
-          <label>Name</label>
+          <label htmlFor="profile-name">Name</label>
           {editing ? (
             <input
+              id="profile-name"
               type="text"
               value={draft.full_name}
               onChange={(e) =>
@@ -153,9 +162,10 @@ export default function ProfilePage() {
         </div>
 
         <div className="field">
-          <label>Email</label>
+          <label htmlFor="profile-email">Email</label>
           {editing ? (
             <input
+              id="profile-email"
               type="email"
               value={draft.email}
               onChange={(e) => setDraft({ ...draft, email: e.target.value })}
@@ -166,8 +176,8 @@ export default function ProfilePage() {
         </div>
 
         <div className="field">
-          <label>Role</label>
-          <p className="field-static field-static-muted">
+          <label htmlFor="profile-role">Role</label>
+          <p id="profile-role" className="field-static field-static-muted">
             Learner (set by admin)
           </p>
         </div>
@@ -199,8 +209,9 @@ export default function ProfilePage() {
 
         <form onSubmit={submitPasswordChange}>
           <div className="field">
-            <label>Old password</label>
+            <label htmlFor="old-password">Old password</label>
             <input
+              id="old-password"
               type="password"
               value={passwords.oldPassword}
               onChange={(e) =>
@@ -210,8 +221,9 @@ export default function ProfilePage() {
           </div>
 
           <div className="field">
-            <label>New password</label>
+            <label htmlFor="new-password">New password</label>
             <input
+              id="new-password"
               type="password"
               value={passwords.newPassword}
               onChange={(e) =>
