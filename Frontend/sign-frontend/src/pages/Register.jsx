@@ -24,8 +24,13 @@ export default function Register() {
     try {
       const response = await register(name, email, password, role)
 
-      // Save complete user object (same pattern as Login.jsx)
-      saveSession(response.user ?? response)
+      // NOTE: the backend's /auth/register currently always creates a
+      // Learner account regardless of the role sent here (see
+      // AuthService.register — it hardcodes role_id to the Learner
+      // role). Saving the selected role locally so the UI reflects
+      // what was picked, but it will not match reality until the
+      // backend is updated to actually honor this field.
+      saveSession({ ...(response.user ?? response), role })
 
       navigate('/dashboard')
     } catch (err) {
