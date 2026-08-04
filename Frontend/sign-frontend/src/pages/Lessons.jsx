@@ -70,6 +70,19 @@ export default function Lessons() {
 }
 
 function LessonGrid({ lessons, navigate }) {
+  function openLesson(letter) {
+    navigate(`/practice/${letter}`);
+  }
+
+  // Milestone 3, Day 6: lets keyboard users open a lesson the same way a
+  // mouse click does, via Enter or Space on a focused card.
+  function handleKeyDown(e, letter) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openLesson(letter);
+    }
+  }
+
   return (
     <div className="lesson-grid">
       {lessons.map((lesson) => (
@@ -77,7 +90,11 @@ function LessonGrid({ lessons, navigate }) {
           key={lesson.id}
           className="lesson-card"
           style={{ cursor: "pointer" }}
-          onClick={() => navigate(`/practice/${lesson.letter}`)}
+          onClick={() => openLesson(lesson.letter)}
+          onKeyDown={(e) => handleKeyDown(e, lesson.letter)}
+          tabIndex={0}
+          role="button"
+          aria-label={`Open lesson: ${lesson.title}, ${lesson.difficulty} difficulty`}
         >
           <div className="lesson-card-header">
             <h3>{lesson.title}</h3>

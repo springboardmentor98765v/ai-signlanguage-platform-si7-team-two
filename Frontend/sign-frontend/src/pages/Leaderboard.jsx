@@ -1,14 +1,10 @@
-import { useState } from 'react'
-import { leaderboardData } from '../data/mockData.js'
-
-// DEV ONLY (Milestone 3, Day 4): leaderboard data is read from local mock
-// data. Real data will come from Intern 4's Leaderboard ranking API (due
-// Day 4) — see FR-4 / dependency matrix: Leaderboard ranking API (Intern 4)
-// -> Leaderboard page (Intern 1).
+import { useState, useEffect, useCallback } from 'react'
+import { getLeaderboard } from '../services/api.js'
+import { getUser } from '../utils/auth.js'
 
 const METRICS = {
-  accuracy: { label: 'By Accuracy', unit: '%', key: 'accuracy' },
-  streak: { label: 'By Streak', unit: ' days', key: 'streak' },
+  accuracy: { label: 'By Accuracy', unit: '%', apiKey: 'accuracy' },
+  streak: { label: 'By Streak', unit: ' days', apiKey: 'streak' },
 }
 
 function medalFor(rank) {
@@ -21,10 +17,30 @@ function medalFor(rank) {
 export default function Leaderboard() {
   const [metric, setMetric] = useState('accuracy')
   const activeMetric = METRICS[metric]
+  const currentUser = getUser()
 
-  const ranked = [...leaderboardData]
-    .sort((a, b) => b[activeMetric.key] - a[activeMetric.key])
-    .map((entry, index) => ({ ...entry, rank: index + 1 }))
+  const [entries, setEntries] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const fetchLeaderboard = useCallback(async () => {
+    setIsLoading(true)
+    setError('')
+    try {
+      const data = await getLeaderboard(activeMetric.apiKey)
+      setEntries(data)
+    } catch (err) {
+      setError(
+        "We couldn't load the leaderboard right now. Please check your connection and try again."
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }, [activeMetric.apiKey])
+
+  useEffect(() => {
+    fetchLeaderboard()
+  }, [fetchLeaderboard])
 
   return (
     <div>
@@ -36,11 +52,7 @@ export default function Leaderboard() {
         </p>
       </div>
 
-      <div
-        className="leaderboard-toggle"
-        role="group"
-        aria-label="Rank leaderboard by"
-      >
+      <div className="leaderboard-toggle" role="group" aria-label="Rank leaderboard by">
         {Object.entries(METRICS).map(([key, { label }]) => (
           <button
             key={key}
@@ -54,9 +66,17 @@ export default function Leaderboard() {
         ))}
       </div>
 
-      {ranked.length === 0 ? (
-        // Milestone 3, Day 7: empty state — consistent styling with
-        // Lessons.jsx's empty/error states (.empty-page pattern).
+      {isLoading ? (
+        <p className="lessons-status" role="status">Loading leaderboard...</p>
+      ) : error ? (
+        <div className="empty-page" role="alert">
+          <h2>Something went wrong</h2>
+          <p>{error}</p>
+          <button className="btn-secondary btn-inline" onClick={fetchLeaderboard}>
+            Try Again
+          </button>
+        </div>
+      ) : entries.length === 0 ? (
         <div className="empty-page" role="status">
           <h2>No leaderboard data yet</h2>
           <p>Start practicing to appear on the board!</p>
@@ -83,31 +103,35 @@ export default function Leaderboard() {
               </thead>
 
               <tbody>
-                {ranked.map((entry) => (
-                  <tr
-                    key={entry.id}
-                    className={entry.isCurrentUser ? 'leaderboard-row current-user-row' : 'leaderboard-row'}
-                  >
-                    <td>
-                      <span className="rank-cell">
-                        {medalFor(entry.rank) && (
-                          <span aria-hidden="true">{medalFor(entry.rank)}</span>
-                        )}
-                        <span className={medalFor(entry.rank) ? 'sr-only' : ''}>
-                          #{entry.rank}
+                {entries.map((entry) => {
+                  const isCurrentUser =
+                    currentUser && entry.learner_id === currentUser.id
+                  return (
+                    <tr
+                      key={entry.learner_id}
+                      className={isCurrentUser ? 'leaderboard-row current-user-row' : 'leaderboard-row'}
+                    >
+                      <td>
+                        <span className="rank-cell">
+                          {medalFor(entry.rank) && (
+                            <span aria-hidden="true">{medalFor(entry.rank)}</span>
+                          )}
+                          <span className={medalFor(entry.rank) ? 'sr-only' : ''}>
+                            #{entry.rank}
+                          </span>
                         </span>
-                      </span>
-                    </td>
-                    <td>
-                      {entry.name}
-                      {entry.isCurrentUser && <span className="you-label">You</span>}
-                    </td>
-                    <td>
-                      {entry[activeMetric.key]}
-                      {activeMetric.unit}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>
+                        {entry.learner_name}
+                        {isCurrentUser && <span className="you-label">You</span>}
+                      </td>
+                      <td>
+                        {Math.round(entry.score)}
+                        {activeMetric.unit}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

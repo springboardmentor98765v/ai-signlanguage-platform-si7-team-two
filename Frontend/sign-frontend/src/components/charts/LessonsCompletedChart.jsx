@@ -22,7 +22,13 @@ export default function LessonsCompletedChart({ data = mockLessonsData }) {
       <p className="label">Lessons completed</p>
       <p className="chart-sub">Number of lessons you finished each week.</p>
 
-      <div style={{ width: "100%", height: 240 }}>
+      <div
+        style={{ width: "100%", height: 240 }}
+        role="img"
+        aria-label={`Bar chart of lessons completed per week: ${data
+          .map((d) => `${d.week}, ${d.lessons} lessons`)
+          .join("; ")}.`}
+      >
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" vertical={false} />
