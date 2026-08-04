@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/api.js";
-import { saveSession } from "../utils/auth.js";
+import { saveSession, getRoleHomePath } from "../utils/auth.js";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,20 +10,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // DEV ONLY
-  function handleSkipLoginAs(roleId) {
-    saveSession({
-      id: "dev-user",
-      full_name: "Developer",
-      email: "developer@example.com",
-      role_id: roleId,
-    });
-
-    if (roleId === "instructor") navigate("/instructor");
-    else if (roleId === "admin") navigate("/admin");
-    else navigate("/dashboard");
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -37,7 +23,7 @@ export default function Login() {
       // Save complete user object
       saveSession(response.user);
 
-      navigate("/dashboard");
+      navigate(getRoleHomePath(response.user.role));
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
     } finally {
@@ -47,7 +33,7 @@ export default function Login() {
 
   return (
     <div className="auth-shell">
-      <div className="auth-card">
+      <main className="auth-card">
         <div className="auth-brand">
           <div className="mark">SL</div>
           <div className="name">SignLearn</div>
@@ -115,37 +101,7 @@ export default function Login() {
             Register
           </Link>
         </div>
-
-        <div className="dev-skip">
-          <button
-            type="button"
-            className="btn-dev-skip"
-            onClick={() => handleSkipLoginAs("learner")}
-          >
-            Skip Login as Learner
-          </button>
-
-          <button
-            type="button"
-            className="btn-dev-skip"
-            onClick={() => handleSkipLoginAs("instructor")}
-          >
-            Skip Login as Instructor
-          </button>
-
-          <button
-            type="button"
-            className="btn-dev-skip"
-            onClick={() => handleSkipLoginAs("admin")}
-          >
-            Skip Login as Admin
-          </button>
-
-          <p className="dev-note">
-            For previewing pages before the real Auth API is connected.
-          </p>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }

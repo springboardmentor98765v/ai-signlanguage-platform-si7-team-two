@@ -52,10 +52,13 @@ export const adminUsers = [
   { id: 6, name: 'Sameer Gupta', email: 'sameer.gupta@example.com', role: 'Instructor', active: true },
 ]
 
+// TEMP (Day 7 empty-state test): changed to all-zero to trigger Dashboard's
+// empty state. Revert to accuracy: 78, lessonsCompleted: 12, practiceHours: 5.5
+// once you've confirmed the empty state renders correctly.
 export const dashboardStats = {
-  accuracy: 78,
-  lessonsCompleted: 12,
-  practiceHours: 5.5,
+  accuracy: 0,
+  lessonsCompleted: 0,
+  practiceHours: 0,
 };
 
 export const lessons = Array.from({ length: 26 }, (_, index) => {
@@ -113,44 +116,10 @@ export const weakLetters = [
   { letter: 'R', averageAccuracy: 66, sessionsRecommended: 3 },
 ]
 
-// DEV ONLY (Milestone 3, Day 2): stands in for Intern 2's Notification API (due Day 4)
-export const notifications = [
-  {
-    id: 1,
-    type: 'badge',
-    message: "You earned the 'Alphabet Master' badge!",
-    createdAt: '2026-07-18T09:15:00',
-    read: false,
-  },
-  {
-    id: 2,
-    type: 'recommendation',
-    message: 'New recommendation available: practice letter M',
-    createdAt: '2026-07-18T08:02:00',
-    read: false,
-  },
-  {
-    id: 3,
-    type: 'streak',
-    message: "You're on a 7-day streak! Keep it going.",
-    createdAt: '2026-07-17T19:40:00',
-    read: false,
-  },
-  {
-    id: 4,
-    type: 'certificate',
-    message: 'Your certificate for Beginner Level is ready to download',
-    createdAt: '2026-07-15T12:00:00',
-    read: true,
-  },
-  {
-    id: 5,
-    type: 'system',
-    message: 'Welcome to SignLearn! Start with Letter A to begin your journey.',
-    createdAt: '2026-07-10T10:00:00',
-    read: true,
-  },
-]
+// TEMP (Day 7 empty-state test): changed to an empty array to trigger the
+// NotificationBell's empty state. Revert to the full list of 5 notifications
+// once you've confirmed "You're all caught up" renders correctly.
+export const notifications = []
 
 // DEV ONLY (Milestone 3, Day 3): stands in for Intern 4's Badge/Streak logic (due Day 3-4)
 export const streakData = {
@@ -158,18 +127,10 @@ export const streakData = {
   longestStreak: 12,
 }
 
-// DEV ONLY (Milestone 3, Day 4): stands in for Intern 4's Leaderboard ranking
-// API (due Day 4) — see FR-4 / dependency matrix: Leaderboard ranking API ->
-// Leaderboard page. `isCurrentUser` marks the logged-in learner (Aisha Khan,
-// matches `currentUser` above) so their row can be highlighted.
-export const leaderboardData = [
-  { id: 1, name: 'Ananya Iyer', accuracy: 92, streak: 14, isCurrentUser: false },
-  { id: 2, name: 'Meera Nair', accuracy: 88, streak: 9, isCurrentUser: false },
-  { id: 3, name: 'Aisha Khan', accuracy: 84, streak: 7, isCurrentUser: true },
-  { id: 4, name: 'Karan Shah', accuracy: 71, streak: 4, isCurrentUser: false },
-  { id: 5, name: 'Rohan Verma', accuracy: 64, streak: 2, isCurrentUser: false },
-  { id: 6, name: 'Divya Reddy', accuracy: 55, streak: 1, isCurrentUser: false },
-]
+// TEMP (Day 7 empty-state test): changed to an empty array to trigger the
+// Leaderboard's empty state. Revert to the full list of 6 entries once
+// you've confirmed "No leaderboard data yet" renders correctly.
+export const leaderboardData = []
 
 export const badges = [
   {

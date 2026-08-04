@@ -37,7 +37,7 @@ export default function Register() {
 
   return (
     <div className="auth-shell">
-      <div className="auth-card">
+      <main className="auth-card">
         <div className="auth-brand">
           <div className="mark">SL</div>
           <div className="name">SignLearn</div>
@@ -84,7 +84,7 @@ export default function Register() {
         <div className="auth-switch">
           Already have an account? <Link to="/">Log in</Link>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
