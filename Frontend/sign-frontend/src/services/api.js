@@ -3,10 +3,24 @@ import { getToken } from "./../utils/auth.js";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 const BUSINESS_LOGIC_URL = import.meta.env.VITE_BUSINESS_LOGIC_URL || 'http://localhost:8002'
 
+// Turns a FastAPI error response body into a plain, readable string.
+// - Simple errors: { "detail": "Invalid credentials" }              -> "Invalid credentials"
+// - Validation errors (422): { "detail": [{ loc, msg, type }, ...] } -> joined msg text
+// - Anything else / missing detail -> fallback message
+function extractErrorMessage(data, fallback) {
+  if (typeof data.detail === 'string') {
+    return data.detail
+  }
+  if (Array.isArray(data.detail)) {
+    return data.detail.map((d) => d.msg).filter(Boolean).join(' ') || fallback
+  }
+  return fallback
+}
+
 async function handleResponse(res) {
   const data = await res.json().catch(() => ({}))
   if (!res.ok) {
-    throw new Error(data.detail || 'Something went wrong. Please try again.')
+    throw new Error(extractErrorMessage(data, 'Something went wrong. Please try again.'))
   }
   return data
 }
@@ -198,7 +212,8 @@ export async function getUsers() {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch users");
+    const data = await response.json().catch(() => ({}));
+    throw new Error(extractErrorMessage(data, "Failed to fetch users"));
   }
 
   return response.json();
@@ -211,7 +226,8 @@ export async function deleteUser(id) {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to delete user");
+    const data = await response.json().catch(() => ({}));
+    throw new Error(extractErrorMessage(data, "Failed to delete user"));
   }
 
   return response.json();
@@ -234,7 +250,7 @@ export async function downloadProgressReport(userId, learnerName) {
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.detail || "Failed to download progress report.");
+    throw new Error(extractErrorMessage(data, "Failed to download progress report."));
   }
 
   return res.blob();
@@ -250,7 +266,7 @@ export async function downloadProgressReportExcel(userId, learnerName) {
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.detail || "Failed to download Excel report.");
+    throw new Error(extractErrorMessage(data, "Failed to download Excel report."));
   }
 
   return res.blob();
@@ -276,7 +292,7 @@ export async function downloadCertificate(userId, learnerName) {
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.detail || "Failed to download certificate.");
+    throw new Error(extractErrorMessage(data, "Failed to download certificate."));
   }
 
   return res.blob();
