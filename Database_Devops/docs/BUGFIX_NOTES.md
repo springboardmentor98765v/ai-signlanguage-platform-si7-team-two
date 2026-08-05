@@ -65,3 +65,34 @@ Notifications, with no obvious connection at first glance.
 ## Summary
 
 Both fixes ensure clean `alembic upgrade head` execution and seamless ORM mapper initialization for all API endpoints.
+
+---
+
+## Bug 3 — Alembic migration fails with `value too long for type character varying(32)`
+
+**Reported error:**
+```
+value too long for type character varying(32)
+```
+while updating `alembic_version.version_num`.
+
+**Root cause:**
+The revision ID string `0006_add_badges_streaks_notifications` was 35 characters long. Alembic's default table `alembic_version` stores version numbers in a `VARCHAR(32)` column. Inserting a 35-character revision identifier resulted in a Postgres string truncation error, causing the entire migration transaction (including creation of `badges`, `streaks`, and `notifications` tables) to roll back.
+
+**Fix:**
+- Updated `Database_Devops/db/migrations/versions/0006_add_badges_streaks_notifications.py` revision identifier to `0006_add_badges_streaks_notif` (27 characters).
+
+---
+
+## Bug 4 — `users` table missing `is_active` column for Bulk Activation/Deactivation
+
+**Reported request:**
+Bulk user activation/deactivation feature could not proceed without `is_active` status field on `users`.
+
+**Fix:**
+- Added `is_active` (`BOOLEAN NOT NULL DEFAULT TRUE`) to:
+  - `Database_Devops/db/models/users.py` (`User` model)
+  - `Database_Devops/db/schema/schema.sql`, `Database_Devops/db/schema/01-schema.sql`, and `Database_Devops/infra/init/01-schema.sql`
+  - Base migration `0001_initial_base_tables.py`
+  - Created new migration `Database_Devops/db/migrations/versions/0007_add_is_active_to_users.py`
+
