@@ -146,8 +146,9 @@ def upgrade() -> None:
         sa.Column("average_accuracy", sa.Numeric(5, 2), nullable=False, server_default="0"),
         sa.Column("lessons_completed", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("weak_letters", postgresql.JSONB(), nullable=False, server_default="[]"),
+        sa.Column("total_practice_time", sa.Integer(), nullable=False, server_default="0"),
         sa.Column(
-            "updated_at",
+            "last_updated",
             postgresql.TIMESTAMP(timezone=True),
             nullable=False,
             server_default=sa.text("now()"),

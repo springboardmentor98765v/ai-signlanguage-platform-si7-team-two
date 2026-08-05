@@ -121,5 +121,6 @@ CREATE TABLE learner_analytics (
     average_accuracy    NUMERIC(5,2) NOT NULL DEFAULT 0,
     lessons_completed   INT NOT NULL DEFAULT 0,
     weak_letters        JSONB NOT NULL DEFAULT '[]',
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+    total_practice_time INT NOT NULL DEFAULT 0,
+    last_updated        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
