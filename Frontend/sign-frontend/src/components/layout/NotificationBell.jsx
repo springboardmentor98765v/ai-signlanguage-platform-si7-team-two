@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { notifications as initialNotifications } from '../../data/mockData.js'
-
-// DEV ONLY (Milestone 3, Day 2): notifications are read from local mock data.
-// Real data will come from Intern 2's Notification API (due Day 4) — see
-// FR-2 / dependency matrix: Notifications table -> Notification API ->
-// Notification triggers -> this component.
+import { getNotifications, markNotificationAsRead } from '../../services/api.js'
+import { getUserId } from '../../utils/auth.js'
 
 function timeAgo(isoString) {
   const diffMs = Date.now() - new Date(isoString).getTime()
@@ -18,11 +14,37 @@ function timeAgo(isoString) {
 }
 
 export default function NotificationBell() {
-  const [items, setItems] = useState(initialNotifications)
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef(null)
 
-  const unreadCount = items.filter((n) => !n.read).length
+  const unreadCount = items.filter((n) => !n.is_read).length
+
+  useEffect(() => {
+    loadNotifications()
+  }, [])
+
+  async function loadNotifications() {
+    const userId = getUserId()
+    if (!userId) {
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    try {
+      const data = await getNotifications(userId)
+      setItems(data)
+      setError('')
+    } catch (err) {
+      console.error('Failed to load notifications:', err)
+      setError("Couldn't load notifications.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Close the dropdown on outside click
   useEffect(() => {
@@ -35,17 +57,31 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Close on Escape for keyboard users
   function handleKeyDown(event) {
     if (event.key === 'Escape') setOpen(false)
   }
 
-  function markAsRead(id) {
-    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+  async function markAsRead(id) {
+    // Optimistic update so the UI feels instant
+    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)))
+    try {
+      await markNotificationAsRead(id)
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err)
+      // Revert on failure
+      setItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: false } : n)))
+    }
   }
 
-  function markAllAsRead() {
-    setItems((prev) => prev.map((n) => ({ ...n, read: true })))
+  async function markAllAsRead() {
+    const unread = items.filter((n) => !n.is_read)
+    setItems((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    try {
+      await Promise.all(unread.map((n) => markNotificationAsRead(n.id)))
+    } catch (err) {
+      console.error('Failed to mark all as read:', err)
+      loadNotifications() // re-sync with server state on failure
+    }
   }
 
   return (
@@ -90,7 +126,16 @@ export default function NotificationBell() {
             )}
           </div>
 
-          {items.length === 0 ? (
+          {loading ? (
+            <p className="notif-empty">Loading...</p>
+          ) : error ? (
+            <div className="notif-empty" role="alert">
+              <p>{error}</p>
+              <button type="button" className="notif-mark-all" onClick={loadNotifications}>
+                Try Again
+              </button>
+            </div>
+          ) : items.length === 0 ? (
             <p className="notif-empty">You're all caught up — no notifications yet.</p>
           ) : (
             <ul className="notif-list">
@@ -98,13 +143,13 @@ export default function NotificationBell() {
                 <li key={n.id}>
                   <button
                     type="button"
-                    className={`notif-item ${n.read ? '' : 'unread'}`}
+                    className={`notif-item ${n.is_read ? '' : 'unread'}`}
                     onClick={() => markAsRead(n.id)}
                   >
-                    {!n.read && <span className="notif-item-dot" aria-hidden="true" />}
+                    {!n.is_read && <span className="notif-item-dot" aria-hidden="true" />}
                     <span className="notif-item-body">
-                      <span className="notif-item-message">{n.message}</span>
-                      <span className="notif-item-time">{timeAgo(n.createdAt)}</span>
+                      <span className="notif-item-message">{n.title}: {n.message}</span>
+                      <span className="notif-item-time">{timeAgo(n.created_at)}</span>
                     </span>
                   </button>
                 </li>

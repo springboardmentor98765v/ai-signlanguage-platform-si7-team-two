@@ -1,15 +1,37 @@
-import { dashboardStats } from '../data/mockData.js'
+import { useEffect, useState } from "react";
 import AccuracyOverTimeChart from '../components/charts/AccuracyOverTimeChart.jsx'
 import LessonsCompletedChart from '../components/charts/LessonsCompletedChart.jsx'
 import BadgesStreaks from '../components/dashboard/BadgesStreaks.jsx'
-
-// Milestone 3, Day 7: empty state for a learner with no practice history yet.
-// Real data will eventually come from the Reports/Progress API; for now this
-// checks the mock stats the same way the real payload would (0 lessons
-// completed = nothing to show yet).
-const hasActivity = dashboardStats.lessonsCompleted > 0
+import { getProgressReport } from "../services/api.js";
+import { getUserId } from "../utils/auth.js";
 
 export default function Dashboard() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const userId = getUserId();
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    getProgressReport(userId)
+      .then((data) =>
+        setStats({
+          accuracy: data.average_accuracy,
+          lessonsCompleted: data.lessons_completed,
+          practiceHours: (data.total_practice_time / 3600).toFixed(1),
+        })
+      )
+      .catch(() => setStats(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return null;
+
+  const hasActivity = stats && stats.lessonsCompleted > 0;
+
   return (
     <div>
       <h1 className="sr-only">Dashboard Overview</h1>
@@ -27,15 +49,15 @@ export default function Dashboard() {
           <div className="stats-grid">
             <div className="stat-card">
               <p className="label">Accuracy</p>
-              <p className="value">{dashboardStats.accuracy}%</p>
+              <p className="value">{stats.accuracy}%</p>
             </div>
             <div className="stat-card">
               <p className="label">Lessons Completed</p>
-              <p className="value">{dashboardStats.lessonsCompleted}</p>
+              <p className="value">{stats.lessonsCompleted}</p>
             </div>
             <div className="stat-card">
               <p className="label">Practice Hours</p>
-              <p className="value">{dashboardStats.practiceHours}h</p>
+              <p className="value">{stats.practiceHours}h</p>
             </div>
           </div>
 
@@ -48,5 +70,5 @@ export default function Dashboard() {
 
       <BadgesStreaks />
     </div>
-  )
+  );
 }

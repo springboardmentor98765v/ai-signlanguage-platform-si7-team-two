@@ -1,253 +1,161 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { updateProfile, changePassword } from "../services/api";
+import { useState } from "react";
+import { getUser, saveSession } from "../utils/auth.js";
+import { updateProfile, changePassword } from "../services/api.js";
 
-import { getUser, clearSession } from "../utils/auth";
+export default function Profile() {
+  const user = getUser();
 
-export default function ProfilePage() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [name, setName] = useState(user?.name || user?.full_name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("");
+  const [saveError, setSaveError] = useState("");
 
-  const [draft, setDraft] = useState({
-    full_name: "",
-    email: "",
-  });
-  useEffect(() => {
-    const loggedUser = getUser();
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [isChangingPw, setIsChangingPw] = useState(false);
+  const [pwStatus, setPwStatus] = useState("");
+  const [pwError, setPwError] = useState("");
 
-    if (loggedUser) {
-      setUser(loggedUser);
-
-      setDraft({
-        full_name: loggedUser.full_name,
-        email: loggedUser.email,
-      });
-    }
-  }, []);
-
-  const [editing, setEditing] = useState(false);
-
-  const [passwords, setPasswords] = useState({
-    oldPassword: "",
-    newPassword: "",
-  });
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState(false);
   if (!user) {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        <h1 className="sr-only">Profile</h1>
+        <p>You need to be signed in to view your profile.</p>
+      </div>
+    );
   }
 
-  async function saveProfile() {
+  async function handleSaveProfile(e) {
+    e.preventDefault();
+    setSaveStatus("");
+    setSaveError("");
+    setIsSaving(true);
+
     try {
-      const updatedUser = await updateProfile(user.id, {
-        full_name: draft.full_name,
-        email: draft.email,
+      const updated = await updateProfile(user.id, {
+        full_name: name,
+        email: email,
       });
 
-      setUser(updatedUser);
+      saveSession({
+        ...user,
+        name: updated.full_name,
+        full_name: updated.full_name,
+        email: updated.email,
+      });
 
-      localStorage.setItem("signlearn_user", JSON.stringify(updatedUser));
-
-      setEditing(false);
-
-      alert("Profile updated successfully!");
+      setSaveStatus("Profile updated successfully.");
     } catch (err) {
-      console.error(err);
-      alert("Failed to update profile.");
+      setSaveError(err.message || "Could not update profile.");
+    } finally {
+      setIsSaving(false);
     }
   }
 
-  function cancelEditing() {
-    setDraft(user);
-    setEditing(false);
+  async function handleChangePassword(e) {
+    e.preventDefault();
+    setPwStatus("");
+    setPwError("");
+    setIsChangingPw(true);
+
+    try {
+      await changePassword(user.id, {
+        old_password: oldPassword,
+        new_password: newPassword,
+      });
+
+      setPwStatus("Password changed successfully.");
+      setOldPassword("");
+      setNewPassword("");
+    } catch (err) {
+      setPwError(err.message || "Could not change password.");
+    } finally {
+      setIsChangingPw(false);
+    }
   }
-
-  function handlePasswordChange(field, value) {
-    setPasswords((prev) => ({ ...prev, [field]: value }));
-    setPasswordError("");
-    setPasswordSuccess(false);
-  }
-  function startEditing() {
-    setDraft({
-      full_name: user.full_name,
-      email: user.email,
-    });
-
-    setEditing(true);
-  }
-
-  async function submitPasswordChange(e) {
-  e.preventDefault();
-
-  const { oldPassword, newPassword } = passwords;
-
-  if (!oldPassword) {
-    setPasswordError("Enter your current password.");
-    return;
-  }
-
-  if (newPassword.length < 6) {
-    setPasswordError("New password must be at least 6 characters.");
-    return;
-  }
-
-  if (newPassword === oldPassword) {
-    setPasswordError("New password must be different from the old one.");
-    return;
-  }
-
-  try {
-    await changePassword(user.id, {
-      old_password: oldPassword,
-      new_password: newPassword,
-    });
-
-    setPasswordSuccess(true);
-    setPasswordError("");
-    setPasswords({
-      oldPassword: "",
-      newPassword: "",
-    });
-
-    // Log the user out and send them back to login
-    setTimeout(() => {
-      clearSession();
-      navigate("/");
-    }, 1500);
-
-  } catch (err) {
-    setPasswordSuccess(false);
-    setPasswordError(err.message || "Failed to change password.");
-  }
-}
-
-  const initials = user?.full_name
-    ?.split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   return (
-    <div className="profile-shell">
-      <div>
-        <h1 className="page-title">Profile</h1>
-        <p className="page-sub">View and update your account details.</p>
+    <div>
+      <h1 className="sr-only">Profile</h1>
+
+      <div className="practice-header">
+        <h2>Profile</h2>
+        <p className="sub">Manage your account details and password.</p>
       </div>
 
-      {/* Identity + editable fields */}
-      <div className="profile-card">
-        <div className="profile-identity">
-          <div className="avatar">{initials}</div>
-          <div>
-            <p className="profile-name">{user.full_name}</p>
-            <span className="badge badge-beginner">Learner</span>
-          </div>
-        </div>
+      <section className="reference-card" style={{ marginBottom: "24px" }}>
+        <p className="label">Account details</p>
 
-        <div className="field">
-          <label htmlFor="profile-name">Name</label>
-          {editing ? (
+        <form onSubmit={handleSaveProfile}>
+          <div style={{ marginBottom: "12px" }}>
+            <label htmlFor="profile-name">Name</label>
             <input
               id="profile-name"
               type="text"
-              value={draft.full_name}
-              onChange={(e) =>
-                setDraft({ ...draft, full_name: e.target.value })
-              }
-            />
-          ) : (
-            <p className="field-static">{user.full_name}</p>
-          )}
-        </div>
-
-        <div className="field">
-          <label htmlFor="profile-email">Email</label>
-          {editing ? (
-            <input
-              id="profile-email"
-              type="email"
-              value={draft.email}
-              onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-            />
-          ) : (
-            <p className="field-static">{user.email}</p>
-          )}
-        </div>
-
-        <div className="field">
-          <label htmlFor="profile-role">Role</label>
-          <p id="profile-role" className="field-static field-static-muted">
-            Learner (set by admin)
-          </p>
-        </div>
-
-        <div className="profile-actions">
-          {editing ? (
-            <>
-              <button onClick={saveProfile} className="btn-primary btn-inline">
-                Save changes
-              </button>
-              <button onClick={cancelEditing} className="btn-secondary">
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button onClick={startEditing} className="btn-secondary">
-              Edit profile
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Change password */}
-      <div className="profile-card">
-        <h2 className="label">Change password</h2>
-        <p className="page-sub">
-          Use at least 6 characters, different from your current password.
-        </p>
-
-        <form onSubmit={submitPasswordChange}>
-          <div className="field">
-            <label htmlFor="old-password">Old password</label>
-            <input
-              id="old-password"
-              type="password"
-              value={passwords.oldPassword}
-              onChange={(e) =>
-                handlePasswordChange("oldPassword", e.target.value)
-              }
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
             />
           </div>
 
-          <div className="field">
+          <div style={{ marginBottom: "12px" }}>
+            <label htmlFor="profile-email">Email</label>
+            <input
+              id="profile-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <p><strong>Role:</strong> {user.role}</p>
+
+          {saveError && <p className="camera-error" role="alert">{saveError}</p>}
+          {saveStatus && <p role="status">{saveStatus}</p>}
+
+          <button className="btn-primary" type="submit" disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save changes"}
+          </button>
+        </form>
+      </section>
+
+      <section className="reference-card">
+        <p className="label">Change password</p>
+
+        <form onSubmit={handleChangePassword}>
+          <div style={{ marginBottom: "12px" }}>
+            <label htmlFor="old-password">Current password</label>
+            <input
+              id="old-password"
+              type="password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div style={{ marginBottom: "12px" }}>
             <label htmlFor="new-password">New password</label>
             <input
               id="new-password"
               type="password"
-              value={passwords.newPassword}
-              onChange={(e) =>
-                handlePasswordChange("newPassword", e.target.value)
-              }
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              minLength={6}
             />
           </div>
 
-          {passwordError && (
-            <p className="form-error" role="alert">
-              {passwordError}
-            </p>
-          )}
-          {passwordSuccess && (
-            <p className="form-success" role="status">
-              Password updated.
-            </p>
-          )}
+          {pwError && <p className="camera-error" role="alert">{pwError}</p>}
+          {pwStatus && <p role="status">{pwStatus}</p>}
 
-          <button type="submit" className="btn-primary btn-inline">
-            Update password
+          <button className="btn-primary" type="submit" disabled={isChangingPw}>
+            {isChangingPw ? "Changing..." : "Change password"}
           </button>
         </form>
-      </div>
+      </section>
     </div>
   );
 }
