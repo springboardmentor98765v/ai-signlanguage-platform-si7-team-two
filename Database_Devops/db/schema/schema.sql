@@ -27,6 +27,7 @@ CREATE TABLE users (
     full_name       VARCHAR(120) NOT NULL,
     email           VARCHAR(255) NOT NULL UNIQUE,
     password_hash   VARCHAR(255) NOT NULL,
+    is_active       BOOLEAN NOT NULL DEFAULT TRUE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -111,7 +112,8 @@ CREATE TABLE learner_analytics (
     average_accuracy    NUMERIC(5,2) NOT NULL DEFAULT 0,
     lessons_completed   INT NOT NULL DEFAULT 0,
     weak_letters        JSONB NOT NULL DEFAULT '[]',
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+    total_practice_time INT NOT NULL DEFAULT 0,
+    last_updated        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- ---------- certificates ----------

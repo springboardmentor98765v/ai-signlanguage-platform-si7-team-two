@@ -40,7 +40,8 @@ class LearnerAnalytics(Base):
     average_accuracy: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False, default=0)
     lessons_completed: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     weak_letters: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
-    updated_at: Mapped[datetime] = mapped_column(
+    total_practice_time: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    last_updated: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
 
