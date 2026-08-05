@@ -1,3 +1,5 @@
+import { getToken } from "./../utils/auth.js";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 const BUSINESS_LOGIC_URL = import.meta.env.VITE_BUSINESS_LOGIC_URL || 'http://localhost:8002'
 
@@ -7,6 +9,14 @@ async function handleResponse(res) {
     throw new Error(data.detail || 'Something went wrong. Please try again.')
   }
   return data
+}
+
+// Builds an Authorization header from the stored JWT, if one exists.
+// Used for endpoints protected by require_instructor / require_admin
+// on the backend (Backend/app/core/security.py).
+function authHeaders() {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 export async function login(email, password) {
@@ -90,39 +100,49 @@ export async function getLessons() {
   return handleResponse(res) // [{ id, title, level, description }, ...]
 }
 
+// ---------- Profile (Intern 2 — auth/profile endpoints) ----------
+// Backend/app/schemas/user.py -> UpdateProfile { full_name, email }
 export async function updateProfile(userId, profile) {
   const res = await fetch(`${API_BASE_URL}/auth/profile/${userId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(profile),
+    body: JSON.stringify(profile), // { full_name, email }
   });
 
-  return handleResponse(res);
+  return handleResponse(res); // { id, full_name, email, role_id }
 }
 
+// Backend/app/schemas/user.py -> ChangePassword { old_password, new_password }
 export async function changePassword(userId, passwordData) {
   const res = await fetch(`${API_BASE_URL}/auth/change-password/${userId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(passwordData),
+    body: JSON.stringify(passwordData), // { old_password, new_password }
   });
 
-  return handleResponse(res);
+  return handleResponse(res); // { message: "Password changed successfully" }
 }
+
 // ---------- Instructor ----------
+// These endpoints are protected by require_instructor on the backend
+// (Backend/app/routers/instructor.py) — they need the Authorization
+// header or every call fails with 401 Unauthorized.
 
 export async function getStudents() {
-  const res = await fetch(`${API_BASE_URL}/instructor/students`);
+  const res = await fetch(`${API_BASE_URL}/instructor/students`, {
+    headers: { ...authHeaders() },
+  });
   return handleResponse(res);
 }
 
 export async function getStudentProgress(studentId) {
   const res = await fetch(
-    `${API_BASE_URL}/instructor/student/${studentId}/progress`
+    `${API_BASE_URL}/instructor/student/${studentId}/progress`,
+    { headers: { ...authHeaders() } }
   );
 
   return handleResponse(res);
@@ -130,11 +150,13 @@ export async function getStudentProgress(studentId) {
 
 export async function getStudentAssessments(studentId) {
   const res = await fetch(
-    `${API_BASE_URL}/instructor/student/${studentId}/assessments`
+    `${API_BASE_URL}/instructor/student/${studentId}/assessments`,
+    { headers: { ...authHeaders() } }
   );
 
   return handleResponse(res);
 }
+
 export async function createLesson(lesson) {
   const res = await fetch(`${API_BASE_URL}/lessons`, {
     method: "POST",
@@ -166,8 +188,14 @@ export async function deleteLesson(id) {
 
   return handleResponse(res);
 }
+
+// ---------- Admin ----------
+// Protected by require_admin on the backend — also needs the token.
+
 export async function getUsers() {
-  const response = await fetch(`${API_BASE_URL}/admin/users`);
+  const response = await fetch(`${API_BASE_URL}/admin/users`, {
+    headers: { ...authHeaders() },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to fetch users");
@@ -179,6 +207,7 @@ export async function getUsers() {
 export async function deleteUser(id) {
   const response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
     method: "DELETE",
+    headers: { ...authHeaders() },
   });
 
   if (!response.ok) {
@@ -187,11 +216,15 @@ export async function deleteUser(id) {
 
   return response.json();
 }
+
 // ---------- Progress Report ----------
 
 export async function getProgressReport(userId) {
   const res = await fetch(`${API_BASE_URL}/progress-report/${userId}`);
   return handleResponse(res);
+  // { user_id, full_name, lessons_completed, total_practice_time,
+  //   average_accuracy, attempted_letters, weak_letters, total_attempts,
+  //   certificates_earned, generated_at }
 }
 
 export async function downloadProgressReport(userId, learnerName) {
@@ -257,4 +290,59 @@ export async function downloadCertificate(userId, learnerName) {
 export async function getLeaderboard(sortBy = "accuracy") {
   const res = await fetch(`${BUSINESS_LOGIC_URL}/leaderboard/?sort_by=${sortBy}`);
   return handleResponse(res); // [{ learner_id, learner_name, score, rank }, ...]
+}
+
+// ---------- Badges & Streaks (Intern 4 — Business Logic) ----------
+// Wires the Dashboard's Badges & Streaks card to real data instead of
+// the mockData.js placeholders. See Bussiness_Logic/routers/badge.py
+// and Bussiness_Logic/routers/streak.py.
+// NOTE: currently returning 500 Internal Server Error from the
+// Bussiness_Logic service (port 8002) — this is a server-side crash,
+// not a frontend bug. Needs the Bussiness_Logic terminal traceback to
+// diagnose (see badge_service.py / streak_service.py).
+export async function getBadges(learnerId) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/badges/${learnerId}`);
+  return handleResponse(res); // [{ id, learner_id, badge_name, earned_at }, ...]
+}
+
+export async function getStreak(learnerId) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/streak/${learnerId}`);
+  if (res.status === 404) return null; // no streak yet for this learner
+  return handleResponse(res); // { id, learner_id, current_streak, longest_streak, last_practice_date }
+}
+
+// ---------- Notifications (Intern 2 — Backend) ----------
+// Milestone 3, Day 2 (SRS FR-2 / Intern 1 Day 2): connects the
+// Notification Bell to the real API instead of mockData.js.
+// See Backend/app/routers/notification.py.
+//
+// TEMP WORKAROUND: notification.py declares its own prefix="/notifications"
+// AND Backend/app/main.py adds "/notifications" again when including the
+// router, doubling the path to /notifications/notifications/{user_id}.
+// Pointing at the doubled path here so the bell works today. REVERT to
+// the single-prefix path (remove "/notifications" once) as soon as
+// Backend removes the duplicate prefix in notification.py — search this
+// file for "notifications/notifications" to find both spots to fix.
+export async function getNotifications(userId) {
+  const res = await fetch(`${API_BASE_URL}/notifications/notifications/${userId}`);
+  return handleResponse(res); // [{ id, user_id, title, message, is_read, created_at }, ...]
+}
+
+export async function markNotificationAsRead(notificationId) {
+  const res = await fetch(`${API_BASE_URL}/notifications/notifications/${notificationId}/read`, {
+    method: "PUT",
+  });
+  return handleResponse(res);
+}
+
+// ---------- Recommendations (Intern 4 — Business Logic) ----------
+// Milestone 2, Day 4 (SRS FR-4): connects the Reports page's
+// "Recommended Practice" section to the real recommendation engine.
+// See Bussiness_Logic/routers/recommendation.py.
+// NOTE: this endpoint recalculates recommendations on every call (it's
+// not a pure read) and can trigger a new-recommendation notification —
+// avoid calling it in a tight loop or on every render.
+export async function getRecommendations(learnerId) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/recommendations/${learnerId}`);
+  return handleResponse(res); // { learner_id, recommendations: [{ id, letter_or_word, reason, recent_avg_accuracy, status, created_at }] }
 }

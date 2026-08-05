@@ -6,12 +6,15 @@ import {
   downloadCertificate,
   downloadProgressReport,
   downloadProgressReportExcel,
+  getRecommendations,
 } from "../services/api";
 
 export default function Reports() {
   const user = getUser();
   const [report, setReport] = useState(null);
   const [eligibility, setEligibility] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [recommendationsError, setRecommendationsError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -48,9 +51,23 @@ export default function Reports() {
     }
   }, [user?.id]);
 
+  const fetchRecommendations = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const data = await getRecommendations(user.id);
+      setRecommendations(data.recommendations || []);
+      setRecommendationsError("");
+    } catch (e) {
+      console.error("Failed to load recommendations:", e);
+      setRecommendationsError("Couldn't load recommendations.");
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     fetchReport();
-  }, [fetchReport]);
+    fetchRecommendations();
+  }, [fetchReport, fetchRecommendations]);
 
   async function saveBlob(blob, name) {
     const url = URL.createObjectURL(blob);
@@ -129,6 +146,29 @@ export default function Reports() {
         <ul>
           {report.weak_letters.map((l) => (
             <li key={l}>{l}</li>
+          ))}
+        </ul>
+      )}
+
+      <h2>Recommended Practice</h2>
+      {recommendationsError ? (
+        <p className="form-error" role="alert">{recommendationsError}</p>
+      ) : recommendations.length === 0 ? (
+        <p>No recommendations right now — keep practicing! 🎉</p>
+      ) : (
+        <ul className="recommendation-list">
+          {recommendations.map((rec) => (
+            <li key={rec.id} className="recommendation-item">
+              <div className="weak-letter-badge">{rec.letter_or_word}</div>
+              <div>
+                <p>{rec.reason}</p>
+                {rec.recent_avg_accuracy != null && (
+                  <p className="page-sub">
+                    Recent average: {rec.recent_avg_accuracy.toFixed(1)}%
+                  </p>
+                )}
+              </div>
+            </li>
           ))}
         </ul>
       )}
