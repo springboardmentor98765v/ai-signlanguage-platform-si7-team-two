@@ -1,6 +1,6 @@
 """add badges, streaks, and notifications tables
 
-Revision ID: 0006_add_badges_streaks_notifications
+Revision ID: 0006_add_badges_streaks_notif
 Revises: 0005_update_assessments_feedback
 Create Date: Milestone 3, Day 6
 """
