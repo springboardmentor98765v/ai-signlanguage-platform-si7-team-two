@@ -18,6 +18,12 @@ export default function Admin() {
   const [showForm, setShowForm] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState(null);
 
+  // Frontend-only note shown next to the toggle button, since there is
+  // currently no backend endpoint to persist activate/deactivate — see
+  // the TODO on toggleUser() below. Keeps the UI honest instead of
+  // silently reverting the status on refresh.
+  const [toggleNotice, setToggleNotice] = useState("");
+
   const [newLesson, setNewLesson] = useState({
     course_id: "",
     letter: "",
@@ -27,6 +33,14 @@ export default function Admin() {
     order_index: "",
   });
 
+  // TODO (Backend/Intern 2): there is no PATCH/PUT endpoint yet to
+  // persist a user's active/inactive status — AdminService currently
+  // only supports get_all_users() and a hard delete_user(). Per the
+  // Milestone 2 SRS (Intern 1, Day 5) this should be a real
+  // Activate/Deactivate action, not just local UI state. Once a
+  // backend endpoint exists (e.g. PATCH /admin/users/{id}/status),
+  // swap this function to call it and re-run loadUsers() on success,
+  // the same pattern as handleDeleteUser below.
   function toggleUser(id) {
     setUsers((prev) =>
       prev.map((user) => {
@@ -40,6 +54,10 @@ export default function Admin() {
           active: !isActive,
         };
       }),
+    );
+
+    setToggleNotice(
+      "Status updated in this view only — this isn't saved yet (backend support pending). It will reset on refresh.",
     );
   }
 
@@ -205,6 +223,12 @@ export default function Admin() {
             All users ({users.length})
           </p>
 
+          {toggleNotice && (
+            <p className="lessons-status" role="status">
+              {toggleNotice}
+            </p>
+          )}
+
           <div
             className="table-scroll"
             role="region"
@@ -259,9 +283,13 @@ export default function Admin() {
                         <td>
                           {/* Note: backend currently returns role_id (a
                               UUID), not a resolved role name. Displaying
-                              the raw ID here until that's fixed — see
-                              the note sent to the Backend owner. */}
-                          <span className="badge badge-beginner">
+                              the raw ID here until Backend adds a `role`
+                              name field to UserResponse — see the note
+                              sent to the Backend owner. */}
+                          <span
+                            className="badge badge-beginner"
+                            title="Backend doesn't return a role name yet — showing role_id"
+                          >
                             {u.role_id}
                           </span>
                         </td>

@@ -13,16 +13,12 @@ export default function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-
     setError("");
     setIsLoading(true);
 
     try {
       const response = await login(email, password);
-
-      // Save complete user object
-      saveSession(response.user);
-
+      saveSession(response.user, response.access_token);
       navigate(getRoleHomePath(response.user.role));
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
@@ -40,10 +36,7 @@ export default function Login() {
         </div>
 
         <h1>Welcome back</h1>
-
-        <p className="sub">
-          Log in to continue your lessons.
-        </p>
+        <p className="sub">Log in to continue your lessons.</p>
 
         {error && (
           <div className="form-error" role="alert">
@@ -54,7 +47,6 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           <div className="field">
             <label htmlFor="email">Email</label>
-
             <input
               id="email"
               type="email"
@@ -68,7 +60,6 @@ export default function Login() {
 
           <div className="field">
             <label htmlFor="password">Password</label>
-
             <input
               id="password"
               type="password"
@@ -86,20 +77,14 @@ export default function Login() {
             </Link>
           </div>
 
-          <button
-            type="submit"
-            className="btn-primary"
-            disabled={isLoading}
-          >
+          <button type="submit" className="btn-primary" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Log in"}
           </button>
         </form>
 
         <div className="auth-switch">
           Don't have an account?{" "}
-          <Link to="/register">
-            Register
-          </Link>
+          <Link to="/register">Register</Link>
         </div>
       </main>
     </div>

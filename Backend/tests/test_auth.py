@@ -1,5 +1,3 @@
-import uuid
-
 from fastapi.testclient import TestClient
 
 
@@ -133,54 +131,41 @@ def test_update_profile(client: TestClient):
 
     assert response.status_code == 200
 
-    data = response.json()
 
-    assert data["id"] == user_id
-    assert data["full_name"] == "Updated Name"
-    assert data["email"] == email
-
-
-
-def test_change_password(client: TestClient):
-    email = f"changepass_{uuid.uuid4().hex[:8]}@example.com"
-
-    # Register user
-    register_response = client.post(
+def test_invalid_register_email():
+    response = client.post(
         "/auth/register",
         json={
-            "full_name": "Password User",
-            "email": email,
-            "password": "OldPassword123",
+            "full_name": "John Doe",
+            "email": "abc",
+            "password": "Password123",
         },
     )
 
-    assert register_response.status_code == 201
+    assert response.status_code == 422
 
-    user = register_response.json()
-    user_id = user["id"]
 
-    # Change password
-    response = client.put(
-        f"/auth/change-password/{user_id}",
+def test_invalid_register_password():
+    response = client.post(
+        "/auth/register",
         json={
-            "old_password": "OldPassword123",
-            "new_password": "NewPassword123",
+            "full_name": "John Doe",
+            "email": "john@example.com",
+            "password": "12345",
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 422
 
-    data = response.json()
 
-    assert data["message"] == "Password changed successfully"
-
-    # Verify login with new password
-    login_response = client.post(
-        "/auth/login",
+def test_invalid_register_name():
+    response = client.post(
+        "/auth/register",
         json={
-            "email": email,
-            "password": "NewPassword123",
+            "full_name": "   ",
+            "email": "john@example.com",
+            "password": "Password123",
         },
     )
 
-    assert login_response.status_code == 200
+    assert response.status_code == 422

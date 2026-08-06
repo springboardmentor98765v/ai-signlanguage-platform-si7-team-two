@@ -4,6 +4,7 @@ from models.badge_model import Badge
 from models.practice_model import PracticeSession
 from models.assessment_model import Assessment
 from services.streak_service import get_streak
+from services.notification_client import send_notification
 
 
 def _get_sessions(db: Session, user_id: UUID) -> list:
@@ -53,8 +54,17 @@ def evaluate_badges(db: Session, user_id: UUID) -> list[str]:
     for name, rule_fn in BADGE_RULES.items():
         exists = db.query(Badge).filter_by(learner_id=user_id, badge_name=name).first()
         if not exists and rule_fn(db, user_id):
-            db.add(Badge(learner_id=user_id, badge_name=name))
+            db.add(Badge(
+               learner_id=user_id,
+               badge_name=name,
+            ))
+
             newly_earned.append(name)
+            send_notification(
+                 user_id=user_id,
+                 title="Badge Earned",
+                 message=f"Congratulations! You earned the '{name}' badge.",
+            )
     if newly_earned:
         db.commit()
     return newly_earned
