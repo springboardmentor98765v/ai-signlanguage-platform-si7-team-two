@@ -46,9 +46,9 @@ def get_learner_analytics(user_id: str, db: Session = Depends(get_db)):
     total_practice_time = 0
 
     for s in completed_sessions:
-        if s.start_time and s.end_time:
+        if s.started_at and s.ended_at:
             total_practice_time += int(
-                (s.end_time - s.start_time).total_seconds()
+                (s.ended_at - s.started_at).total_seconds()
             )
 
     session_ids = [s.id for s in sessions]
