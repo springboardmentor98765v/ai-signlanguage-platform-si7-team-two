@@ -123,10 +123,24 @@ export default function Reports() {
     <div style={{ padding: 30 }}>
       <h1>Progress Report</h1>
 
-      <p><b>Overall Accuracy:</b> {report.average_accuracy}%</p>
-      <p><b>Lessons Completed:</b> {report.lessons_completed}</p>
-      <p><b>Total Attempts:</b> {report.total_attempts}</p>
-      <p><b>Practice Time:</b> {(report.total_practice_time / 3600).toFixed(2)} hours</p>
+      <div className="stats-grid" style={{ marginTop: 20, marginBottom: 28 }}>
+        <div className="stat-card">
+          <p className="label">Overall Accuracy</p>
+          <p className="value">{report.average_accuracy}%</p>
+        </div>
+        <div className="stat-card">
+          <p className="label">Lessons Completed</p>
+          <p className="value">{report.lessons_completed}</p>
+        </div>
+        <div className="stat-card">
+          <p className="label">Total Attempts</p>
+          <p className="value">{report.total_attempts}</p>
+        </div>
+        <div className="stat-card">
+          <p className="label">Practice Time</p>
+          <p className="value">{(report.total_practice_time / 3600).toFixed(2)}h</p>
+        </div>
+      </div>
 
       <h2>Attempted Letters</h2>
       {report.attempted_letters.length === 0 ? (
