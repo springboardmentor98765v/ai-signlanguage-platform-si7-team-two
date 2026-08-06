@@ -20,7 +20,7 @@ PROJECT_DIR = os.path.dirname(BASE_DIR)
 DATASET_PATH = os.path.join(
     PROJECT_DIR,
     "dataset",
-    "asl_landmarks_final.csv"
+    "merged_landmarks_normalized.csv"
 )
 
 MODEL_PATH = os.path.join(

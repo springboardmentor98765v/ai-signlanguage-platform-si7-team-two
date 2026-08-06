@@ -24,7 +24,7 @@ PROJECT_DIR = os.path.dirname(BASE_DIR)
 DATASET_PATH = os.path.join(
     PROJECT_DIR,
     "dataset",
-    "asl_landmarks_final.csv"
+    "merged_landmarks_normalized.csv"
 )
 
 dataset = pd.read_csv(DATASET_PATH)
@@ -74,13 +74,13 @@ model = XGBClassifier(
 
     objective="multi:softprob",
 
-    num_class=28,
+    num_class=len(label_encoder.classes_),
 
-    n_estimators=200,
+    n_estimators=300,
 
-    max_depth=6,
+    max_depth=4,
 
-    learning_rate=0.1,
+    learning_rate=0.05,
 
     subsample=0.8,
 
@@ -88,9 +88,10 @@ model = XGBClassifier(
 
     random_state=42,
 
-    eval_metric="mlogloss"
-)
+    eval_metric="mlogloss",
 
+    n_jobs=-1
+)
 
 # ==========================================================
 # Train Model
@@ -121,13 +122,36 @@ prediction_time = time.time() - prediction_start
 # ==========================================================
 
 accuracy = accuracy_score(y_test, predictions)
+from sklearn.metrics import (
+    precision_score,
+    recall_score,
+    f1_score
+)
 
-print(f"\nAccuracy : {accuracy*100:.2f}%")
+precision = precision_score(
+    y_test,
+    predictions,
+    average="macro"
+)
 
-print(f"Training Time : {training_time:.3f} sec")
+recall = recall_score(
+    y_test,
+    predictions,
+    average="macro"
+)
 
-print(f"Prediction Time : {prediction_time:.3f} sec")
+f1 = f1_score(
+    y_test,
+    predictions,
+    average="macro"
+)
 
+print(f"\nAccuracy       : {accuracy*100:.2f}%")
+print(f"Precision      : {precision:.4f}")
+print(f"Recall         : {recall:.4f}")
+print(f"F1 Score       : {f1:.4f}")
+print(f"Training Time  : {training_time:.2f} sec")
+print(f"Prediction Time: {prediction_time:.4f} sec")
 
 # ==========================================================
 # Classification Report
