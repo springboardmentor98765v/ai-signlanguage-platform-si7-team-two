@@ -1,11 +1,14 @@
 """
 db/models/users.py
 
-Mirrors the `users` table in db/schema/schema.sql. Note: password_hash is
-just a column here — actual hashing (bcrypt/passlib) is Intern 2's Day 3
-responsibility (SRS §6, Intern 2, Day 3), not the Data Layer's. This model
-only stores whatever hash string the backend gives it.
+Mirrors the users table in db/schema/schema.sql.
+
+Note:
+password_hash is just a column here — actual hashing (bcrypt/passlib)
+is handled by the backend layer. This model only stores whatever hash
+string the backend provides.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -13,7 +16,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, String, func, text
-from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP
+from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base
@@ -33,35 +36,68 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
-    )
-    role_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("roles.id", ondelete="RESTRICT"), nullable=False
-    )
-    full_name: Mapped[str] = mapped_column(String(120), nullable=False)
-    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("true")
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
     )
 
-    role: Mapped["Role"] = relationship(back_populates="users")
+    role_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("roles.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+
+    full_name: Mapped[str] = mapped_column(
+        String(120),
+        nullable=False,
+    )
+
+    email: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        unique=True,
+    )
+
+    password_hash: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        server_default=text("true"),
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    # Relationships
+
+    role: Mapped["Role"] = relationship(
+        back_populates="users",
+    )
+
     streak: Mapped["Streak | None"] = relationship(
-    back_populates="learner",
-    uselist=False,
-    cascade="all, delete-orphan",
+        back_populates="learner",
+        uselist=False,
+        cascade="all, delete-orphan",
     )
 
     badges: Mapped[list["Badge"]] = relationship(
         back_populates="learner",
         cascade="all, delete-orphan",
     )
+
     practice_sessions: Mapped[list["PracticeSession"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
@@ -85,17 +121,6 @@ class User(Base):
 
     notifications: Mapped[list["Notification"]] = relationship(
         back_populates="user",
-        cascade="all, delete-orphan",
-    )
-
-    streak: Mapped["Streak | None"] = relationship(
-        back_populates="learner",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
-
-    badges: Mapped[list["Badge"]] = relationship(
-        back_populates="learner",
         cascade="all, delete-orphan",
     )
 
