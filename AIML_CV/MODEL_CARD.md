@@ -52,10 +52,11 @@ SPACE
 
 | Property | Value |
 |----------|-------|
-| Total Samples | 2203 |
+| Total Samples | 28203 |
 | Features | 63 |
 | Classes | 28 |
 | Feature Type | MediaPipe Hand Landmarks |
+| Preprocessing | Wrist-based Landmark Normalization |
 
 Each sample contains:
 
@@ -113,16 +114,13 @@ These values were obtained using RandomizedSearchCV hyperparameter tuning.
 ---
 
 # Performance
-
-| Metric | Value |
-|---------|------:|
-| Accuracy | 86.39% |
-| Macro Precision | 87.54% |
-| Macro Recall | 86.39% |
-| Macro F1 Score | 86.67% |
-| Weighted F1 Score | 86.52% |
-
----
+Accuracy : 98.76%
+Macro Precision : 98.46%
+Macro Recall : 97.23%
+Macro F1 Score : 97.76%
+Weighted Precision : 98.9%
+Weighted Recall : 98.8%
+Weighted F1 Score : 98.8%
 
 # Evaluation Artifacts
 
@@ -141,23 +139,21 @@ The following evaluation outputs are included in the project:
 
 The model performs best on static alphabet signs.
 
-Performance decreases for visually similar letters, including:
+Model Version
 
-- M and N
-- U and V
-- R and U
-- E and S
+Version : 2.0
 
-The model does not recognize:
+Dataset Size : 28,203
 
-- Dynamic gestures
-- Continuous signing
-- Two-handed word signs
-- Sentences
+Training Time : 77.37 sec
 
-These capabilities are considered future enhancements.
+Prediction Time : 0.3489 sec
 
----
+Training Algorithm : XGBoost
+
+Hyperparameter Tuning : RandomizedSearchCV
+
+Feature Preprocessing : Wrist-based Landmark Normalization
 
 # Intended Use
 
