@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { getNotifications, markNotificationAsRead } from '../../services/api.js'
 import { getUserId } from '../../utils/auth.js'
+import { notifications as mockNotifications } from '../../data/mockData.js'
+
+// Set to false once the real /notifications API is ready to test end-to-end.
+const USE_MOCK_NOTIFICATIONS = true
 
 function timeAgo(isoString) {
   const diffMs = Date.now() - new Date(isoString).getTime()
@@ -27,6 +31,14 @@ export default function NotificationBell() {
   }, [])
 
   async function loadNotifications() {
+    if (USE_MOCK_NOTIFICATIONS) {
+      setLoading(true)
+      setItems(mockNotifications)
+      setError('')
+      setLoading(false)
+      return
+    }
+
     const userId = getUserId()
     if (!userId) {
       setLoading(false)
@@ -64,6 +76,8 @@ export default function NotificationBell() {
   async function markAsRead(id) {
     // Optimistic update so the UI feels instant
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)))
+    if (USE_MOCK_NOTIFICATIONS) return
+
     try {
       await markNotificationAsRead(id)
     } catch (err) {
@@ -76,6 +90,8 @@ export default function NotificationBell() {
   async function markAllAsRead() {
     const unread = items.filter((n) => !n.is_read)
     setItems((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    if (USE_MOCK_NOTIFICATIONS) return
+
     try {
       await Promise.all(unread.map((n) => markNotificationAsRead(n.id)))
     } catch (err) {

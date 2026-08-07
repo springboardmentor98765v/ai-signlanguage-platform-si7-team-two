@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getLeaderboard } from '../services/api.js'
 import { getUser } from '../utils/auth.js'
+import ChampionsRise from '../components/leaderboard/ChampionsRise.jsx'
 
 const METRICS = {
   accuracy: { label: 'By Accuracy', unit: '%', apiKey: 'accuracy' },
@@ -83,6 +84,8 @@ export default function Leaderboard() {
         </div>
       ) : (
         <div className="report-panel">
+          <ChampionsRise entries={entries} unit={activeMetric.unit} />
+
           <p className="panel-title" id="leaderboard-table-caption">
             Class ranking ({activeMetric.label.toLowerCase()})
           </p>
