@@ -120,7 +120,7 @@ def end_session(
         send_notification(
         user_id=session.user_id,
         title="New Badge Earned",
-        message=f"You earned the '{badge.badge_name}' badge!",
+        message=f"You earned the '{badge}' badge!",
    )
 
     return EndSessionResponse(

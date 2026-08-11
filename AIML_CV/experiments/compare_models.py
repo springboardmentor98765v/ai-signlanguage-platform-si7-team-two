@@ -73,7 +73,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
-MODEL_PATH = os.path.join(MODEL_DIR, "sign_language_rf.pkl")
+MODEL_PATH = os.path.join(MODEL_DIR, " best_xgb_tuned.pkl")
 
 joblib.dump(best_model, MODEL_PATH)
 

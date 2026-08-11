@@ -84,7 +84,7 @@ AIML_CV/
 
 | Property | Value |
 | -------- | ----- |
-| Samples  | 2203  |
+| Samples  | 28203  |
 | Classes  | 28    |
 | Features | 63    |
 
@@ -95,7 +95,15 @@ A-Z
 DEL
 SPACE
 ```
+## Dataset Enhancement
 
+The training dataset was significantly expanded to improve model performance.
+
+- Original Dataset: 2,203 samples
+- Expanded Dataset: 28,203 samples
+- Balanced Classes: 1,000 samples for each ASL alphabet (A–Z)
+- Additional classes: DEL and SPACE
+- Landmark preprocessing using wrist-based normalization
 ---
 
 # ⚙️ Hyperparameters
@@ -122,9 +130,9 @@ models/best_xgb_tuned.pkl
 
 | Metric            |  Score |
 | ----------------- | -----: |
-| Accuracy          | 86.39% |
-| Macro F1 Score    | 86.67% |
-| Weighted F1 Score | 86.52% |
+| Accuracy          | 98.76% |
+| Macro F1 Score    | 97.76% |
+| Weighted F1 Score | 98.75% |
 
 Evaluation artifacts include:
 

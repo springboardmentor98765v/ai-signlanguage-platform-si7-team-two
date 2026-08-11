@@ -16,7 +16,7 @@ def send_notification(
 
     try:
         response = requests.post(
-            f"{BASE_URL}/notifications/",
+            f"{BASE_URL}/notifications/notifications/",
             json=payload,
             timeout=5,
         )
