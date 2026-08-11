@@ -217,3 +217,14 @@ export const badges = [
     unlocked: false,
   },
 ]
+
+// DEV ONLY: mock stand-in for the Business Logic recommendation engine
+// (see Bussiness_Logic/routers/recommendation.py + api.js getRecommendations).
+// Small, static list for the Dashboard's "Recommended Signs" box.
+export const recommendedSigns = [
+  { id: 1, sign: 'M', reason: 'Your accuracy dropped below 60% on this letter recently.' },
+  { id: 2, sign: 'N', reason: 'Often confused with "M" — a quick refresher will help.' },
+  { id: 3, sign: 'R', reason: "You haven't practiced this letter in 5 days." },
+  { id: 4, sign: 'Thank You', reason: 'A commonly used word — great next step after the alphabet.' },
+  { id: 5, sign: 'Hello', reason: 'Popular phrase sign to build on your lesson streak.' },
+]

@@ -119,56 +119,67 @@ export default function Reports() {
     );
   }
 
+  const learnerName = user?.name || user?.full_name || "Learner";
+
   return (
     <div style={{ padding: 30 }}>
       <h1>Progress Report</h1>
 
       <div className="stats-grid" style={{ marginTop: 20, marginBottom: 28 }}>
-        <div className="stat-card">
+        <div className="stat-card fade-up">
           <p className="label">Overall Accuracy</p>
           <p className="value">{report.average_accuracy}%</p>
         </div>
-        <div className="stat-card">
+        <div className="stat-card fade-up">
           <p className="label">Lessons Completed</p>
           <p className="value">{report.lessons_completed}</p>
         </div>
-        <div className="stat-card">
+        <div className="stat-card fade-up">
           <p className="label">Total Attempts</p>
           <p className="value">{report.total_attempts}</p>
         </div>
-        <div className="stat-card">
+        <div className="stat-card fade-up">
           <p className="label">Practice Time</p>
           <p className="value">{(report.total_practice_time / 3600).toFixed(2)}h</p>
         </div>
       </div>
 
-      <h2>Attempted Letters</h2>
+      <h2 className="section-heading">
+        <span className="icon" aria-hidden="true">✍️</span>
+        Attempted Letters
+      </h2>
       {report.attempted_letters.length === 0 ? (
-        <p>No letters attempted yet.</p>
+        <p className="empty-note">No letters attempted yet.</p>
       ) : (
-        <ul>
+        <ul className="letter-chip-list">
           {report.attempted_letters.map((l) => (
-            <li key={l}>{l}</li>
+            <li key={l} className="letter-chip">{l}</li>
           ))}
         </ul>
       )}
 
-      <h2>Weak Letters</h2>
+      <h2 className="section-heading">
+        <span className="icon" aria-hidden="true">⚠️</span>
+        Weak Letters
+      </h2>
       {report.weak_letters.length === 0 ? (
-        <p>None 🎉</p>
+        <p className="empty-note">None 🎉</p>
       ) : (
-        <ul>
+        <ul className="letter-chip-list">
           {report.weak_letters.map((l) => (
-            <li key={l}>{l}</li>
+            <li key={l} className="letter-chip weak">{l}</li>
           ))}
         </ul>
       )}
 
-      <h2>Recommended Practice</h2>
+      <h2 className="section-heading">
+        <span className="icon" aria-hidden="true">💡</span>
+        Recommended Practice
+      </h2>
       {recommendationsError ? (
         <p className="form-error" role="alert">{recommendationsError}</p>
       ) : recommendations.length === 0 ? (
-        <p>No recommendations right now — keep practicing! 🎉</p>
+        <p className="empty-note">No recommendations right now — keep practicing! 🎉</p>
       ) : (
         <ul className="recommendation-list">
           {recommendations.map((rec) => (
@@ -187,83 +198,127 @@ export default function Reports() {
         </ul>
       )}
 
-      <h2>Certificate</h2>
-      {eligibility?.eligible ? (
-        <>
-          <p>Eligible ✅</p>
+      <h2 className="section-heading">
+        <span className="icon" aria-hidden="true">🏅</span>
+        Certificate
+        {eligibility?.eligible && (
+          <span className="sparkle-dot gold" aria-hidden="true"></span>
+        )}
+      </h2>
+
+      <div className="certificate-row">
+        {/* Certificate preview — always visible, styled as locked/grayscale until eligible */}
+        <div
+          className={`certificate-card${eligibility?.eligible ? "" : " locked"}`}
+          id="certificate-preview"
+        >
+          {!eligibility?.eligible && (
+            <span className="certificate-lock-icon" aria-hidden="true">🔒</span>
+          )}
+          <p className="certificate-seal" aria-hidden="true">🏅</p>
+          <p className="certificate-kicker">Certificate of Completion</p>
+          <p className="certificate-name">{learnerName}</p>
+          <p className="certificate-detail">
+            has successfully completed the AI-Powered Sign Language
+            Learning &amp; Assessment Program
+          </p>
+          <p className="certificate-date">
+            {eligibility?.eligible
+              ? new Date().toLocaleDateString()
+              : "Not yet issued"}
+          </p>
+        </div>
+
+        <div className="certificate-actions">
+          {eligibility?.eligible ? (
+            <>
+              <p className="certificate-note">You're eligible ✅</p>
+              <button
+                className="btn-primary"
+                disabled={downloadStatus.certificate === "loading"}
+                onClick={() =>
+                  handleDownload(
+                    "certificate",
+                    downloadCertificate,
+                    "Certificate.pdf"
+                  )
+                }
+              >
+                {downloadStatus.certificate === "loading"
+                  ? "Preparing your certificate..."
+                  : "Download Certificate"}
+              </button>
+              {downloadStatus.certificate &&
+                downloadStatus.certificate !== "loading" && (
+                  <p className="form-error" role="alert">
+                    {downloadStatus.certificate}
+                  </p>
+                )}
+            </>
+          ) : (
+            <>
+              <p className="certificate-locked">Not eligible yet ❌</p>
+              {eligibility?.missing_letters?.length > 0 && (
+                <div className="missing-letters-row">
+                  {eligibility.missing_letters.map((l) => (
+                    <span key={l} className="missing-letter-chip">
+                      {l}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 28, display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <div>
           <button
-            disabled={downloadStatus.certificate === "loading"}
+            className="btn-secondary btn-inline"
+            disabled={downloadStatus.pdf === "loading"}
             onClick={() =>
               handleDownload(
-                "certificate",
-                downloadCertificate,
-                "Certificate.pdf"
+                "pdf",
+                downloadProgressReport,
+                "Progress_Report.pdf"
               )
             }
           >
-            {downloadStatus.certificate === "loading"
-              ? "Preparing your certificate..."
-              : "Download Certificate"}
+            {downloadStatus.pdf === "loading"
+              ? "Preparing your file..."
+              : "Download Progress Report (PDF)"}
           </button>
-          {downloadStatus.certificate &&
-            downloadStatus.certificate !== "loading" && (
-              <p className="form-error" role="alert">
-                {downloadStatus.certificate}
-              </p>
-            )}
-        </>
-      ) : (
-        <>
-          <p>Not Eligible ❌</p>
-          <p>Missing: {eligibility?.missing_letters?.join(", ")}</p>
-        </>
-      )}
+          {downloadStatus.pdf && downloadStatus.pdf !== "loading" && (
+            <p className="form-error" role="alert">
+              {downloadStatus.pdf}
+            </p>
+          )}
+        </div>
 
-      <br />
-      <br />
-
-      <button
-        disabled={downloadStatus.pdf === "loading"}
-        onClick={() =>
-          handleDownload(
-            "pdf",
-            downloadProgressReport,
-            "Progress_Report.pdf"
-          )
-        }
-      >
-        {downloadStatus.pdf === "loading"
-          ? "Preparing your file..."
-          : "Download Progress Report (PDF)"}
-      </button>
-      {downloadStatus.pdf && downloadStatus.pdf !== "loading" && (
-        <p className="form-error" role="alert">
-          {downloadStatus.pdf}
-        </p>
-      )}
-
-      <br />
-      <br />
-
-      <button
-        disabled={downloadStatus.excel === "loading"}
-        onClick={() =>
-          handleDownload(
-            "excel",
-            downloadProgressReportExcel,
-            "Progress_Report.xlsx"
-          )
-        }
-      >
-        {downloadStatus.excel === "loading"
-          ? "Preparing your file..."
-          : "Export Report (Excel)"}
-      </button>
-      {downloadStatus.excel && downloadStatus.excel !== "loading" && (
-        <p className="form-error" role="alert">
-          {downloadStatus.excel}
-        </p>
-      )}
+        <div>
+          <button
+            className="btn-secondary btn-inline"
+            disabled={downloadStatus.excel === "loading"}
+            onClick={() =>
+              handleDownload(
+                "excel",
+                downloadProgressReportExcel,
+                "Progress_Report.xlsx"
+              )
+            }
+          >
+            {downloadStatus.excel === "loading"
+              ? "Preparing your file..."
+              : "Export Report (Excel)"}
+          </button>
+          {downloadStatus.excel && downloadStatus.excel !== "loading" && (
+            <p className="form-error" role="alert">
+              {downloadStatus.excel}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
