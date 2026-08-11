@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { getNotifications, markNotificationAsRead } from '../../services/api.js'
 import { getUserId } from '../../utils/auth.js'
-import { notifications as mockNotifications } from '../../data/mockData.js'
 
-// Set to false once the real /notifications API is ready to test end-to-end.
-const USE_MOCK_NOTIFICATIONS = true
+// Real /notifications API is live — Backend still has the duplicate-prefix
+// bug (see api.js getNotifications), but the workaround there points at
+// the doubled path, so this now hits the real endpoint end-to-end.
+const USE_MOCK_NOTIFICATIONS = false
 
 function timeAgo(isoString) {
   const diffMs = Date.now() - new Date(isoString).getTime()

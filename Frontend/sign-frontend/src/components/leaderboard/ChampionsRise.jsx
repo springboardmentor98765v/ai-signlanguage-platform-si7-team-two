@@ -33,7 +33,7 @@ function useCountUp(target, start) {
   return value
 }
 
-const CRACKER_COLORS = ['var(--clay)', 'var(--moss)', '#e8b23d', '#4a90a4', '#c96f4a']
+const CRACKER_COLORS = ['var(--gold)', 'var(--accent)', 'var(--moss-light)', 'var(--violet-light)', 'var(--accent-light)']
 
 function Crackers({ active }) {
   if (!active) return null
