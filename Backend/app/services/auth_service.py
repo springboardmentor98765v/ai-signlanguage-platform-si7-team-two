@@ -19,35 +19,45 @@ class AuthService:
 
     @staticmethod
     def register(db: Session, user: UserRegister):
-        # Check if email already exists
-        existing_user = db.execute(
-            select(User).where(User.email == user.email)
-        ).scalar_one_or_none()
+        try:
+            print("Register called")
 
-        if existing_user:
-            raise ValueError("Email already registered")
+            existing_user = db.execute(
+                select(User).where(User.email == user.email)
+            ).scalar_one_or_none()
 
-        # Get Learner role
-        learner_role = db.execute(
-            select(Role).where(Role.name == "Learner")
-        ).scalar_one_or_none()
+            print("Existing user:", existing_user)
 
-        if learner_role is None:
-            raise ValueError("Learner role not found")
+            learner_role = db.execute(
+                select(Role).where(Role.name == "Learner")
+            ).scalar_one_or_none()
 
-        # Create user
-        new_user = User(
-            full_name=user.full_name,
-            email=user.email,
-            password_hash=hash_password(user.password),
-            role_id=learner_role.id,
-        )
+            print("Role:", learner_role)
 
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+            print("Hashing password...")
 
-        return new_user
+            hashed = hash_password(user.password)
+
+            print("Password hashed successfully")
+
+            new_user = User(
+                full_name=user.full_name,
+                email=user.email,
+                password_hash=hashed,
+                role_id=learner_role.id,
+            )
+
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
+
+            print("User created")
+
+            return new_user
+
+        except Exception as e:
+            print("REGISTER ERROR:", repr(e))
+            raise
 
     @staticmethod
     def login(db: Session, user: UserLogin):
@@ -117,15 +127,11 @@ class AuthService:
         ):
             raise ValueError("Old password is incorrect")
 
-        existing_user.password_hash = hash_password(
-            password_data.new_password
-        )
+        existing_user.password_hash = hash_password(password_data.new_password)
 
         db.commit()
 
-        return {
-            "message": "Password changed successfully"
-        }
+        return {"message": "Password changed successfully"}
 
     @staticmethod
     def forgot_password(
@@ -140,9 +146,7 @@ class AuthService:
         if existing_user is None:
             raise ValueError("Email not found")
 
-        reset_link = (
-            f"http://localhost:8000/reset-password/{existing_user.id}"
-        )
+        reset_link = f"http://localhost:8000/reset-password/{existing_user.id}"
 
         return {
             "message": "Password reset link generated successfully.",
@@ -161,12 +165,8 @@ class AuthService:
         if existing_user is None:
             raise ValueError("User not found")
 
-        existing_user.password_hash = hash_password(
-            password_data.new_password
-        )
+        existing_user.password_hash = hash_password(password_data.new_password)
 
         db.commit()
 
-        return {
-            "message": "Password reset successfully"
-        }
+        return {"message": "Password reset successfully"}

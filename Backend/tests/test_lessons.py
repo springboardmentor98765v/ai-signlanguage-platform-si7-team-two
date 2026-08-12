@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 # Existing lesson ID from your database
-LESSON_ID = "096fca1b-1e20-4417-b3e0-5b19d4f94d55"
+LESSON_ID = "023ccbcf-347c-4a72-b3ff-10685bfb1c5e"
 
 
 def test_get_all_lessons(client: TestClient):
@@ -36,9 +36,7 @@ def test_get_single_lesson(client: TestClient):
 
 
 def test_get_invalid_lesson(client: TestClient):
-    response = client.get(
-        "/lessons/11111111-1111-1111-1111-111111111111"
-    )
+    response = client.get("/lessons/11111111-1111-1111-1111-111111111111")
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Lesson not found"

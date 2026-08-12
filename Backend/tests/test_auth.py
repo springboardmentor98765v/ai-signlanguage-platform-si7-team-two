@@ -4,9 +4,6 @@ from fastapi.testclient import TestClient
 
 
 def create_test_user(client: TestClient):
-    """
-    Registers a fresh user and returns email/password.
-    """
     email = f"pytest_{uuid.uuid4().hex[:8]}@example.com"
     password = "Password123"
 
