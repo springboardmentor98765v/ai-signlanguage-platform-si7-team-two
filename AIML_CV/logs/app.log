@@ -547,3 +547,10 @@
 2026-08-12 20:05:28,867 | INFO | Prediction: B | Confidence: 99.6600
 2026-08-12 20:05:50,598 | INFO | Prediction request received.
 2026-08-12 20:05:50,649 | INFO | Prediction: B | Confidence: 99.9000
+2026-08-14 15:32:17,449 | ERROR | Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+2026-08-14 15:35:59,043 | INFO | Prediction request received.
+2026-08-14 15:35:59,381 | INFO | Prediction: A | Confidence: 99.7500
