@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { getNotifications, markNotificationAsRead } from '../../services/api.js'
 import { getUserId } from '../../utils/auth.js'
 
+// Real /notifications API is live — Backend still has the duplicate-prefix
+// bug (see api.js getNotifications), but the workaround there points at
+// the doubled path, so this now hits the real endpoint end-to-end.
+const USE_MOCK_NOTIFICATIONS = false
+
 function timeAgo(isoString) {
   const diffMs = Date.now() - new Date(isoString).getTime()
   const minutes = Math.floor(diffMs / 60000)
@@ -27,6 +32,14 @@ export default function NotificationBell() {
   }, [])
 
   async function loadNotifications() {
+    if (USE_MOCK_NOTIFICATIONS) {
+      setLoading(true)
+      setItems(mockNotifications)
+      setError('')
+      setLoading(false)
+      return
+    }
+
     const userId = getUserId()
     if (!userId) {
       setLoading(false)
@@ -64,6 +77,8 @@ export default function NotificationBell() {
   async function markAsRead(id) {
     // Optimistic update so the UI feels instant
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)))
+    if (USE_MOCK_NOTIFICATIONS) return
+
     try {
       await markNotificationAsRead(id)
     } catch (err) {
@@ -76,6 +91,8 @@ export default function NotificationBell() {
   async function markAllAsRead() {
     const unread = items.filter((n) => !n.is_read)
     setItems((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    if (USE_MOCK_NOTIFICATIONS) return
+
     try {
       await Promise.all(unread.map((n) => markNotificationAsRead(n.id)))
     } catch (err) {

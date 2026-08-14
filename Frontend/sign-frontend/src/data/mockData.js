@@ -116,10 +116,48 @@ export const weakLetters = [
   { letter: 'R', averageAccuracy: 66, sessionsRecommended: 3 },
 ]
 
-// TEMP (Day 7 empty-state test): changed to an empty array to trigger the
-// NotificationBell's empty state. Revert to the full list of 5 notifications
-// once you've confirmed "You're all caught up" renders correctly.
-export const notifications = []
+export const notifications = [
+  {
+    id: 1,
+    user_id: 1,
+    title: 'New Badge Unlocked',
+    message: 'You earned the "7-Day Streak" badge. Keep it up!',
+    is_read: false,
+    created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 2,
+    user_id: 1,
+    title: 'Lesson Reminder',
+    message: 'You have not practiced letter "M" in 3 days. Try a quick session.',
+    is_read: false,
+    created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 3,
+    user_id: 1,
+    title: 'Assessment Ready',
+    message: 'Your weekly assessment results are ready to view.',
+    is_read: false,
+    created_at: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 4,
+    user_id: 1,
+    title: 'Leaderboard Update',
+    message: 'You moved up to #3 on the weekly leaderboard.',
+    is_read: true,
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 5,
+    user_id: 1,
+    title: 'Certificate Available',
+    message: 'Your "Alphabet Master" certificate is ready to download.',
+    is_read: true,
+    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+]
 
 // DEV ONLY (Milestone 3, Day 3): stands in for Intern 4's Badge/Streak logic (due Day 3-4)
 export const streakData = {
@@ -178,4 +216,15 @@ export const badges = [
     icon: '⚡',
     unlocked: false,
   },
+]
+
+// DEV ONLY: mock stand-in for the Business Logic recommendation engine
+// (see Bussiness_Logic/routers/recommendation.py + api.js getRecommendations).
+// Small, static list for the Dashboard's "Recommended Signs" box.
+export const recommendedSigns = [
+  { id: 1, sign: 'M', reason: 'Your accuracy dropped below 60% on this letter recently.' },
+  { id: 2, sign: 'N', reason: 'Often confused with "M" — a quick refresher will help.' },
+  { id: 3, sign: 'R', reason: "You haven't practiced this letter in 5 days." },
+  { id: 4, sign: 'Thank You', reason: 'A commonly used word — great next step after the alphabet.' },
+  { id: 5, sign: 'Hello', reason: 'Popular phrase sign to build on your lesson streak.' },
 ]

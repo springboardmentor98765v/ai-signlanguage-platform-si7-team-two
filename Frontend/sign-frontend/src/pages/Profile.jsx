@@ -84,11 +84,11 @@ export default function Profile() {
         <p className="sub">Manage your account details and password.</p>
       </div>
 
-      <section className="reference-card" style={{ marginBottom: "24px" }}>
+      <section className="reference-card lift-hover" style={{ marginBottom: "24px", maxWidth: "480px" }}>
         <p className="label">Account details</p>
 
         <form onSubmit={handleSaveProfile}>
-          <div style={{ marginBottom: "12px" }}>
+          <div className="field">
             <label htmlFor="profile-name">Name</label>
             <input
               id="profile-name"
@@ -99,7 +99,7 @@ export default function Profile() {
             />
           </div>
 
-          <div style={{ marginBottom: "12px" }}>
+          <div className="field">
             <label htmlFor="profile-email">Email</label>
             <input
               id="profile-email"
@@ -110,10 +110,12 @@ export default function Profile() {
             />
           </div>
 
-          <p><strong>Role:</strong> {user.role}</p>
+          <p style={{ marginBottom: "16px", fontSize: "13.5px", color: "var(--muted)" }}>
+            <strong style={{ color: "var(--ink)" }}>Role:</strong> {user.role}
+          </p>
 
           {saveError && <p className="camera-error" role="alert">{saveError}</p>}
-          {saveStatus && <p role="status">{saveStatus}</p>}
+          {saveStatus && <p className="form-success" role="status">{saveStatus}</p>}
 
           <button className="btn-primary" type="submit" disabled={isSaving}>
             {isSaving ? "Saving..." : "Save changes"}
@@ -121,11 +123,11 @@ export default function Profile() {
         </form>
       </section>
 
-      <section className="reference-card">
+      <section className="reference-card lift-hover" style={{ maxWidth: "480px" }}>
         <p className="label">Change password</p>
 
         <form onSubmit={handleChangePassword}>
-          <div style={{ marginBottom: "12px" }}>
+          <div className="field">
             <label htmlFor="old-password">Current password</label>
             <input
               id="old-password"
@@ -136,7 +138,7 @@ export default function Profile() {
             />
           </div>
 
-          <div style={{ marginBottom: "12px" }}>
+          <div className="field">
             <label htmlFor="new-password">New password</label>
             <input
               id="new-password"
@@ -149,7 +151,7 @@ export default function Profile() {
           </div>
 
           {pwError && <p className="camera-error" role="alert">{pwError}</p>}
-          {pwStatus && <p role="status">{pwStatus}</p>}
+          {pwStatus && <p className="form-success" role="status">{pwStatus}</p>}
 
           <button className="btn-primary" type="submit" disabled={isChangingPw}>
             {isChangingPw ? "Changing..." : "Change password"}
