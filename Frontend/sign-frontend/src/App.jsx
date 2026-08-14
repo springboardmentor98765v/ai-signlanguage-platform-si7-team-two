@@ -13,6 +13,8 @@ import Profile from './pages/Profile.jsx'
 import Instructor from './pages/Instructor.jsx'
 import Admin from './pages/Admin.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
+import Trainer from './pages/Trainer.jsx'
+import Certification from './pages/Certification.jsx'
 
 export default function App() {
   return (
@@ -61,6 +63,14 @@ export default function App() {
           }
         />
         <Route
+          path="/certification"
+          element={
+            <RoleRoute allowedRoles={["learner"]}>
+              <Certification />
+            </RoleRoute>
+          }
+        />
+        <Route
           path="/leaderboard"
           element={
             <RoleRoute allowedRoles={["learner"]}>
@@ -88,6 +98,16 @@ export default function App() {
           element={
             <RoleRoute allowedRoles={["admin"]}>
               <Admin />
+            </RoleRoute>
+          }
+        />
+
+        {/* Accessibility Trainer-only */}
+        <Route
+          path="/trainer"
+          element={
+            <RoleRoute allowedRoles={["trainer"]}>
+              <Trainer />
             </RoleRoute>
           }
         />

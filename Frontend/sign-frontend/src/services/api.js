@@ -362,3 +362,37 @@ export async function getRecommendations(learnerId) {
   const res = await fetch(`${BUSINESS_LOGIC_URL}/recommendations/${learnerId}`);
   return handleResponse(res); // { learner_id, recommendations: [{ id, letter_or_word, reason, recent_avg_accuracy, status, created_at }] }
 }
+
+// ---------- Weekly Analytics (Intern 4 — Business Logic) ----------
+// Milestone 2, Day 3: powers the Dashboard's "Accuracy over time" and
+// "Lessons completed" charts with real per-week data instead of mock
+// arrays. See Bussiness_Logic/routers/weekly_analytics.py.
+export async function getWeeklyAnalytics(userId) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/weekly-analytics/${userId}`);
+  return handleResponse(res);
+  // { user_id, weekly_stats: [{ week_start, average_accuracy, improvement_rate, weak_letters, attempts_count }] }
+}
+
+// ---------- Admin: Activate/Deactivate user ----------
+// Milestone 2, Day 5 (SRS FR-1): persists the Admin Dashboard's
+// Activate/Deactivate toggle. Needs a matching backend endpoint —
+// PATCH /admin/users/{id}/status — which does not exist yet as of
+// this writing. This call will fail with a 404 until Backend adds it;
+// once it does, this frontend code needs no changes.
+export async function updateUserStatus(id, isActive) {
+  const response = await fetch(`${API_BASE_URL}/admin/users/${id}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
+    body: JSON.stringify({ is_active: isActive }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(extractErrorMessage(data, "Failed to update user status"));
+  }
+
+  return response.json();
+}
