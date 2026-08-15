@@ -12,6 +12,7 @@ export default function Register() {
   const [role, setRole] = useState('learner')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -39,7 +40,7 @@ export default function Register() {
     <div className="auth-shell">
       <main className="auth-card">
         <div className="auth-brand">
-          <div className="mark">SL</div>
+          <div className="mark" style={{ background: 'transparent' }}><img src="/app-logo-master.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
           <div className="name">SignLearn</div>
         </div>
         <h1>Create your account</h1>
@@ -58,15 +59,25 @@ export default function Register() {
             <input id="email" type="email" placeholder="you@example.com"
               value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
           </div>
-          <div className="field">
+          <div className="field" style={{ position: 'relative' }}>
             <label htmlFor="password">Password</label>
-            <input id="password" type="password" placeholder="••••••••"
-              value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
+            <input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••"
+              value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} 
+              style={{ paddingRight: '60px' }} />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}
+              style={{ position: 'absolute', right: '12px', top: '35px', background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+              {showPassword ? "Hide" : "Show"}
+            </button>
           </div>
-          <div className="field">
+          <div className="field" style={{ position: 'relative' }}>
             <label htmlFor="confirmPassword">Confirm password</label>
-            <input id="confirmPassword" type="password" placeholder="••••••••"
-              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={isLoading} />
+            <input id="confirmPassword" type={showPassword ? "text" : "password"} placeholder="••••••••"
+              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={isLoading} 
+              style={{ paddingRight: '60px' }} />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}
+              style={{ position: 'absolute', right: '12px', top: '35px', background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+              {showPassword ? "Hide" : "Show"}
+            </button>
           </div>
           <div className="field">
             <label htmlFor="role">Role</label>

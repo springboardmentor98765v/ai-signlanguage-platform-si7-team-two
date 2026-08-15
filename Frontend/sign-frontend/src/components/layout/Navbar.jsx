@@ -23,6 +23,9 @@ export default function Navbar({ onMenuClick, sidebarOpen }) {
         >
           <span className="bar" />
         </button>
+        <div className="mark" aria-hidden="true" style={{ background: 'transparent', width: '24px', height: '24px' }}>
+          <img src="/app-logo-master.png" alt="SignLearn Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        </div>
         <div className="title">Overview</div>
       </div>
       <div className="navbar-right">

@@ -15,6 +15,8 @@ from routers import (
 from routers.certificate import router as certificate_router
 from routers.recommendation import router as recommendation_router
 from routers.weekly_analytics import router as weekly_analytics_router
+from routers.certification_exam import router as certification_exam_router
+from routers.accessibility_trainer import router as accessibility_trainer_router
 
 app = FastAPI(title="Business Logic Service")
 
@@ -44,6 +46,9 @@ app.include_router(leaderboard.router)
 app.include_router(progress_report.router)
 app.include_router(integration.router)
 app.include_router(recommendation_router)
+app.include_router(certification_exam_router)
+app.include_router(accessibility_trainer_router)
+
 
 @app.get("/health")
 def health_check():

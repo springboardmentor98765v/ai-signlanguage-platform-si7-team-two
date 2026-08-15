@@ -16,64 +16,165 @@ from reportlab.pdfgen import canvas
 
 CERTIFICATES_DIR = "generated_certificates"
 
+def generate_certificate_pdf(
+    learner_name: str,
+    average_score: float,
+    certificate_code: str,
+) -> str:
 
-def generate_certificate_pdf(learner_name: str, average_score: float, certificate_code: str) -> str:
-    """
-    Generates a certificate PDF and returns the file path.
-    """
     os.makedirs(CERTIFICATES_DIR, exist_ok=True)
 
     filename = f"{certificate_code}.pdf"
     file_path = os.path.join(CERTIFICATES_DIR, filename)
 
-    page_width, page_height = landscape(A4)
+    width, height = landscape(A4)
+
     c = canvas.Canvas(file_path, pagesize=landscape(A4))
 
-    # Border
-    c.setStrokeColor(colors.HexColor("#2C3E50"))
+    # =====================================================
+    # Double Border
+    # =====================================================
+    c.setStrokeColor(colors.darkblue)
     c.setLineWidth(4)
-    c.rect(1 * cm, 1 * cm, page_width - 2 * cm, page_height - 2 * cm)
+    c.rect(1 * cm, 1 * cm, width - 2 * cm, height - 2 * cm)
 
-    # Title
-    c.setFont("Helvetica-Bold", 32)
-    c.setFillColor(colors.HexColor("#2C3E50"))
-    c.drawCentredString(page_width / 2, page_height - 4 * cm, "Certificate of Achievement")
+    c.setStrokeColor(colors.gold)
+    c.setLineWidth(1.5)
+    c.rect(1.4 * cm, 1.4 * cm, width - 2.8 * cm, height - 2.8 * cm)
 
-    # Subtitle
+    # =====================================================
+    # Logo
+    # =====================================================
+    logo_path = os.path.join("..", "Frontend", "sign-frontend", "public", "app-logo-master.png")
+    if os.path.exists(logo_path):
+        c.drawImage(logo_path, width / 2 - 1.5 * cm, height - 6.0 * cm, width=3*cm, height=3*cm, mask='auto')
+
+    # =====================================================
+    # Platform Name
+    # =====================================================
+    c.setFont("Helvetica-Bold", 18)
+    c.setFillColor(colors.darkblue)
+    c.drawCentredString(
+        width / 2,
+        height - 2.5 * cm,
+        "AI SIGN LANGUAGE LEARNING PLATFORM"
+    )
+
+    # =====================================================
+    # Certificate Title
+    # =====================================================
+    c.setFont("Helvetica-Bold", 30)
+    c.setFillColor(colors.HexColor("#B8860B"))
+    c.drawCentredString(
+        width / 2,
+        height - 7.5 * cm,
+        "CERTIFICATE OF COMPLETION"
+    )
+
+    # =====================================================
+    # Award Text
+    # =====================================================
     c.setFont("Helvetica", 16)
     c.setFillColor(colors.black)
-    c.drawCentredString(page_width / 2, page_height - 5.5 * cm, "Sign Language Learning & Assessment Platform")
-
-    # "This certifies that"
-    c.setFont("Helvetica", 14)
-    c.drawCentredString(page_width / 2, page_height - 8 * cm, "This certifies that")
-
-    # Learner name
-    c.setFont("Helvetica-Bold", 26)
-    c.setFillColor(colors.HexColor("#1A5276"))
-    c.drawCentredString(page_width / 2, page_height - 9.5 * cm, learner_name)
-
-    # Achievement text
-    c.setFont("Helvetica", 14)
-    c.setFillColor(colors.black)
     c.drawCentredString(
-        page_width / 2,
-        page_height - 11.5 * cm,
-        f"has successfully completed the Alphabet Sign Language course"
-    )
-    c.drawCentredString(
-        page_width / 2,
-        page_height - 12.5 * cm,
-        f"with an average accuracy of {average_score}%"
+        width / 2,
+        height - 9.0 * cm,
+        "This certificate is proudly presented to"
     )
 
+    # =====================================================
+    # Learner Name
+    # =====================================================
+    c.setFont("Helvetica-Bold", 28)
+    c.setFillColor(colors.darkblue)
+    c.drawCentredString(
+        width / 2,
+        height - 11.0 * cm,
+        learner_name.upper()
+    )
+
+    # =====================================================
+    # Achievement
+    # =====================================================
+    c.setFont("Helvetica", 15)
+
+    c.drawCentredString(
+        width / 2,
+        height - 12.5 * cm,
+        "for successfully completing the"
+    )
+
+    c.drawCentredString(
+        width / 2,
+        height - 13.3 * cm,
+        "AI Sign Language Learning Course"
+    )
+
+    c.drawCentredString(
+        width / 2,
+        height - 14.1 * cm,
+        f"with an average accuracy of {average_score:.2f}%"
+    )
+
+    # =====================================================
+    # Decorative Line
+    # =====================================================
+    c.setStrokeColor(colors.grey)
+    c.line(4 * cm, height - 15.5 * cm, width - 4 * cm, height - 15.5 * cm)
+
+    # =====================================================
     # Date
-    today_str = datetime.utcnow().strftime("%B %d, %Y")
-    c.setFont("Helvetica", 12)
-    c.drawString(2.5 * cm, 2.5 * cm, f"Date: {today_str}")
+    # =====================================================
+    today = datetime.utcnow().strftime("%d %B %Y")
 
-    # Certificate code (bottom right, for verification)
-    c.drawRightString(page_width - 2.5 * cm, 2.5 * cm, f"Certificate ID: {certificate_code}")
+    c.setFont("Helvetica", 12)
+
+    c.drawString(
+        2.5 * cm,
+        2.8 * cm,
+        f"Issue Date: {today}"
+    )
+
+    # =====================================================
+    # Certificate Code
+    # =====================================================
+    c.drawRightString(
+        width - 2.5 * cm,
+        2.8 * cm,
+        f"Certificate ID: {certificate_code}"
+    )
+
+    # =====================================================
+    # Signature
+    # =====================================================
+    c.line(
+        width / 2 - 3 * cm,
+        3.8 * cm,
+        width / 2 + 3 * cm,
+        3.8 * cm,
+    )
+
+    c.setFont("Helvetica", 12)
+
+    c.drawCentredString(
+        width / 2,
+        3.1 * cm,
+        "Course Instructor"
+    )
+
+    # =====================================================
+    # Verification Seal
+    # =====================================================
+    c.setFont("Helvetica-Bold", 13)
+
+    c.setFillColor(colors.darkgreen)
+
+    c.drawCentredString(
+        width / 2,
+        2.1 * cm,
+        "✓ VERIFIED CERTIFICATE"
+    )
 
     c.save()
+
     return file_path

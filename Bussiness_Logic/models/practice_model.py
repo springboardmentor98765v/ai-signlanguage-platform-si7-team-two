@@ -9,31 +9,26 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
-    text,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 
 
 # -------------------------
-# Stub Models
+# Stub Models (mirror the actual DB tables from Database_Devops)
 # -------------------------
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
-
-    full_name = Column(
-        String(120),
-        nullable=False,
-    )
+    id = Column(String(36), primary_key=True)
+    full_name = Column(String(120), nullable=False)
+    mascot_id = Column(String(50), nullable=True, default="owl")
 
 
 class Lesson(Base):
     __tablename__ = "lessons"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
+    id = Column(String(36), primary_key=True)
     letter = Column(String(2), nullable=False)
 
 
@@ -45,19 +40,19 @@ class PracticeSession(Base):
     __tablename__ = "practice_sessions"
 
     id = Column(
-        UUID(as_uuid=True),
+        String(36),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=lambda: str(uuid.uuid4()),  # Works on SQLite and PostgreSQL
     )
 
     user_id = Column(
-        UUID(as_uuid=True),
+        String(36),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
 
     lesson_id = Column(
-        UUID(as_uuid=True),
+        String(36),
         ForeignKey("lessons.id", ondelete="RESTRICT"),
         nullable=False,
     )
@@ -96,13 +91,13 @@ class Recommendation(Base):
     __tablename__ = "recommendations"
 
     id = Column(
-        UUID(as_uuid=True),
+        String(36),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=lambda: str(uuid.uuid4()),
     )
 
     learner_id = Column(
-        UUID(as_uuid=True),
+        String(36),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
@@ -139,13 +134,13 @@ class Certificate(Base):
     __tablename__ = "certificates"
 
     id = Column(
-        UUID(as_uuid=True),
+        String(36),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=lambda: str(uuid.uuid4()),
     )
 
     learner_id = Column(
-        UUID(as_uuid=True),
+        String(36),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )

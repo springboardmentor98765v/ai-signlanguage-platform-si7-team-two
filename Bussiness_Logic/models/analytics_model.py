@@ -6,9 +6,9 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     Numeric,
-    text,
+    String,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.types import JSON
 
 from database import Base
 
@@ -17,7 +17,7 @@ class AnalyticsSummary(Base):
     __tablename__ = "analytics_summary"
 
     user_id = Column(
-        UUID(as_uuid=True),
+        String(36),
         ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
         nullable=False,
@@ -42,7 +42,7 @@ class AnalyticsSummary(Base):
     )
 
     weak_letters = Column(
-        JSONB,
+        JSON,
         nullable=False,
         default=list,
     )

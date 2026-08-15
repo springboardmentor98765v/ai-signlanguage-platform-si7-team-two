@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getLessons } from "../services/api.js";
+import { getUser } from "../utils/auth.js";
+import Mascot from "../components/mascot/Mascot.jsx";
 
 
 function badgeClass(difficulty) {
@@ -21,18 +23,21 @@ export default function Lessons() {
     setError("");
 
     try {
-      const data = await getLessons();
+      const userId = localStorage.getItem("user_id");
+      if (!userId) {
+        navigate("/login");
+        return;
+      }
+      const data = await getLessons(userId);
       setLessons(data);
     } catch (err) {
-      // Milestone 3, Day 7: friendly, non-technical error message instead
-      // of raw fetch/network error text.
       setError(
         "We couldn't load your lessons right now. Please check your connection and try again."
       );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     fetchLessons();
@@ -62,6 +67,9 @@ export default function Lessons() {
       ) : (
         <>
           <h2 className="sr-only">Available Lessons</h2>
+          <div className="lessons-mascot-row" aria-hidden="true">
+            <Mascot state="encouraging" size="sm" label="Pick a lesson! 🖊️" mascotId={getUser()?.mascot_id} aria-hidden={true} />
+          </div>
           <LessonGrid lessons={lessons} navigate={navigate} />
         </>
       )}
@@ -70,26 +78,48 @@ export default function Lessons() {
 }
 
 function LessonGrid({ lessons, navigate }) {
+  function openLesson(lessonId, letter) {
+    navigate(`/practice/${letter}?lessonId=${lessonId}`);
+  }
+
+  function handleKeyDown(e, lesson) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openLesson(lesson.id, lesson.letter);
+    }
+  }
+
   return (
-    <div className="lesson-grid">
-      {lessons.map((lesson) => (
-        <div
-          key={lesson.id}
-          className="lesson-card"
-          style={{ cursor: "pointer" }}
-          onClick={() => navigate(`/practice/${lesson.letter}`)}
-        >
-          <div className="lesson-card-header">
-            <h3>{lesson.title}</h3>
-
-            <span className={badgeClass(lesson.difficulty)}>
-              {lesson.difficulty}
-            </span>
+    <div className="lesson-path">
+      {lessons.map((lesson, index) => {
+        const status = lesson.status || "locked";
+        const starSymbols = "★".repeat(lesson.stars || 0) + "☆".repeat(3 - (lesson.stars || 0));
+        
+        return (
+          <div
+            key={lesson.id}
+            className={`lesson-node status-${status} path-pos-${index % 4}`}
+            onClick={() => status !== 'locked' && openLesson(lesson.id, lesson.letter)}
+            onKeyDown={(e) => status !== 'locked' && handleKeyDown(e, lesson)}
+            tabIndex={status !== 'locked' ? 0 : -1}
+            role="button"
+            aria-disabled={status === 'locked'}
+            aria-label={`${lesson.title} - ${status}`}
+          >
+            <div className="node-icon">
+              {status === 'completed' && <div className="stars-indicator">{starSymbols}</div>}
+              {status === 'current' && '▶'}
+              {status === 'locked' && '🔒'}
+            </div>
+            <div className="node-label">Letter {lesson.letter}</div>
+            <div className="node-tooltip">
+              <h3>{lesson.title}</h3>
+              <p>{lesson.description}</p>
+              {status === 'completed' && <p>Best: {lesson.accuracy}%</p>}
+            </div>
           </div>
-
-          <p>{lesson.description}</p>
-        </div>
-      ))}
+        )
+      })}
     </div>
   );
 }

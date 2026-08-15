@@ -20,6 +20,9 @@ from db.models.recommendations import Recommendation
 from db.models.notifications import Notification
 from db.models.streaks import Streak
 from db.models.badges import Badge
+from db.models.certification_exams import CertificationExam
+from db.models.accessibility_trainer_learner_mapping import AccessibilityTrainerLearnerMapping
+
 
 __all__ = [
     "Base",
@@ -36,4 +39,7 @@ __all__ = [
     "Notification",
     "Streak",
     "Badge",
+    "CertificationExam",
+    "AccessibilityTrainerLearnerMapping",
 ]
+
