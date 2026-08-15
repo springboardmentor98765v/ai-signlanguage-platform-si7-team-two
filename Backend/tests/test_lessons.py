@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 # Existing lesson ID from your database
-LESSON_ID = "023ccbcf-347c-4a72-b3ff-10685bfb1c5e"
+LESSON_ID = "096fca1b-1e20-4417-b3e0-5b19d4f94d55"
 
 
 def test_get_all_lessons(client: TestClient):

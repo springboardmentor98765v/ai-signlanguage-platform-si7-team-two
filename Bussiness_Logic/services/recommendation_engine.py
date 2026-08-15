@@ -13,22 +13,6 @@ RECENCY_WEIGHTS = [
 ]
 
 def find_weak_letters(assessment_session_pairs):
-    """
-    assessment_session_pairs:
-        List of tuples:
-        (
-            Assessment,
-            PracticeSession
-        )
-
-    Returns:
-        [
-            {
-                "letter": "A",
-                "average_score": 65.2
-            }
-        ]
-    """
 
     letter_attempts = {}
 
