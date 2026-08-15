@@ -28,6 +28,19 @@ app = FastAPI(
 app.middleware("http")(log_requests)
 app.middleware("http")(rate_limit)
 
+
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+
+    # Prevent browsers from MIME-sniffing the response
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    return response
+
+
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -88,6 +101,7 @@ app.include_router(
     prefix="/instructor",
     tags=["Instructor"],
 )
+
 
 # Milestone 4 - Day 2: Trainer Dashboard APIs
 app.include_router(
