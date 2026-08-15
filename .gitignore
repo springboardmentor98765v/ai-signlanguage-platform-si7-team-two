@@ -34,3 +34,5 @@ Database_Devops/monitoring/results/*.txt
 Database_Devops/monitoring/results/*.csv
 AIML_CV/venv/
 venv/
+
+.env.production
