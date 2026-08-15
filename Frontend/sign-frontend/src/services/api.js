@@ -373,6 +373,60 @@ export async function getWeeklyAnalytics(userId) {
   // { user_id, weekly_stats: [{ week_start, average_accuracy, improvement_rate, weak_letters, attempts_count }] }
 }
 
+// ---------- Accessibility Trainer (Intern 2 — Backend) ----------
+// Milestone 4, Day 3 (SRS FR-1): connects the Trainer Dashboard to the
+// real Trainer APIs instead of Trainer.jsx's mockLearners. See
+// Backend/app/routers/trainer.py — all 5 endpoints are protected by
+// require_trainer, so every call here needs the Authorization header.
+
+export async function getTrainerLearners() {
+  const res = await fetch(`${API_BASE_URL}/trainer/learners`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse(res); // [{ id, full_name, email, relationship }, ...]
+}
+
+export async function getLearnerEngagement(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/engagement`,
+    { headers: { ...authHeaders() } }
+  );
+  return handleResponse(res);
+  // { total_practice_sessions, completed_sessions, total_attempts,
+  //   total_practice_time, current_streak, longest_streak }
+}
+
+export async function getLearnerSkillDevelopment(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/skill-development`,
+    { headers: { ...authHeaders() } }
+  );
+  return handleResponse(res);
+  // { overall_average_accuracy, recent_average_accuracy,
+  //   previous_average_accuracy, weak_letters, improvement }
+}
+
+export async function getLearnerAssessmentAnalytics(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/assessment-analytics`,
+    { headers: { ...authHeaders() } }
+  );
+  return handleResponse(res);
+  // { total_assessments, average_assessment_score, highest_score,
+  //   lowest_score, attempted_letters, weak_letters }
+}
+
+export async function getLearnerCertificationStatus(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/certification-status`,
+    { headers: { ...authHeaders() } }
+  );
+  return handleResponse(res);
+  // { certification_status, average_score, attempted_letters,
+  //   completed_letters, missing_letters, certificate_earned,
+  //   certificate_details: { certificate_code, issued_at, file_path, is_valid } | null }
+}
+
 // ---------- Admin: Activate/Deactivate user ----------
 // Milestone 2, Day 5 (SRS FR-1): persists the Admin Dashboard's
 // Activate/Deactivate toggle. Needs a matching backend endpoint —

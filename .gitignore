@@ -5,6 +5,8 @@ dist/
 __pycache__/
 _pycache_/
 .env
+.env.production
+.env.local
 
 # Integration temp directories and zip files (not part of repo)
 Day2-unzipped/
@@ -34,5 +36,3 @@ Database_Devops/monitoring/results/*.txt
 Database_Devops/monitoring/results/*.csv
 AIML_CV/venv/
 venv/
-
-.env.production
