@@ -9,7 +9,6 @@ from database import SessionLocal
 from models.accessibility_trainer_learner_mapping_model import AccessibilityTrainerLearnerMapping
 from models.certification_exam_model import CertificationExam
 from models.practice_model import User, PracticeSession
-from models.analytics_model import LearnerAnalytics
 
 router = APIRouter(
     prefix="/trainer",

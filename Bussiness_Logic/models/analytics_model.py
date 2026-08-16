@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from sqlalchemy import (
     Column,
     DateTime,
@@ -8,13 +6,14 @@ from sqlalchemy import (
     Numeric,
     String,
 )
-from sqlalchemy.types import JSON
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.sql import func
 
 from database import Base
 
 
 class AnalyticsSummary(Base):
-    __tablename__ = "learner_analytics"
+    __tablename__ = "analytics_summary"
 
     user_id = Column(
         String(36),
@@ -42,7 +41,7 @@ class AnalyticsSummary(Base):
     )
 
     weak_letters = Column(
-        JSON,
+        JSONB,
         nullable=False,
         default=list,
     )
@@ -50,5 +49,6 @@ class AnalyticsSummary(Base):
     last_updated = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=datetime.utcnow,
+        server_default=func.now(),
+        onupdate=func.now(),
     )
