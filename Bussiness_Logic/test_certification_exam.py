@@ -148,3 +148,39 @@ def test_passed_exam_generates_certificate(tmp_path, monkeypatch):
 
     assert generated["learner_name"] == "Testing"
     assert generated["certificate_code"] == "TEST-CERT-001"
+
+# ---------------------------------------------------------
+# TEST - CERTIFICATION USES EXISTING WEIGHTED SCORES
+# ---------------------------------------------------------
+
+def test_certification_exam_uses_weighted_scoring_results():
+
+    from services.scoring import calculate_scores
+
+    weighted_scores = []
+
+    signs = ["A", "B", "C", "D", "E"]
+
+    confidences = [0.95, 0.90, 0.80, 0.75, 0.70]
+
+    for sign, confidence in zip(signs, confidences):
+
+        scoring_result = calculate_scores(
+            expected_sign=sign,
+            predicted_sign=sign,
+            confidence=confidence,
+            duration_seconds=3.0,
+        )
+
+        weighted_scores.append(
+            scoring_result["overall_score"]
+        )
+
+    result = evaluate_certification_exam(
+        level="Beginner",
+        scores=weighted_scores,
+    )
+
+    assert result.total_signs == 5
+    assert result.average_score > 70.0
+    assert result.passed is True
