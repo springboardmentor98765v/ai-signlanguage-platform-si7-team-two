@@ -28,11 +28,17 @@ class AuthService:
 
             print("Existing user:", existing_user)
 
-            learner_role = db.execute(
-                select(Role).where(Role.name == "Learner")
+            if existing_user is not None:
+                raise ValueError("Email already registered")
+
+            selected_role = db.execute(
+                select(Role).where(Role.name == user.role)
             ).scalar_one_or_none()
 
-            print("Role:", learner_role)
+            print("Selected role:", selected_role)
+
+            if selected_role is None:
+                raise ValueError(f"Role '{user.role}' does not exist.")
 
             print("Hashing password...")
 
@@ -44,18 +50,19 @@ class AuthService:
                 full_name=user.full_name,
                 email=user.email,
                 password_hash=hashed,
-                role_id=learner_role.id,
+                role_id=selected_role.id,
             )
 
             db.add(new_user)
             db.commit()
             db.refresh(new_user)
 
-            print("User created")
+            print("User created:", new_user)
 
             return new_user
 
         except Exception as e:
+            db.rollback()
             print("REGISTER ERROR:", repr(e))
             raise
 
