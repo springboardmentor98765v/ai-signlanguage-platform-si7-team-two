@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parents[3]
 DB_PROJECT = BASE_DIR / "Database_Devops"
 sys.path.append(str(DB_PROJECT))
 
-# Load .env
+# Load .env from repo root
 load_dotenv(BASE_DIR / ".env")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -25,12 +25,22 @@ if DATABASE_URL is None:
 
 print("DATABASE_URL =", DATABASE_URL)
 
-engine = create_engine(DATABASE_URL)
-from sqlalchemy import text
+# SQLite needs check_same_thread=False for FastAPI's threading model.
+# PostgreSQL doesn't use connect_args so the dict is harmless either way.
+_connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    _connect_args = {"check_same_thread": False}
 
-with engine.connect() as conn:
-    print("Connected Database:", conn.execute(text("SELECT current_database()")).scalar())
-    print("Current Schema:", conn.execute(text("SELECT current_schema()")).scalar())
+engine = create_engine(DATABASE_URL, connect_args=_connect_args)
+
+# Verify connection with a DB-agnostic query
+from sqlalchemy import text
+try:
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))
+    print("Database connection OK")
+except Exception as exc:
+    print(f"Database connection failed: {exc}")
 
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -46,4 +56,4 @@ def get_db():
     try:
         yield db
     finally:
-        db.close()
+        db.close()

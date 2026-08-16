@@ -8,7 +8,6 @@ from app.schemas.notification import NotificationCreate, NotificationResponse
 from app.services.notification_service import NotificationService
 
 router = APIRouter(
-    prefix="/notifications",
     tags=["Notifications"],
 )
 

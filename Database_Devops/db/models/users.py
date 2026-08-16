@@ -30,6 +30,8 @@ if TYPE_CHECKING:
     from db.models.notifications import Notification
     from db.models.streaks import Streak
     from db.models.badges import Badge
+    from db.models.certification_exams import CertificationExam
+    from db.models.accessibility_trainer_learner_mapping import AccessibilityTrainerLearnerMapping
 
 
 class User(Base):
@@ -121,6 +123,25 @@ class User(Base):
 
     notifications: Mapped[list["Notification"]] = relationship(
         back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    certification_exams: Mapped[list["CertificationExam"]] = relationship(
+        back_populates="learner",
+        cascade="all, delete-orphan",
+    )
+
+    trainer_mappings: Mapped[list["AccessibilityTrainerLearnerMapping"]] = relationship(
+        "AccessibilityTrainerLearnerMapping",
+        foreign_keys="[AccessibilityTrainerLearnerMapping.trainer_id]",
+        back_populates="trainer",
+        cascade="all, delete-orphan",
+    )
+
+    learner_mappings: Mapped[list["AccessibilityTrainerLearnerMapping"]] = relationship(
+        "AccessibilityTrainerLearnerMapping",
+        foreign_keys="[AccessibilityTrainerLearnerMapping.learner_id]",
+        back_populates="learner",
         cascade="all, delete-orphan",
     )
 

@@ -38,8 +38,8 @@ class LessonUpdate(BaseModel):
 
 
 class LessonResponse(BaseModel):
-    id: UUID
-    course_id: UUID
+    id: str
+    course_id: str
     letter: str
     title: str
     description: Optional[str] = None
@@ -48,3 +48,11 @@ class LessonResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class LessonWithProgress(LessonResponse):
+    status: str  # 'locked', 'current', or 'completed'
+    stars: int = 0
+    accuracy: float = 0.0
+
+class LessonCompleteRequest(BaseModel):
+    accuracy: float

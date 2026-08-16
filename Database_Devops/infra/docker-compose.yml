@@ -121,6 +121,24 @@ services:
 # Persistent Volumes
 # ============================================================
 
+  bussiness_logic:
+    build:
+      context: ..
+      dockerfile: Database_Devops/bussiness_logic/Dockerfile
+    container_name: signlang_bussiness_logic
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-signlang_app}:${DB_PASSWORD:-changeme_on_day2}@db:5432/${DB_NAME:-signlang_platform}
+    ports:
+      - "8002:8002"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - certificates_data:/app/generated_certificates
+
 volumes:
 
   signlang_pgdata:

@@ -1,4 +1,5 @@
 from uuid import UUID
+from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -49,10 +50,11 @@ class UserLogin(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: UUID
+    id: str
     full_name: str
     email: EmailStr
-    role_id: UUID
+    role_id: str
+    mascot_id: Optional[str] = "owl"
 
     class Config:
         from_attributes = True
@@ -67,6 +69,15 @@ class UpdateProfile(BaseModel):
     full_name: str = Field(min_length=3, max_length=120)
 
     email: EmailStr
+    mascot_id: Optional[str] = "owl"
+
+    @field_validator("full_name")
+    @classmethod
+    def validate_name(cls, value):
+        value = value.strip()
+        if not value:
+            raise ValueError("Full name cannot be empty")
+        return value
 
     @field_validator("full_name")
     @classmethod

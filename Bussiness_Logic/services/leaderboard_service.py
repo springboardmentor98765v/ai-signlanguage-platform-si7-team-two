@@ -21,6 +21,7 @@ def get_leaderboard(
             db.query(
                 User.id,
                 User.full_name,
+                User.mascot_id,
                 func.avg(Assessment.overall_score).label("score"),
             )
             .join(
@@ -34,6 +35,7 @@ def get_leaderboard(
             .group_by(
                 User.id,
                 User.full_name,
+                User.mascot_id,
             )
             .order_by(
                 func.avg(Assessment.overall_score).desc()
@@ -47,6 +49,7 @@ def get_leaderboard(
             db.query(
                 User.id,
                 User.full_name,
+                User.mascot_id,
                 Streak.current_streak.label("score"),
             )
             .join(
@@ -60,13 +63,17 @@ def get_leaderboard(
         )
 
     for rank, learner in enumerate(results, start=1):
+        raw_score = learner.score
+        if raw_score is None:
+            raw_score = 0.0
 
         leaderboard.append(
             LeaderboardEntry(
-                learner_id=learner.id,
+                learner_id=str(learner.id),
                 learner_name=learner.full_name,
-                score=float(learner.score),
+                score=float(raw_score),
                 rank=rank,
+                mascot_id=learner.mascot_id,
             )
         )
 

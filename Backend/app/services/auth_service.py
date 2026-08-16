@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
-from db.models.users import User
-from db.models.roles import Role
+from app.models.user import User
+from app.models.role import Role
 
 from app.utils.hashing import hash_password, verify_password
 from app.utils.jwt_handler import create_access_token
@@ -26,7 +26,8 @@ class AuthService:
                 select(User).where(User.email == user.email)
             ).scalar_one_or_none()
 
-            print("Existing user:", existing_user)
+            if existing_user is not None:
+                raise ValueError("Email already registered")
 
             if existing_user is not None:
                 raise ValueError("Email already registered")
@@ -40,10 +41,14 @@ class AuthService:
             if selected_role is None:
                 raise ValueError(f"Role '{user.role}' does not exist.")
 
+            if learner_role is None:
+                raise ValueError(
+                    "Learner role not found in database. "
+                    "Please run the seed script: python init_and_seed.py"
+                )
+
             print("Hashing password...")
-
             hashed = hash_password(user.password)
-
             print("Password hashed successfully")
 
             new_user = User(
@@ -64,6 +69,7 @@ class AuthService:
         except Exception as e:
             db.rollback()
             print("REGISTER ERROR:", repr(e))
+            db.rollback()
             raise
 
     @staticmethod
@@ -82,11 +88,14 @@ class AuthService:
         ):
             raise ValueError("Invalid email or password")
 
+        # Load the role name via relationship
+        role_name = existing_user.role.name if existing_user.role else "learner"
+
         token = create_access_token(
             {
                 "sub": str(existing_user.id),
                 "email": existing_user.email,
-                "role": existing_user.role.name,
+                "role": role_name,
             }
         )
 
@@ -94,7 +103,14 @@ class AuthService:
             "access_token": token,
             "token_type": "bearer",
             "user": existing_user,
+            "role_name": role_name,
         }
+
+    @staticmethod
+    def get_user(db: Session, user_id: str):
+        return db.execute(
+            select(User).where(User.id == str(user_id))
+        ).scalar_one_or_none()
 
     @staticmethod
     def update_profile(
@@ -102,14 +118,19 @@ class AuthService:
         user_id,
         profile: UpdateProfile,
     ):
-
-        existing_user = db.get(User, user_id)
+        existing_user = db.execute(
+            select(User).where(User.id == str(user_id))
+        ).scalar_one_or_none()
 
         if existing_user is None:
             raise ValueError("User not found")
 
         existing_user.full_name = profile.full_name
         existing_user.email = profile.email
+
+        # Persist mascot selection so it survives refresh / logout
+        if profile.mascot_id is not None:
+            existing_user.mascot_id = profile.mascot_id
 
         db.commit()
         db.refresh(existing_user)
@@ -122,8 +143,9 @@ class AuthService:
         user_id,
         password_data: ChangePassword,
     ):
-
-        existing_user = db.get(User, user_id)
+        existing_user = db.execute(
+            select(User).where(User.id == str(user_id))
+        ).scalar_one_or_none()
 
         if existing_user is None:
             raise ValueError("User not found")
@@ -135,7 +157,6 @@ class AuthService:
             raise ValueError("Old password is incorrect")
 
         existing_user.password_hash = hash_password(password_data.new_password)
-
         db.commit()
 
         return {"message": "Password changed successfully"}
@@ -145,7 +166,6 @@ class AuthService:
         db: Session,
         email: str,
     ):
-
         existing_user = db.execute(
             select(User).where(User.email == email)
         ).scalar_one_or_none()
@@ -166,14 +186,14 @@ class AuthService:
         user_id,
         password_data: ResetPassword,
     ):
-
-        existing_user = db.get(User, user_id)
+        existing_user = db.execute(
+            select(User).where(User.id == str(user_id))
+        ).scalar_one_or_none()
 
         if existing_user is None:
             raise ValueError("User not found")
 
         existing_user.password_hash = hash_password(password_data.new_password)
-
         db.commit()
 
         return {"message": "Password reset successfully"}

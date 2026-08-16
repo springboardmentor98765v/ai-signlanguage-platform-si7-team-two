@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { MASCOTS, getActiveMascotId } from '../mascot/MascotPicker.jsx'
 import './ChampionsRise.css'
 
 // Order the three columns left-to-right as 2nd, 1st, 3rd (classic podium
@@ -61,7 +62,7 @@ function Crackers({ active }) {
   return <div className="champs-crackers" aria-hidden="true">{particles}</div>
 }
 
-function ChampionColumn({ entry, unit, delayMs, tallest }) {
+function ChampionColumn({ entry, unit, delayMs, tallest, currentUser }) {
   const [grown, setGrown] = useState(false)
   const timerRef = useRef(null)
 
@@ -79,16 +80,35 @@ function ChampionColumn({ entry, unit, delayMs, tallest }) {
   return (
     <div className="champs-col">
       <div className={`champs-avatar-wrap ${grown ? 'is-in' : ''}`}>
+        {(() => {
+          const isCurrentUser = currentUser && (entry.learner_id === currentUser.id || entry.learner_id === String(currentUser.id))
+          let effectiveMascotId = entry.mascot_id
+          if (isCurrentUser) {
+            effectiveMascotId = currentUser.mascot_id || getActiveMascotId()
+          }
+          const mascotDef = MASCOTS.find((m) => m.id === effectiveMascotId)
+          return (
+            <>
         {entry.rank === 1 && grown && (
           <span className="champs-sparkle champs-sparkle-a" aria-hidden="true">✦</span>
         )}
         {entry.rank === 1 && grown && (
           <span className="champs-sparkle champs-sparkle-b" aria-hidden="true">✦</span>
         )}
-        <div className={`champs-avatar rank-${entry.rank}`}>
-          {entry.learner_name.charAt(0).toUpperCase()}
+        <div 
+          className={`champs-avatar rank-${entry.rank}`} 
+          style={{ '--avatar-bg': mascotDef?.color }}
+        >
+          {mascotDef ? (
+            <span aria-hidden="true" style={{ fontSize: '1.4em' }}>{mascotDef.emoji}</span>
+          ) : (
+            entry.learner_name.charAt(0).toUpperCase()
+          )}
         </div>
         <span className="champs-rank-chip">#{entry.rank}</span>
+            </>
+          )
+        })()}
       </div>
 
       <p className="champs-name">{entry.learner_name}</p>
@@ -105,7 +125,7 @@ function ChampionColumn({ entry, unit, delayMs, tallest }) {
   )
 }
 
-export default function ChampionsRise({ entries, unit }) {
+export default function ChampionsRise({ entries, unit, currentUser }) {
   const [celebrate, setCelebrate] = useState(false)
 
   useEffect(() => {
@@ -141,6 +161,7 @@ export default function ChampionsRise({ entries, unit }) {
           unit={unit}
           delayMs={delays[rank]}
           tallest={rank === 1}
+          currentUser={currentUser}
         />
       ))}
     </div>

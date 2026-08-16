@@ -19,7 +19,7 @@ from models.practice_model import PracticeSession, Certificate
 from models.assessment_model import Assessment
 from models.streak_model import Streak
 
-from services.weekly_analytics import compute_weekly_stats
+from services.weekly_analytics_engine import compute_weekly_stats
 
 
 # =========================================================

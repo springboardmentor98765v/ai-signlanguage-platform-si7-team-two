@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from uuid import UUID
 
 from app.database.database import get_db
 from app.schemas.user import (
@@ -38,6 +37,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         login_data = AuthService.login(db, user)
 
         logged_user = login_data["user"]
+        role_name = login_data.get("role_name", "learner")
 
         return {
             "message": "Login successful",
@@ -47,8 +47,9 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
                 "id": str(logged_user.id),
                 "full_name": logged_user.full_name,
                 "email": logged_user.email,
-                "role": logged_user.role.name.lower(),
+                "role": role_name.lower(),
                 "role_id": str(logged_user.role_id),
+                "mascot_id": logged_user.mascot_id or "owl",
             },
         }
 
@@ -59,9 +60,29 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         )
 
 
+@router.get("/user/{user_id}")
+def get_user_profile(user_id: str, db: Session = Depends(get_db)):
+    """Fetch fresh user data from DB — used after refresh to avoid stale localStorage."""
+    user = AuthService.get_user(db, user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    role_name = user.role.name.lower() if user.role else "learner"
+    return {
+        "id": str(user.id),
+        "full_name": user.full_name,
+        "email": user.email,
+        "role": role_name,
+        "role_id": str(user.role_id),
+        "mascot_id": user.mascot_id or "owl",
+    }
+
+
 @router.put("/profile/{user_id}", response_model=UserResponse)
 def update_profile(
-    user_id: UUID,
+    user_id: str,
     profile: UpdateProfile,
     db: Session = Depends(get_db),
 ):
@@ -80,7 +101,7 @@ def update_profile(
 
 @router.put("/change-password/{user_id}")
 def change_password(
-    user_id: UUID,
+    user_id: str,
     password_data: ChangePassword,
     db: Session = Depends(get_db),
 ):
@@ -116,7 +137,7 @@ def forgot_password(
 
 @router.post("/reset-password/{user_id}")
 def reset_password(
-    user_id: UUID,
+    user_id: str,
     password_data: ResetPassword,
     db: Session = Depends(get_db),
 ):

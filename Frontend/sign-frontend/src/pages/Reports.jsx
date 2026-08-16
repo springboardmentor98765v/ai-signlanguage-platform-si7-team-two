@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { getUser } from "../utils/auth";
+import Mascot from "../components/mascot/Mascot.jsx";
 import {
   getProgressReport,
   getCertificateEligibility,
@@ -120,9 +121,16 @@ export default function Reports() {
   }
 
   const learnerName = user?.name || user?.full_name || "Learner";
+  const reportMascotState = report?.average_accuracy >= 80 ? 'celebrating' : 'encouraging';
+  const reportMascotLabel = report?.average_accuracy >= 80
+    ? `${report.average_accuracy}% — excellent! 🌟`
+    : `Keep going, ${learnerName.split(' ')[0]}! 💪`;
 
   return (
     <div style={{ padding: 30 }}>
+      <div className="reports-mascot-row" aria-hidden="true">
+        <Mascot state={reportMascotState} size="sm" label={reportMascotLabel} aria-hidden={true} />
+      </div>
       <h1>Progress Report</h1>
 
       <div className="stats-grid" style={{ marginTop: 20, marginBottom: 28 }}>
@@ -215,7 +223,9 @@ export default function Reports() {
           {!eligibility?.eligible && (
             <span className="certificate-lock-icon" aria-hidden="true">🔒</span>
           )}
-          <p className="certificate-seal" aria-hidden="true">🏅</p>
+          <p className="certificate-seal" aria-hidden="true">
+            <img src="/app-logo-master.png" alt="Seal" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+          </p>
           <p className="certificate-kicker">Certificate of Completion</p>
           <p className="certificate-name">{learnerName}</p>
           <p className="certificate-detail">

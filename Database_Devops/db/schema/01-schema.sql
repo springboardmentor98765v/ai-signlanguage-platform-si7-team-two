@@ -246,5 +246,29 @@ CREATE TABLE badges (
     earned_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_badges_learner_id
-ON badges(learner_id);
+CREATE INDEX idx_badges_learner_id ON badges(learner_id);
+
+-- ---------- accessibility_trainer_learner_mapping ----------
+CREATE TABLE accessibility_trainer_learner_mapping (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trainer_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    learner_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (trainer_id, learner_id)
+);
+
+CREATE INDEX idx_mapping_trainer_id ON accessibility_trainer_learner_mapping(trainer_id);
+CREATE INDEX idx_mapping_learner_id ON accessibility_trainer_learner_mapping(learner_id);
+
+-- ---------- certification_exams ----------
+CREATE TABLE certification_exams (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    learner_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    level               VARCHAR(20) NOT NULL CHECK (level IN ('Beginner', 'Intermediate', 'Advanced', 'Professional')),
+    score               NUMERIC(5,2) NOT NULL CHECK (score BETWEEN 0 AND 100),
+    is_passed           BOOLEAN NOT NULL,
+    taken_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+    certificate_id      UUID REFERENCES certificates(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_certification_exams_learner_id ON certification_exams(learner_id);
