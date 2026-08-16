@@ -165,11 +165,17 @@ select:focus-visible,
   background: var(--paper);
 }
 
-.field input:focus,
-.field select:focus {
+.field input:focus {
   outline: 2px solid var(--moss);
   outline-offset: 1px;
   background: white;
+}
+
+.field select:focus {
+  outline: 2px solid var(--moss);
+  outline-offset: 1px;
+  background: var(--paper);
+  color: var(--ink);
 }
 
 .field select {
@@ -180,6 +186,7 @@ select:focus-visible,
   font-size: 14px;
   background: var(--paper);
   color: var(--ink);
+  color-scheme: dark;
 }
 
 .btn-primary {
@@ -987,6 +994,7 @@ select:focus-visible,
   font-size: 13.5px;
   background: var(--panel);
   color: var(--ink);
+  color-scheme: dark;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 

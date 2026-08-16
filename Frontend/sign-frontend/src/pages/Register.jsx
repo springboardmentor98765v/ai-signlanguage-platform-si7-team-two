@@ -78,6 +78,7 @@ export default function Register() {
             <select id="role" value={role} onChange={(e) => setRole(e.target.value)} disabled={isLoading}>
               <option value="learner">Learner</option>
               <option value="instructor">Instructor</option>
+              <option value="trainer">Accessibility Trainer</option>
               <option value="admin">Admin</option>
             </select>
           </div>

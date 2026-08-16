@@ -362,3 +362,91 @@ export async function getRecommendations(learnerId) {
   const res = await fetch(`${BUSINESS_LOGIC_URL}/recommendations/${learnerId}`);
   return handleResponse(res); // { learner_id, recommendations: [{ id, letter_or_word, reason, recent_avg_accuracy, status, created_at }] }
 }
+
+// ---------- Weekly Analytics (Intern 4 — Business Logic) ----------
+// Milestone 2, Day 3: powers the Dashboard's "Accuracy over time" and
+// "Lessons completed" charts with real per-week data instead of mock
+// arrays. See Bussiness_Logic/routers/weekly_analytics.py.
+export async function getWeeklyAnalytics(userId) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/weekly-analytics/${userId}`);
+  return handleResponse(res);
+  // { user_id, weekly_stats: [{ week_start, average_accuracy, improvement_rate, weak_letters, attempts_count }] }
+}
+
+// ---------- Accessibility Trainer (Intern 2 — Backend) ----------
+// Milestone 4, Day 3 (SRS FR-1): connects the Trainer Dashboard to the
+// real Trainer APIs instead of Trainer.jsx's mockLearners. See
+// Backend/app/routers/trainer.py — all 5 endpoints are protected by
+// require_trainer, so every call here needs the Authorization header.
+
+export async function getTrainerLearners() {
+  const res = await fetch(`${API_BASE_URL}/trainer/learners`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse(res); // [{ id, full_name, email, relationship }, ...]
+}
+
+export async function getLearnerEngagement(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/engagement`,
+    { headers: { ...authHeaders() } }
+  );
+  return handleResponse(res);
+  // { total_practice_sessions, completed_sessions, total_attempts,
+  //   total_practice_time, current_streak, longest_streak }
+}
+
+export async function getLearnerSkillDevelopment(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/skill-development`,
+    { headers: { ...authHeaders() } }
+  );
+  return handleResponse(res);
+  // { overall_average_accuracy, recent_average_accuracy,
+  //   previous_average_accuracy, weak_letters, improvement }
+}
+
+export async function getLearnerAssessmentAnalytics(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/assessment-analytics`,
+    { headers: { ...authHeaders() } }
+  );
+  return handleResponse(res);
+  // { total_assessments, average_assessment_score, highest_score,
+  //   lowest_score, attempted_letters, weak_letters }
+}
+
+export async function getLearnerCertificationStatus(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/certification-status`,
+    { headers: { ...authHeaders() } }
+  );
+  return handleResponse(res);
+  // { certification_status, average_score, attempted_letters,
+  //   completed_letters, missing_letters, certificate_earned,
+  //   certificate_details: { certificate_code, issued_at, file_path, is_valid } | null }
+}
+
+// ---------- Admin: Activate/Deactivate user ----------
+// Milestone 2, Day 5 (SRS FR-1): persists the Admin Dashboard's
+// Activate/Deactivate toggle. Needs a matching backend endpoint —
+// PATCH /admin/users/{id}/status — which does not exist yet as of
+// this writing. This call will fail with a 404 until Backend adds it;
+// once it does, this frontend code needs no changes.
+export async function updateUserStatus(id, isActive) {
+  const response = await fetch(`${API_BASE_URL}/admin/users/${id}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
+    body: JSON.stringify({ is_active: isActive }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(extractErrorMessage(data, "Failed to update user status"));
+  }
+
+  return response.json();
+}

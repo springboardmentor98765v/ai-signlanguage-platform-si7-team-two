@@ -32,6 +32,7 @@ export function getRoleHomePath(role) {
     const normalized = (role || "").toLowerCase();
     if (normalized === "instructor") return "/instructor";
     if (normalized === "admin") return "/admin";
+    if (normalized === "trainer") return "/trainer";
     return "/dashboard";
 }
 

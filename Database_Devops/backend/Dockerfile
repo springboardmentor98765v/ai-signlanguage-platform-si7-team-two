@@ -1,25 +1,40 @@
 # ============================================================
-# Backend service Dockerfile — PLACEHOLDER app (see backend/app/main.py).
+# Production Backend Dockerfile
+# AI-Powered Sign Language Learning & Assessment Platform
 #
-# IMPORTANT: build context must be the REPO ROOT, not backend/, because
-# this image needs the shared db/ package (ORM models + engine) alongside
-# the backend app code. infra/docker-compose.yml is already set up with
-# `context: ..` for this service — don't `docker build` this file directly
-# from inside backend/, it will fail to find db/.
+# Build context:
+#   Repository root
+#
+# This image packages:
+#   - Backend/app -> /app/app
+#   - Database_Devops/db -> /app/db
 # ============================================================
+
 FROM python:3.11-slim
+
+# Prevent Python from writing .pyc files and buffer stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
-COPY db/requirements.txt ./db-requirements.txt
-COPY backend/requirements.txt ./backend-requirements.txt
-RUN pip install --no-cache-dir -r db-requirements.txt -r backend-requirements.txt
+# Install database and backend dependencies
+COPY Database_Devops/db/requirements.txt ./db-requirements.txt
+COPY Backend/requirements.txt ./backend-requirements.txt
 
-COPY db/ ./db/
-COPY backend/ ./backend/
+RUN pip install --no-cache-dir \
+    -r db-requirements.txt \
+    -r backend-requirements.txt
 
-ENV PYTHONPATH=/app
+# Copy shared database package
+COPY Database_Devops/db/ ./db/
 
+# Copy the current backend application
+COPY Backend/app/ ./app/
+
+# Backend API port
 EXPOSE 8000
 
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start the actual FastAPI application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
