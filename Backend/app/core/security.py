@@ -1,16 +1,20 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from dotenv import load_dotenv
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 import os
+from uuid import UUID
 
 from app.database.database import get_db
 from db.models.users import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-ALGORITHM = os.getenv("JWT_ALGORITHM")
+load_dotenv()
+
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-key")
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 
 def get_current_user(
@@ -36,7 +40,9 @@ def get_current_user(
         if user_id is None:
             raise credentials_exception
 
-    except JWTError:
+        user_id = UUID(user_id)
+
+    except (JWTError, ValueError):
         raise credentials_exception
 
     user = db.get(User, user_id)
