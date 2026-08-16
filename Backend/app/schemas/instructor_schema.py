@@ -1,7 +1,7 @@
 from uuid import UUID
 from typing import List
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 
 
 class StudentResponse(BaseModel):
@@ -9,17 +9,16 @@ class StudentResponse(BaseModel):
     full_name: str
     email: EmailStr
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StudentProgressResponse(BaseModel):
     average_accuracy: float
     lessons_completed: int
+    total_practice_time: int
     weak_letters: List[str]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AssessmentResponse(BaseModel):
@@ -30,5 +29,4 @@ class AssessmentResponse(BaseModel):
     overall_score: float
     is_correct: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

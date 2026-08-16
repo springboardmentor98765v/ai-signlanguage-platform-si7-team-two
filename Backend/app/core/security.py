@@ -7,7 +7,7 @@ import os
 from uuid import UUID
 
 from app.database.database import get_db
-from db.models.users import User
+from app.models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -57,7 +57,7 @@ def require_admin(
     current_user: User = Depends(get_current_user),
 ):
 
-    if current_user.role.name != "Admin":
+    if not current_user.role or current_user.role.name.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
@@ -70,7 +70,7 @@ def require_instructor(
     current_user: User = Depends(get_current_user),
 ):
 
-    if current_user.role.name != "Instructor":
+    if not current_user.role or current_user.role.name.lower() != "instructor":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Instructor access required",
@@ -83,7 +83,7 @@ def require_learner(
     current_user: User = Depends(get_current_user),
 ):
 
-    if current_user.role.name != "Learner":
+    if not current_user.role or current_user.role.name.lower() != "learner":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Learner access required",
@@ -95,7 +95,7 @@ def require_learner(
 def require_trainer(
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role.name != "Trainer":
+    if not current_user.role or current_user.role.name.lower() != "trainer":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Trainer access required",

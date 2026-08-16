@@ -2,7 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from db.models.notifications import Notification
+from app.models.notification import Notification
 from app.schemas.notification import NotificationCreate
 
 

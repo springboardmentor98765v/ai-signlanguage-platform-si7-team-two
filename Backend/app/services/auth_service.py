@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Session
+from uuid import UUID
+
 from sqlalchemy import select
 
 from app.models.user import User
@@ -16,12 +18,13 @@ from app.schemas.user import (
 
 
 class AuthService:
-
     @staticmethod
     def register(db: Session, user: UserRegister):
         try:
             print("Register called")
+            print("Requested role:", user.role)
 
+            # Check whether email already exists
             existing_user = db.execute(
                 select(User).where(User.email == user.email)
             ).scalar_one_or_none()
@@ -29,28 +32,24 @@ class AuthService:
             if existing_user is not None:
                 raise ValueError("Email already registered")
 
-            if existing_user is not None:
-                raise ValueError("Email already registered")
-
+            # Find the selected role from the database
             selected_role = db.execute(
-                select(Role).where(Role.name == user.role)
+                select(Role).where(Role.name.ilike(user.role))
             ).scalar_one_or_none()
 
             print("Selected role:", selected_role)
 
             if selected_role is None:
-                raise ValueError(f"Role '{user.role}' does not exist.")
-
-            if learner_role is None:
                 raise ValueError(
-                    "Learner role not found in database. "
-                    "Please run the seed script: python init_and_seed.py"
+                    f"Role '{user.role}' does not exist in the database."
                 )
 
+            # Hash password
             print("Hashing password...")
             hashed = hash_password(user.password)
             print("Password hashed successfully")
 
+            # Create user with the SELECTED role
             new_user = User(
                 full_name=user.full_name,
                 email=user.email,
@@ -62,16 +61,23 @@ class AuthService:
             db.commit()
             db.refresh(new_user)
 
-            print("User created:", new_user)
+            print(
+                "User created:",
+                new_user.id,
+                "Role:",
+                selected_role.name,
+            )
 
             return new_user
+
+        except ValueError:
+            db.rollback()
+            raise
 
         except Exception as e:
             db.rollback()
             print("REGISTER ERROR:", repr(e))
-            db.rollback()
             raise
-
     @staticmethod
     def login(db: Session, user: UserLogin):
 
@@ -89,7 +95,11 @@ class AuthService:
             raise ValueError("Invalid email or password")
 
         # Load the role name via relationship
-        role_name = existing_user.role.name if existing_user.role else "learner"
+        role_name = (
+            existing_user.role.name.strip().lower()
+            if existing_user.role
+            else "learner"
+        )
 
         token = create_access_token(
             {
@@ -109,7 +119,7 @@ class AuthService:
     @staticmethod
     def get_user(db: Session, user_id: str):
         return db.execute(
-            select(User).where(User.id == str(user_id))
+            select(User).where(User.id == UUID(str(user_id)))
         ).scalar_one_or_none()
 
     @staticmethod
@@ -119,7 +129,7 @@ class AuthService:
         profile: UpdateProfile,
     ):
         existing_user = db.execute(
-            select(User).where(User.id == str(user_id))
+            select(User).where(User.id == UUID(str(user_id)))
         ).scalar_one_or_none()
 
         if existing_user is None:
@@ -144,7 +154,7 @@ class AuthService:
         password_data: ChangePassword,
     ):
         existing_user = db.execute(
-            select(User).where(User.id == str(user_id))
+            select(User).where(User.id == UUID(str(user_id)))
         ).scalar_one_or_none()
 
         if existing_user is None:
@@ -187,7 +197,7 @@ class AuthService:
         password_data: ResetPassword,
     ):
         existing_user = db.execute(
-            select(User).where(User.id == str(user_id))
+            select(User).where(User.id == UUID(str(user_id)))
         ).scalar_one_or_none()
 
         if existing_user is None:

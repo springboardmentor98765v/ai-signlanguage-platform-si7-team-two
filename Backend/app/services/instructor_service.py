@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Session
 
-from db.models.users import User
-from db.models.roles import Role
-from db.models.practice_sessions import PracticeSession
-from db.models.assessments import Assessment
-from db.models.learner_analytics import LearnerAnalytics
+from sqlalchemy import func
+
+from app.models.analytics_summary import AnalyticsSummary
+from app.models.assessment import Assessment
+from app.models.practice_session import PracticeSession
+from app.models.role import Role
+from app.models.user import User
 
 
 class InstructorService:
@@ -14,8 +16,8 @@ class InstructorService:
 
         students = (
             db.query(User)
-            .join(Role)
-            .filter(Role.name == "Learner")
+            .join(Role, User.role_id == Role.id)
+            .filter(func.lower(Role.name) == "learner")
             .all()
         )
 
@@ -28,15 +30,20 @@ class InstructorService:
     ):
 
         progress = (
-            db.query(LearnerAnalytics)
+            db.query(AnalyticsSummary)
             .filter(
-                LearnerAnalytics.user_id == student_id
+                AnalyticsSummary.user_id == student_id
             )
             .first()
         )
 
         if progress is None:
-            raise ValueError("Student progress not found")
+            return {
+                "average_accuracy": 0.0,
+                "lessons_completed": 0,
+                "total_practice_time": 0,
+                "weak_letters": [],
+            }
 
         return progress
 
@@ -46,16 +53,12 @@ class InstructorService:
         student_id,
     ):
 
-        assessments = (
+        return (
             db.query(Assessment)
             .join(
                 PracticeSession,
                 Assessment.session_id == PracticeSession.id,
             )
-            .filter(
-                PracticeSession.user_id == student_id
-            )
+            .filter(PracticeSession.user_id == student_id)
             .all()
         )
-
-        return assessments

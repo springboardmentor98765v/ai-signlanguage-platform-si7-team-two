@@ -1,17 +1,27 @@
 from uuid import UUID
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class UserRegister(BaseModel):
-    full_name: str = Field(min_length=3, max_length=120, examples=["John Doe"])
+    full_name: str = Field(
+        min_length=3,
+        max_length=120,
+        examples=["John Doe"]
+    )
 
-    email: EmailStr = Field(examples=["john@example.com"])
+    email: EmailStr
 
-    password: str = Field(min_length=8, max_length=100, examples=["Password@123"])
+    password: str = Field(
+        min_length=8,
+        max_length=100
+    )
 
-    role: str = Field(default="learner", examples=["learner"])
+    role: str = Field(
+        default="learner",
+        examples=["learner"]
+    )
 
     @field_validator("full_name")
     @classmethod
@@ -41,23 +51,26 @@ class UserRegister(BaseModel):
                 "Must be one of: learner, instructor, trainer, admin."
             )
 
-        return normalized.capitalize()
+        return normalized
 
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=100)
+
+    password: str = Field(
+        min_length=8,
+        max_length=100
+    )
 
 
 class UserResponse(BaseModel):
-    id: str
+    id: UUID
     full_name: str
     email: EmailStr
-    role_id: str
+    role_id: UUID
     mascot_id: Optional[str] = "owl"
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):
@@ -66,18 +79,14 @@ class Token(BaseModel):
 
 
 class UpdateProfile(BaseModel):
-    full_name: str = Field(min_length=3, max_length=120)
+    full_name: str = Field(
+        min_length=3,
+        max_length=120
+    )
 
     email: EmailStr
-    mascot_id: Optional[str] = "owl"
 
-    @field_validator("full_name")
-    @classmethod
-    def validate_name(cls, value):
-        value = value.strip()
-        if not value:
-            raise ValueError("Full name cannot be empty")
-        return value
+    mascot_id: Optional[str] = "owl"
 
     @field_validator("full_name")
     @classmethod
@@ -91,9 +100,15 @@ class UpdateProfile(BaseModel):
 
 
 class ChangePassword(BaseModel):
-    old_password: str = Field(min_length=8, max_length=100)
+    old_password: str = Field(
+        min_length=8,
+        max_length=100
+    )
 
-    new_password: str = Field(min_length=8, max_length=100)
+    new_password: str = Field(
+        min_length=8,
+        max_length=100
+    )
 
 
 class ForgotPassword(BaseModel):
@@ -101,4 +116,7 @@ class ForgotPassword(BaseModel):
 
 
 class ResetPassword(BaseModel):
-    new_password: str = Field(min_length=8, max_length=100)
+    new_password: str = Field(
+        min_length=8,
+        max_length=100
+    )

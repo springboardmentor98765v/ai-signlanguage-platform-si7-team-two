@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# Register the analytics_summary SQLAlchemy mapping on the application's Base.
+from app.models.analytics_summary import AnalyticsSummary
 from app.routers import auth
 from app.routers import practice
 from app.routers import lesson

@@ -23,8 +23,6 @@ if DATABASE_URL is None:
         f"DATABASE_URL not found. Expected .env at: {BASE_DIR / '.env'}"
     )
 
-print("DATABASE_URL =", DATABASE_URL)
-
 # SQLite needs check_same_thread=False for FastAPI's threading model.
 # PostgreSQL doesn't use connect_args so the dict is harmless either way.
 _connect_args = {}
@@ -56,4 +54,4 @@ def get_db():
     try:
         yield db
     finally:
-        db.close()
+        db.close()
