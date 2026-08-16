@@ -7,38 +7,54 @@ export default function Instructor() {
   const [selectedProgress, setSelectedProgress] = useState(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [studentsError, setStudentsError] = useState("");
+  const [progressError, setProgressError] = useState("");
 
   // Load all students
   useEffect(() => {
-    async function loadStudents() {
-      try {
-        const data = await getStudents();
-        setStudents(data);
-
-        if (data.length > 0) {
-          setSelectedId(data[0].id);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     loadStudents();
   }, []);
+
+  async function loadStudents() {
+    setLoading(true);
+    try {
+      const data = await getStudents();
+      setStudents(data);
+      setStudentsError("");
+
+      if (data.length > 0) {
+        setSelectedId(data[0].id);
+      }
+    } catch (err) {
+      console.error(err);
+      // Milestone 3, Day 7: previously silent — an instructor whose
+      // student list failed to load just saw "No students found.",
+      // indistinguishable from genuinely having zero students.
+      setStudentsError(
+        "We couldn't load your students. Please check your connection and try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Load selected student's progress
   useEffect(() => {
     if (!selectedId) return;
 
     async function loadProgress() {
+      setProgressError("");
       try {
         const data = await getStudentProgress(selectedId);
         setSelectedProgress(data);
       } catch (err) {
         console.error(err);
         setSelectedProgress(null);
+        // Milestone 3, Day 7: same fix — this used to look identical to
+        // "no analytics available", which is a legitimate different state.
+        setProgressError(
+          "We couldn't load this student's progress. Please try again.",
+        );
       }
     }
 
@@ -85,7 +101,18 @@ export default function Instructor() {
             Students ({filteredStudents.length})
           </p>
 
-          {filteredStudents.length === 0 ? (
+          {studentsError ? (
+            <div className="empty-page" role="alert">
+              <p>{studentsError}</p>
+              <button
+                type="button"
+                className="btn-secondary btn-inline"
+                onClick={loadStudents}
+              >
+                Try Again
+              </button>
+            </div>
+          ) : filteredStudents.length === 0 ? (
             <p className="lessons-status">
               No students found.
             </p>
@@ -138,7 +165,11 @@ export default function Instructor() {
                 {selectedStudent.email}
               </p>
 
-              {selectedProgress ? (
+              {progressError ? (
+                <p className="lessons-status" role="alert">
+                  {progressError}
+                </p>
+              ) : selectedProgress ? (
                 <>
                   <div className="summary-row">
                     <span>Overall Accuracy</span>

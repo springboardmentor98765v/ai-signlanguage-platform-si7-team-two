@@ -81,8 +81,12 @@ export default function Dashboard() {
           </div>
 
           <div className="chart-grid">
-            <AccuracyOverTimeChart />
-            <LessonsCompletedChart />
+            {accuracyChartData.length > 0 && (
+              <AccuracyOverTimeChart data={accuracyChartData} />
+            )}
+            {lessonsChartData.length > 0 && (
+              <LessonsCompletedChart data={lessonsChartData} />
+            )}
           </div>
         </>
       )}

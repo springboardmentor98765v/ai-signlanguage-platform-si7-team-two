@@ -2597,4 +2597,4 @@ select:focus {
 @media (prefers-reduced-motion: reduce) {
   .mascot-parallax { transform: none; transition: none; }
 }
-
+

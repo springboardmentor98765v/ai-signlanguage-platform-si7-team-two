@@ -63,6 +63,14 @@ export default function App() {
           }
         />
         <Route
+          path="/certification"
+          element={
+            <RoleRoute allowedRoles={["learner"]}>
+              <Certification />
+            </RoleRoute>
+          }
+        />
+        <Route
           path="/leaderboard"
           element={
             <RoleRoute allowedRoles={["learner"]}>

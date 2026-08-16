@@ -64,6 +64,14 @@ class UpdateProfile(BaseModel):
             raise ValueError("Full name cannot be empty")
         return value
 
+    @field_validator("full_name")
+    @classmethod
+    def validate_name(cls, value):
+        value = value.strip()
+        if not value:
+            raise ValueError("Full name cannot be empty")
+        return value
+
 
 class ChangePassword(BaseModel):
     old_password: str = Field(min_length=8, max_length=100)

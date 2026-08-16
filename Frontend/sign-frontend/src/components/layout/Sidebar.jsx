@@ -9,6 +9,7 @@ const links = [
   { to: '/practice/A', label: 'Practice', roles: ['learner'] },
 
   { to: '/reports', label: 'Reports', roles: ['learner'] },
+  { to: '/certification', label: 'Certification', roles: ['learner'] },
   { to: '/leaderboard', label: 'Leaderboard', roles: ['learner'] },
   { to: '/exam', label: 'Exam', roles: ['learner'] },
   { to: '/instructor', label: 'Instructor', roles: ['instructor'] },

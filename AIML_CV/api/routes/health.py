@@ -8,7 +8,8 @@ router = APIRouter(
 
 @router.get("/health")
 def health():
-
     return {
-        "status": "healthy"
+        "status": "healthy",
+        "service": "sign-language-ai",
+        "model": "best_xgb_tuned"
     }

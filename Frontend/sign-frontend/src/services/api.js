@@ -488,4 +488,4 @@ export async function getTrainerLearners(trainerId) {
 export async function getTrainerAnalytics(trainerId) {
   const res = await fetch(`${BUSINESS_LOGIC_URL}/accessibility-trainer/${trainerId}/analytics`);
   return handleResponse(res);
-}
+}

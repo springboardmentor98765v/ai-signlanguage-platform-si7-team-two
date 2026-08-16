@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from routers import (
     ai,
     practice,
@@ -11,14 +12,18 @@ from routers import (
     badge,
     leaderboard,
     progress_report,
+    reports,
 )
+
 from routers.certificate import router as certificate_router
 from routers.recommendation import router as recommendation_router
 from routers.weekly_analytics import router as weekly_analytics_router
 from routers.certification_exam import router as certification_exam_router
 from routers.accessibility_trainer import router as accessibility_trainer_router
 
+
 app = FastAPI(title="Business Logic Service")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,6 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 app.include_router(ai.router)
 app.include_router(weekly_analytics_router)
 app.include_router(practice.router)
@@ -44,10 +50,12 @@ app.include_router(streak.router)
 app.include_router(badge.router)
 app.include_router(leaderboard.router)
 app.include_router(progress_report.router)
+app.include_router(reports.router)
 app.include_router(integration.router)
 app.include_router(recommendation_router)
 app.include_router(certification_exam_router)
 app.include_router(accessibility_trainer_router)
+
 
 
 @app.get("/health")

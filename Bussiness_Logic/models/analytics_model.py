@@ -14,7 +14,7 @@ from database import Base
 
 
 class AnalyticsSummary(Base):
-    __tablename__ = "analytics_summary"
+    __tablename__ = "learner_analytics"
 
     user_id = Column(
         String(36),

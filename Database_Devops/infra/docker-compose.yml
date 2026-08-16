@@ -1,92 +1,125 @@
 # ============================================================
-# Updated: Milestone 2, Day 7 (Intern 5: Database & DevOps)
+# Production-ready Docker Compose
+# AI-Powered Sign Language Learning & Assessment Platform
 #
-# Changes vs. the Day 5 version:
-#   - backend now reads the full .env file (env_file:), which picks up
-#     the new Milestone 2 email variables (EMAIL_HOST, EMAIL_PORT, …)
-#     needed by Intern 2's forgot-password flow.
-#   - New shared volume `certificates_data` mounted into the backend at
-#     /app/generated_certificates so PDF certificates Intern 4 generates
-#     survive container restarts and can be served back to the frontend.
-#   - ai-service also gets env_file: for any shared config it may need.
-#   - Variable names (DB_USER / DB_PASSWORD / DB_NAME) unchanged from Day 5
-#     so existing .env files keep working without modification.
+# Services:
+#   - PostgreSQL database
+#   - FastAPI backend
+#   - AI service
 #
-# Original Day 5 header:
-# "write a docker-compose.yml that spins up backend + AI
-#  service + database together for the whole team."
+# Production environment:
+#   .env.production
 #
-# Build contexts for backend/ai-service are the REPO ROOT (`..`), not
-# their own folders — backend needs the shared db/ package alongside its
-# app code. See the NOTE comments in backend/Dockerfile and
-# ai-service/Dockerfile for why.
+# Run from repository root:
 #
-# Usage (run from the repo root):
-#   docker compose --env-file .env -f infra/docker-compose.yml up -d --build
+#   docker compose --env-file .env.production -f Database_Devops/infra/docker-compose.yml up -d --build
 #
-# This supersedes docker-compose.db.yml for day-to-day full-stack work;
-# docker-compose.db.yml still exists for anyone who only wants the
-# database running (e.g. while developing backend/ai-service locally,
-# outside Docker, against a containerized DB).
 # ============================================================
 
 services:
+
+  # ----------------------------------------------------------
+  # PostgreSQL Database
+  # ----------------------------------------------------------
   db:
     image: postgres:16-alpine
     container_name: signlang_postgres
     restart: unless-stopped
+
     environment:
       POSTGRES_DB: ${DB_NAME:-signlang_platform}
       POSTGRES_USER: ${DB_USER:-signlang_app}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme_on_day2}
-    ports:
-      - "${DB_PORT:-5432}:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
     volumes:
       - signlang_pgdata:/var/lib/postgresql/data
       - ./init:/docker-entrypoint-initdb.d:ro
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-signlang_app} -d ${DB_NAME:-signlang_platform}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-signlang_app} -d ${DB_NAME:-signlang_platform}"
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 10s
 
+    # Database is intentionally not exposed directly to the host.
+    # Backend communicates with PostgreSQL through the Docker network.
+    expose:
+      - "5432"
+
+
+  # ----------------------------------------------------------
+  # FastAPI Backend
+  # ----------------------------------------------------------
   backend:
     build:
-      context: ..
-      dockerfile: backend/Dockerfile
+      # Build context is the repository root because the backend
+      # needs both Backend/ and Database_Devops/db/.
+      context: ../..
+      dockerfile: Database_Devops/backend/Dockerfile
+
     container_name: signlang_backend
     restart: unless-stopped
+
     env_file:
-      - ../.env          # loads email + certificate vars for Milestone 2
+      - ../../.env.production
+
     environment:
-      # Inside the Docker network, the DB is reachable by service name
-      # ("db"), not "localhost" — override just this one piece of the
-      # .env file's local-dev value for in-container use.
-      DATABASE_URL: postgresql://${DB_USER:-signlang_app}:${DB_PASSWORD:-changeme_on_day2}@db:5432/${DB_NAME:-signlang_platform}
+      # Inside Docker, PostgreSQL is reachable using the service
+      # name "db", not localhost.
+      DATABASE_URL: postgresql://${DB_USER:-signlang_app}:${DB_PASSWORD}@db:5432/${DB_NAME:-signlang_platform}
+
     ports:
       - "8000:8000"
+
     depends_on:
       db:
         condition: service_healthy
+
     volumes:
-      # Shared volume so Intern 4's certificate PDFs (Day 7 of the
-      # business-logic track) persist across restarts and can be served
-      # back to the frontend without a separate upload step.
+      # Persist generated certificate PDFs across container restarts.
       - certificates_data:/app/generated_certificates
 
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+
+  # ----------------------------------------------------------
+  # AI Service
+  # ----------------------------------------------------------
   ai-service:
     build:
-      context: ..
-      dockerfile: ai-service/Dockerfile
+      # The AI service is self-contained inside
+      # Database_Devops/ai-service/.
+      context: ../ai-service
+      dockerfile: Dockerfile
+
     container_name: signlang_ai_service
     restart: unless-stopped
+
     env_file:
-      - ../.env          # picks up any shared Milestone 2 vars it needs
+      - ../../.env.production
+
+    # AI Dockerfile exposes port 8500.
     ports:
-      - "8001:8001"
-    # No DB dependency for the placeholder — Intern 3's real service may
-    # add one later (e.g. to log predictions), at which point add a
-    # `depends_on: db` here too.
+      - "8500:8500"
+
+
+# ============================================================
+# Persistent Volumes
+# ============================================================
 
   bussiness_logic:
     build:
@@ -107,7 +140,9 @@ services:
       - certificates_data:/app/generated_certificates
 
 volumes:
+
   signlang_pgdata:
     name: signlang_pgdata
+
   certificates_data:
     name: signlang_certificates
