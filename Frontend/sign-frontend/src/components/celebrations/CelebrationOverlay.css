@@ -1,0 +1,137 @@
+/* ============================================================
+   CelebrationOverlay Styles
+   type="course"  → full-screen confetti + mascot
+   type="badge"   → trophy zoom + confetti
+   All animations are reduced-motion safe.
+   ============================================================ */
+
+/* ---------- Overlay backdrop ---------- */
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 9, 24, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 24px;
+  text-align: center;
+  animation: overlay-fade-in 0.35s ease forwards;
+}
+
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---------- Content card ---------- */
+.celebration-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 440px;
+  width: 100%;
+  background: var(--panel, #1b1a30);
+  border: 1.5px solid var(--line, #2e2d4d);
+  border-radius: 20px;
+  padding: 40px 36px 32px;
+  animation: card-slide-up 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes card-slide-up {
+  from { transform: translateY(40px) scale(0.92); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ---------- Trophy zoom (badge type) ---------- */
+.celebration-trophy {
+  font-size: 72px;
+  line-height: 1;
+  animation: trophy-zoom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  display: inline-block;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 0 24px var(--gold, #f4c452));
+}
+
+@keyframes trophy-zoom {
+  0%   { transform: scale(0.1) rotate(-15deg); opacity: 0; }
+  60%  { transform: scale(1.15) rotate(5deg); opacity: 1; }
+  80%  { transform: scale(0.95) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* ---------- Course completion illustration ---------- */
+.celebration-course-icon {
+  font-size: 56px;
+  animation: trophy-zoom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  display: inline-block;
+  filter: drop-shadow(0 0 20px var(--moss, #2fd48f));
+}
+
+/* ---------- Typography ---------- */
+.celebration-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+  background: linear-gradient(135deg, var(--gold, #f4c452), var(--moss-light, #6be8b4));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.celebration-subtitle {
+  font-size: 15px;
+  color: var(--muted, #a8a4c8);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ---------- Stars row ---------- */
+.celebration-stars {
+  display: flex;
+  gap: 6px;
+  font-size: 22px;
+}
+
+/* ---------- Dismiss button ---------- */
+.celebration-dismiss {
+  margin-top: 8px;
+  background: var(--moss, #2fd48f);
+  color: #11101f;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 32px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  min-width: 140px;
+}
+
+.celebration-dismiss:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(47, 212, 143, 0.35);
+}
+
+.celebration-dismiss:active {
+  transform: translateY(0);
+}
+
+/* ---------- Reduced-motion overrides ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .celebration-overlay,
+  .celebration-card,
+  .celebration-trophy,
+  .celebration-course-icon {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

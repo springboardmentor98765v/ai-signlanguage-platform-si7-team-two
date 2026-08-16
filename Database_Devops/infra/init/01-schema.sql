@@ -36,6 +36,7 @@ CREATE TABLE users (
     full_name       VARCHAR(120) NOT NULL,
     email           VARCHAR(255) NOT NULL UNIQUE,
     password_hash   VARCHAR(255) NOT NULL,
+    mascot_id       VARCHAR(50) DEFAULT 'owl',
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()

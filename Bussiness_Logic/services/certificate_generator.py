@@ -43,6 +43,13 @@ def generate_certificate_pdf(
     c.rect(1.4 * cm, 1.4 * cm, width - 2.8 * cm, height - 2.8 * cm)
 
     # =====================================================
+    # Logo
+    # =====================================================
+    logo_path = os.path.join("..", "Frontend", "sign-frontend", "public", "app-logo-master.png")
+    if os.path.exists(logo_path):
+        c.drawImage(logo_path, width / 2 - 1.5 * cm, height - 6.0 * cm, width=3*cm, height=3*cm, mask='auto')
+
+    # =====================================================
     # Platform Name
     # =====================================================
     c.setFont("Helvetica-Bold", 18)
@@ -60,7 +67,7 @@ def generate_certificate_pdf(
     c.setFillColor(colors.HexColor("#B8860B"))
     c.drawCentredString(
         width / 2,
-        height - 4.5 * cm,
+        height - 7.5 * cm,
         "CERTIFICATE OF COMPLETION"
     )
 
@@ -71,7 +78,7 @@ def generate_certificate_pdf(
     c.setFillColor(colors.black)
     c.drawCentredString(
         width / 2,
-        height - 6.5 * cm,
+        height - 9.0 * cm,
         "This certificate is proudly presented to"
     )
 
@@ -82,7 +89,7 @@ def generate_certificate_pdf(
     c.setFillColor(colors.darkblue)
     c.drawCentredString(
         width / 2,
-        height - 8.5 * cm,
+        height - 11.0 * cm,
         learner_name.upper()
     )
 
@@ -93,19 +100,19 @@ def generate_certificate_pdf(
 
     c.drawCentredString(
         width / 2,
-        height - 10.2 * cm,
+        height - 12.5 * cm,
         "for successfully completing the"
     )
 
     c.drawCentredString(
         width / 2,
-        height - 11.0 * cm,
+        height - 13.3 * cm,
         "AI Sign Language Learning Course"
     )
 
     c.drawCentredString(
         width / 2,
-        height - 11.8 * cm,
+        height - 14.1 * cm,
         f"with an average accuracy of {average_score:.2f}%"
     )
 
@@ -113,7 +120,7 @@ def generate_certificate_pdf(
     # Decorative Line
     # =====================================================
     c.setStrokeColor(colors.grey)
-    c.line(4 * cm, height - 13.2 * cm, width - 4 * cm, height - 13.2 * cm)
+    c.line(4 * cm, height - 15.5 * cm, width - 4 * cm, height - 15.5 * cm)
 
     # =====================================================
     # Date

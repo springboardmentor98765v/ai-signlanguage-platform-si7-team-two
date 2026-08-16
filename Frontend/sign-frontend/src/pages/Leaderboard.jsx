@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { getLeaderboard } from '../services/api.js'
 import { getUser } from '../utils/auth.js'
 import ChampionsRise from '../components/leaderboard/ChampionsRise.jsx'
+import Mascot from '../components/mascot/Mascot.jsx'
+import { MASCOTS, getActiveMascotId } from '../components/mascot/MascotPicker.jsx'
 
 const METRICS = {
   accuracy: { label: 'By Accuracy', unit: '%', apiKey: 'accuracy' },
@@ -13,6 +15,31 @@ function medalFor(rank) {
   if (rank === 2) return '🥈'
   if (rank === 3) return '🥉'
   return null
+}
+
+/** Determine mascot state based on the current user's rank in the list. */
+function mascotStateFor(entries, currentUser) {
+  if (!currentUser) return 'encouraging'
+  const mine = entries.find(
+    (e) => e.learner_id === currentUser.id || e.learner_id === String(currentUser.id)
+  )
+  if (!mine) return 'encouraging'
+  if (mine.rank === 1) return 'celebrating'
+  if (mine.rank <= 5) return 'encouraging'
+  return 'idle'
+}
+
+/** Bubble text based on mascot state and user rank. */
+function mascotLabel(entries, currentUser) {
+  if (!currentUser) return 'You can do it! 💪'
+  const mine = entries.find(
+    (e) => e.learner_id === currentUser.id || e.learner_id === String(currentUser.id)
+  )
+  if (!mine) return 'Keep practising! 🌟'
+  if (mine.rank === 1) return "You're #1! 🏆"
+  if (mine.rank <= 3) return `#${mine.rank} — great work!`
+  if (mine.rank <= 5) return `#${mine.rank} — almost there!`
+  return `#${mine.rank} — keep going!`
 }
 
 export default function Leaderboard() {
@@ -42,6 +69,9 @@ export default function Leaderboard() {
   useEffect(() => {
     fetchLeaderboard()
   }, [fetchLeaderboard])
+
+  const mState = entries.length > 0 ? mascotStateFor(entries, currentUser) : 'idle'
+  const mLabel = entries.length > 0 ? mascotLabel(entries, currentUser) : undefined
 
   return (
     <div>
@@ -84,7 +114,12 @@ export default function Leaderboard() {
         </div>
       ) : (
         <div className="report-panel">
-          <ChampionsRise entries={entries} unit={activeMetric.unit} />
+          {/* Mascot reacting to the current user's position */}
+          <div className="leaderboard-mascot-row" aria-hidden="true">
+            <Mascot state={mState} size="md" label={mLabel} mascotId={currentUser?.mascot_id} aria-hidden={true} />
+          </div>
+
+          <ChampionsRise entries={entries} unit={activeMetric.unit} currentUser={currentUser} />
 
           <p className="panel-title" id="leaderboard-table-caption">
             Class ranking ({activeMetric.label.toLowerCase()})
@@ -108,25 +143,50 @@ export default function Leaderboard() {
               <tbody>
                 {entries.map((entry) => {
                   const isCurrentUser =
-                    currentUser && entry.learner_id === currentUser.id
+                    currentUser &&
+                    (entry.learner_id === currentUser.id || entry.learner_id === String(currentUser.id))
+                  const isFirst = entry.rank === 1
                   return (
                     <tr
                       key={entry.learner_id}
-                      className={isCurrentUser ? 'leaderboard-row current-user-row' : 'leaderboard-row'}
+                      className={[
+                        'leaderboard-row',
+                        isCurrentUser ? 'current-user-row' : '',
+                        isFirst ? 'rank-1-row' : '',
+                      ].filter(Boolean).join(' ')}
                     >
                       <td>
                         <span className="rank-cell">
-                          {medalFor(entry.rank) && (
+                          {isFirst ? (
+                            <span className="rank-dance-icon" aria-hidden="true">🥇</span>
+                          ) : medalFor(entry.rank) ? (
                             <span aria-hidden="true">{medalFor(entry.rank)}</span>
-                          )}
+                          ) : null}
                           <span className={medalFor(entry.rank) ? 'sr-only' : ''}>
                             #{entry.rank}
                           </span>
                         </span>
                       </td>
-                      <td>
+                      <td className="leaderboard-name-cell">
+                        {(() => {
+                          let effectiveMascotId = entry.mascot_id
+                          if (isCurrentUser) {
+                            effectiveMascotId = currentUser.mascot_id || getActiveMascotId()
+                          }
+                          const mascotDef = MASCOTS.find((m) => m.id === effectiveMascotId)
+                          return (
+                            <div className="list-avatar" style={{ '--avatar-bg': mascotDef?.color }}>
+                              {mascotDef ? (
+                                <span aria-hidden="true">{mascotDef.emoji}</span>
+                              ) : (
+                                entry.learner_name.charAt(0).toUpperCase()
+                              )}
+                            </div>
+                          )
+                        })()}
                         {entry.learner_name}
                         {isCurrentUser && <span className="you-label">You</span>}
+                        {isFirst && <span className="rank-1-crown" aria-hidden="true"> 👑</span>}
                       </td>
                       <td>
                         {Math.round(entry.score)}

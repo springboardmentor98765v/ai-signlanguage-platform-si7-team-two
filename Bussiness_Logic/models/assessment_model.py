@@ -1,4 +1,5 @@
 from datetime import datetime
+import uuid
 
 from sqlalchemy import (
     Boolean,
@@ -7,9 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     Numeric,
     String,
-    text,
 )
-from sqlalchemy.dialects.postgresql import  UUID
 
 from database import Base
 
@@ -18,19 +17,19 @@ class Assessment(Base):
     __tablename__ = "assessments"
 
     id = Column(
-        UUID(as_uuid=True),
+        String(36),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=lambda: str(uuid.uuid4()),
     )
 
     session_id = Column(
-        UUID(as_uuid=True),
+        String(36),
         ForeignKey("practice_sessions.id", ondelete="CASCADE"),
         nullable=False,
     )
     expected_sign = Column(
-    String(2),
-    nullable=False,
+        String(2),
+        nullable=False,
     )
 
 

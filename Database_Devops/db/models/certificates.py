@@ -20,6 +20,7 @@ from db.models.base import Base
 
 if TYPE_CHECKING:
     from db.models.users import User
+    from db.models.certification_exams import CertificationExam
 
 class Certificate(Base):
     __tablename__ = "certificates"
@@ -51,6 +52,10 @@ class Certificate(Base):
     is_valid: Mapped[bool] = mapped_column(nullable=False, server_default="true")
 
     learner: Mapped["User"] = relationship(back_populates="certificates")
+    certification_exam: Mapped["CertificationExam | None"] = relationship(
+        back_populates="certificate",
+        uselist=False
+    )
 
     def __repr__(self) -> str:
         return (

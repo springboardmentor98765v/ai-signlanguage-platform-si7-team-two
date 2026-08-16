@@ -30,7 +30,7 @@ export default function ForgotPassword() {
     <div className="auth-shell">
       <main className="auth-card">
         <div className="auth-brand">
-          <div className="mark">SL</div>
+          <div className="mark" style={{ background: 'transparent' }}><img src="/app-logo-master.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
           <div className="name">SignLearn</div>
         </div>
 

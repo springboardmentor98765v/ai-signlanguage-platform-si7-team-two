@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, Date, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, Integer, Date, ForeignKey, String
 import uuid
 
 from database import Base
@@ -9,13 +8,13 @@ class Streak(Base):
     __tablename__ = "streaks"
 
     id = Column(
-        UUID(as_uuid=True),
+        String(36),
         primary_key=True,
-        default=uuid.uuid4,
+        default=lambda: str(uuid.uuid4()),
     )
 
     learner_id = Column(
-        UUID(as_uuid=True),
+        String(36),
         ForeignKey("users.id"),
         nullable=False,
         unique=True,

@@ -1,0 +1,74 @@
+/* ============================================================
+   HandDemo Styles — animated reference hand on Practice screen
+   ============================================================ */
+
+.hand-demo {
+  border: 1px solid var(--line, #2a2a2a);
+  border-radius: var(--radius, 12px);
+  background: var(--panel, #1a1a1a);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px; /* Extra gap */
+  width: 100px; /* Force a small container width */
+  margin: 0 auto;
+}
+
+.hand-demo__label {
+  font-size: 14px;
+  text-align: center;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.hand-demo__img {
+  width: 100%;
+  height: auto;
+  max-height: 60px; /* Reduced from 80px to make reference smaller */
+  object-fit: contain;
+  margin-bottom: 8px; /* Add space between image and label to fix overlap */
+  /* Breathing scale + gentle lift loop — "the hand is alive" */
+  animation: 
+    hand-breathe 2.4s ease-in-out infinite,
+    hand-pivot   3.6s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+/* Modifier sizes if needed in future */
+.hand-demo--sm { width: 80px; padding: 8px; }
+.hand-demo--md { width: 100px; padding: 12px; }
+.hand-demo--lg { width: 140px; padding: 16px; }
+
+/* SVG canvas */
+.hand-demo__svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  /* Breathing scale + gentle lift loop — "the hand is alive" */
+  animation: 
+    hand-breathe 2.4s ease-in-out infinite,
+    hand-pivot   3.6s ease-in-out infinite;
+  transform-origin: 70px 120px; /* pivot at palm centre */
+}
+
+@keyframes hand-breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  30%       { transform: scale(1.04) translateY(-2px); }
+  60%       { transform: scale(0.98) translateY(1px); }
+}
+
+@keyframes hand-pivot {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(-4deg); }
+  75%       { transform: rotate(3deg); }
+}
+
+/* Reduced-motion: static, no loop */
+@media (prefers-reduced-motion: reduce) {
+  .hand-demo__svg {
+    animation: none !important;
+    transform: none !important;
+  }
+}
