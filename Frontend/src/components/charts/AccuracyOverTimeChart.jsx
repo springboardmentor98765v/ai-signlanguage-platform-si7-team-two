@@ -9,17 +9,7 @@ import {
 } from "recharts";
 
 // Mock data — swap for real data from Intern 4's Analytics API (Day 9)
-const mockAccuracyData = [
-  { day: "Mon", accuracy: 62 },
-  { day: "Tue", accuracy: 68 },
-  { day: "Wed", accuracy: 71 },
-  { day: "Thu", accuracy: 75 },
-  { day: "Fri", accuracy: 74 },
-  { day: "Sat", accuracy: 81 },
-  { day: "Sun", accuracy: 85 },
-];
-
-export default function AccuracyOverTimeChart({ data = mockAccuracyData }) {
+export default function AccuracyOverTimeChart({ data }) {
   return (
     <div className="chart-card">
       <p className="label">Accuracy over time</p>

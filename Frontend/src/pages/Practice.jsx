@@ -5,6 +5,7 @@ import {
   getLessons,
   startPracticeSession,
   endPracticeSession,
+  completeLesson,
 } from "../services/api.js";
 import { useParams, useNavigate } from "react-router-dom";
 import { getUser } from "../utils/auth.js";
@@ -63,6 +64,7 @@ export default function Practice() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [attemptCount, setAttemptCount] = useState(0);
   const timerRef = useRef(null);
+  const completionRequestedRef = useRef(false);
 
   // Milestone 3, Day 8: score-reveal count-up. Animates the displayed
   // accuracy from 0 up to the real value whenever a new result comes in.
@@ -160,6 +162,7 @@ export default function Practice() {
     setAssessment(null);
     setAttemptTime(null);
     setAttemptCount(0);
+    completionRequestedRef.current = false;
     navigate(`/practice/${e.target.value}`);
   }
 
@@ -167,6 +170,7 @@ export default function Practice() {
     setCameraError("");
     setElapsedSeconds(0);
     setAttemptCount(0);
+    completionRequestedRef.current = false;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -273,7 +277,26 @@ export default function Practice() {
       const elapsed = ((performance.now() - startedAt) / 1000).toFixed(1);
 
       setAttemptTime(elapsed);
-      setAttemptCount((prev) => Math.min(prev + 1, TARGET_ATTEMPTS));
+      const newAttemptCount = Math.min(attemptCount + 1, TARGET_ATTEMPTS);
+      setAttemptCount(newAttemptCount);
+
+      // A lesson is complete only after the configured attempt threshold. The
+      // backend, not browser storage, persists that completion and its score.
+      if (newAttemptCount >= TARGET_ATTEMPTS && !completionRequestedRef.current) {
+        const user = getUser();
+        const lesson = lessonList.find((item) => item.letter === targetLetter);
+        if (!user?.id || !lesson?.id) {
+          throw new Error("Unable to save lesson completion.");
+        }
+
+        completionRequestedRef.current = true;
+        try {
+          await completeLesson(lesson.id, user.id, assessmentResult.accuracy);
+        } catch (completionError) {
+          completionRequestedRef.current = false;
+          throw completionError;
+        }
+      }
     } catch (err) {
       console.error(err);
       setCheckError(err.message || "Could not check your sign.");

@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import AccuracyOverTimeChart from '../components/charts/AccuracyOverTimeChart.jsx'
-import LessonsCompletedChart from '../components/charts/LessonsCompletedChart.jsx'
 import BadgesStreaks from '../components/dashboard/BadgesStreaks.jsx'
-import { getProgressReport, getWeeklyAnalytics, getRecommendations } from "../services/api.js";
+import { getAnalyticsSummary, getRecommendations } from "../services/api.js";
 import { getUserId } from "../utils/auth.js";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
-  const [weeklyStats, setWeeklyStats] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -23,19 +20,17 @@ export default function Dashboard() {
     setError(false);
 
     Promise.all([
-      getProgressReport(userId),
+      getAnalyticsSummary(userId),
       // Weekly analytics 404s for a learner with zero sessions — that's
       // the empty state, not an error, so treat it as "no weeks yet".
-      getWeeklyAnalytics(userId).catch(() => ({ weekly_stats: [] })),
       getRecommendations(userId).catch(() => ({ recommendations: [] })),
     ])
-      .then(([progress, weekly, recs]) => {
+      .then(([progress, recs]) => {
         setStats({
           accuracy: progress.average_accuracy,
           lessonsCompleted: progress.lessons_completed,
           practiceHours: (progress.total_practice_time / 3600).toFixed(1),
         });
-        setWeeklyStats(weekly.weekly_stats || []);
         setRecommendations(recs.recommendations || []);
       })
       .catch(() => setError(true))
@@ -61,16 +56,6 @@ export default function Dashboard() {
   }
 
   const hasActivity = stats && stats.lessonsCompleted > 0;
-
-  // Map backend weekly_stats -> the shape each chart expects.
-  const accuracyChartData = weeklyStats.map((w) => ({
-    day: w.week_start,
-    accuracy: w.average_accuracy,
-  }));
-  const lessonsChartData = weeklyStats.map((w) => ({
-    week: w.week_start,
-    lessons: w.attempts_count,
-  }));
 
   return (
     <div>
@@ -101,14 +86,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="chart-grid">
-            {accuracyChartData.length > 0 && (
-              <AccuracyOverTimeChart data={accuracyChartData} />
-            )}
-            {lessonsChartData.length > 0 && (
-              <LessonsCompletedChart data={lessonsChartData} />
-            )}
-          </div>
         </>
       )}
 

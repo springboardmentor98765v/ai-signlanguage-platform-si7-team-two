@@ -1,12 +1,12 @@
 from uuid import UUID
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 from app.core.security import require_instructor
-from app.schemas.instructor_schema import StudentResponse
+from app.schemas.instructor_schema import StudentProgressResponse, StudentResponse
 from app.services.instructor_service import InstructorService
 
 router = APIRouter()
@@ -20,22 +20,16 @@ def get_assigned_students(
     return InstructorService.get_assigned_students(db)
 
 
-@router.get("/student/{student_id}/progress")
+@router.get("/student/{student_id}/progress", response_model=StudentProgressResponse)
 def get_student_progress(
     student_id: UUID,
     db: Session = Depends(get_db),
     current_user=Depends(require_instructor),
 ):
-    try:
-        return InstructorService.get_student_progress(
-            db,
-            student_id,
-        )
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+    return InstructorService.get_student_progress(
+        db,
+        student_id,
+    )
 
 
 @router.get("/student/{student_id}/assessments")

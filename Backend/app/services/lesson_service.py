@@ -1,9 +1,16 @@
+import logging
+from datetime import datetime, timezone
+from uuid import UUID
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from app.models.lesson import Lesson
 from app.models.lesson_progress import LessonProgress
 from app.schemas.lesson_schema import LessonCreate, LessonUpdate, LessonWithProgress
+from app.services.analytics_service import update_analytics_summary
+
+
+logger = logging.getLogger(__name__)
 
 def get_all_lessons(
     db: Session,
@@ -16,10 +23,10 @@ def get_all_lessons(
         query = query.filter(Lesson.title.ilike(f"%{search}%"))
     return query.order_by(Lesson.order_index).offset((page - 1) * limit).limit(limit).all()
 
-def get_lesson_by_id(db: Session, lesson_id: str):
+def get_lesson_by_id(db: Session, lesson_id: UUID):
     return db.query(Lesson).filter(Lesson.id == lesson_id).first()
 
-def get_lessons_with_progress(db: Session, user_id: str) -> List[dict]:
+def get_lessons_with_progress(db: Session, user_id: UUID) -> List[dict]:
     """Returns lessons augmented with progress (status, stars, accuracy) for a given user."""
     lessons = db.query(Lesson).order_by(Lesson.order_index).all()
     progress_records = db.query(LessonProgress).filter(LessonProgress.user_id == user_id).all()
@@ -31,7 +38,7 @@ def get_lessons_with_progress(db: Session, user_id: str) -> List[dict]:
     is_next_unlocked = True
     
     for idx, lesson in enumerate(lessons):
-        progress = progress_map.get(str(lesson.id))
+        progress = progress_map.get(lesson.id)
         
         lesson_data = {
             "id": str(lesson.id),
@@ -67,7 +74,7 @@ def get_lessons_with_progress(db: Session, user_id: str) -> List[dict]:
         
     return result
 
-def complete_lesson(db: Session, user_id: str, lesson_id: str, accuracy: float) -> dict:
+def complete_lesson(db: Session, user_id: UUID, lesson_id: UUID, accuracy: float) -> dict:
     """Marks a lesson as completed, calculates stars based on accuracy, updates progress."""
     progress = db.query(LessonProgress).filter(
         LessonProgress.user_id == user_id,
@@ -97,9 +104,17 @@ def complete_lesson(db: Session, user_id: str, lesson_id: str, accuracy: float) 
     if stars > progress.stars:
         progress.stars = stars
         
+    newly_completed = not progress.is_completed
     progress.is_completed = True
-    db.commit()
-    db.refresh(progress)
+    if progress.completed_at is None:
+        progress.completed_at = datetime.now(timezone.utc)
+
+    summary = update_analytics_summary(
+        db,
+        user_id,
+        accuracy,
+        lesson_completed=newly_completed,
+    )
     
     # Unlock the next lesson
     current_lesson = db.query(Lesson).filter(Lesson.id == lesson_id).first()
@@ -108,20 +123,32 @@ def complete_lesson(db: Session, user_id: str, lesson_id: str, accuracy: float) 
         if next_lesson:
             next_progress = db.query(LessonProgress).filter(
                 LessonProgress.user_id == user_id,
-                LessonProgress.lesson_id == str(next_lesson.id)
+                LessonProgress.lesson_id == next_lesson.id
             ).first()
             
             if not next_progress:
                 next_progress = LessonProgress(
                     user_id=user_id,
-                    lesson_id=str(next_lesson.id),
+                    lesson_id=next_lesson.id,
                     is_unlocked=True
                 )
                 db.add(next_progress)
             else:
                 next_progress.is_unlocked = True
                 
-            db.commit()
+    db.commit()
+    db.refresh(progress)
+    db.refresh(summary)
+
+    logger.info(
+        "analytics_summary updated: user_id=%s lesson_id=%s accuracy=%s "
+        "lessons_completed=%s average_accuracy=%s",
+        user_id,
+        lesson_id,
+        accuracy,
+        summary.lessons_completed,
+        summary.average_accuracy,
+    )
             
     return {
         "message": "Lesson completed",
@@ -136,7 +163,7 @@ def create_lesson(db: Session, lesson: LessonCreate):
     db.refresh(new_lesson)
     return new_lesson
 
-def update_lesson(db: Session, lesson_id: str, lesson: LessonUpdate):
+def update_lesson(db: Session, lesson_id: UUID, lesson: LessonUpdate):
     db_lesson = get_lesson_by_id(db, lesson_id)
     if db_lesson is None:
         return None
@@ -146,7 +173,7 @@ def update_lesson(db: Session, lesson_id: str, lesson: LessonUpdate):
     db.refresh(db_lesson)
     return db_lesson
 
-def delete_lesson(db: Session, lesson_id: str):
+def delete_lesson(db: Session, lesson_id: UUID):
     db_lesson = get_lesson_by_id(db, lesson_id)
     if db_lesson is None:
         return None

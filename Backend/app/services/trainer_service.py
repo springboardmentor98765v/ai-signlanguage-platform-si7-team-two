@@ -3,14 +3,14 @@ from statistics import mean
 
 from sqlalchemy.orm import Session
 
-from db.models.users import User
-from db.models.roles import Role
-from db.models.practice_sessions import PracticeSession
-from db.models.assessments import Assessment
-from db.models.learner_analytics import LearnerAnalytics
-from db.models.streaks import Streak
-from db.models.certificates import Certificate
-from db.models.lessons import Lesson
+from app.models.analytics_summary import AnalyticsSummary
+from app.models.assessment import Assessment
+from app.models.certificate import Certificate
+from app.models.lesson import Lesson
+from app.models.practice_session import PracticeSession
+from app.models.role import Role
+from app.models.streak import Streak
+from app.models.user import User
 
 
 WEAK_LETTER_THRESHOLD = 70.0
@@ -90,9 +90,9 @@ class TrainerService:
         )
 
         analytics = (
-            db.query(LearnerAnalytics)
+            db.query(AnalyticsSummary)
             .filter(
-                LearnerAnalytics.user_id == learner_id
+                AnalyticsSummary.user_id == learner_id
             )
             .first()
         )

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
+from app.core.security import require_learner
 from app.schemas.lesson_schema import LessonCreate, LessonUpdate, LessonWithProgress, LessonCompleteRequest
 from app.services.lesson_service import (
     get_all_lessons,
@@ -35,7 +36,7 @@ def list_lessons(
 
 @router.get("/with-progress/{user_id}", response_model=List[LessonWithProgress])
 def list_lessons_with_progress(
-    user_id: str,
+    user_id: UUID,
     db: Session = Depends(get_db),
 ):
     """Returns lessons augmented with progression data (stars, accuracy, locked status)."""
@@ -43,17 +44,23 @@ def list_lessons_with_progress(
 
 @router.post("/{lesson_id}/complete/{user_id}")
 def mark_lesson_complete(
-    lesson_id: str,
-    user_id: str,
+    lesson_id: UUID,
+    user_id: UUID,
     req: LessonCompleteRequest,
     db: Session = Depends(get_db),
+    current_user=Depends(require_learner),
 ):
     """Mark lesson completed, calculate stars, update highest accuracy, unlock next."""
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only complete lessons for your own account",
+        )
     return complete_lesson(db, user_id, lesson_id, req.accuracy)
 
 @router.get("/{lesson_id}")
 def lesson_details(
-    lesson_id: str,
+    lesson_id: UUID,
     db: Session = Depends(get_db),
 ):
     lesson = get_lesson_by_id(db, lesson_id)
@@ -77,7 +84,7 @@ def add_lesson(
 
 @router.put("/{lesson_id}")
 def edit_lesson(
-    lesson_id: str,
+    lesson_id: UUID,
     lesson: LessonUpdate,
     db: Session = Depends(get_db),
 ):
@@ -98,7 +105,7 @@ def edit_lesson(
 
 @router.delete("/{lesson_id}")
 def remove_lesson(
-    lesson_id: str,
+    lesson_id: UUID,
     db: Session = Depends(get_db),
 ):
     deleted = delete_lesson(
@@ -114,4 +121,4 @@ def remove_lesson(
 
     return {
         "message": "Lesson deleted successfully"
-    }
+    }

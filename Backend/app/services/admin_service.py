@@ -5,7 +5,7 @@ from app.schemas.lesson_schema import LessonCreate
 from app.services.lesson_service import create_lesson
 from sqlalchemy.orm import Session
 
-from db.models.users import User
+from app.models.user import User
 
 
 class AdminService:

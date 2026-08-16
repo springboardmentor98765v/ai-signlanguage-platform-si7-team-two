@@ -9,14 +9,7 @@ import {
 } from "recharts";
 
 // Mock data — swap for real data from Intern 4's Analytics API (Day 9)
-const mockLessonsData = [
-  { week: "Week 1", lessons: 3 },
-  { week: "Week 2", lessons: 5 },
-  { week: "Week 3", lessons: 4 },
-  { week: "Week 4", lessons: 7 },
-];
-
-export default function LessonsCompletedChart({ data = mockLessonsData }) {
+export default function LessonsCompletedChart({ data }) {
   return (
     <div className="chart-card">
       <p className="label">Lessons completed</p>

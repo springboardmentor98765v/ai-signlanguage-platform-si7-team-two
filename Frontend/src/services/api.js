@@ -114,6 +114,18 @@ export async function getLessons() {
   return handleResponse(res) // [{ id, title, level, description }, ...]
 }
 
+export async function completeLesson(lessonId, userId, accuracy) {
+  const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/complete/${userId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
+    body: JSON.stringify({ accuracy }),
+  });
+  return handleResponse(res);
+}
+
 // ---------- Profile (Intern 2 — auth/profile endpoints) ----------
 // Backend/app/schemas/user.py -> UpdateProfile { full_name, email }
 export async function updateProfile(userId, profile) {
@@ -340,7 +352,7 @@ export async function getStreak(learnerId) {
 // Backend removes the duplicate prefix in notification.py — search this
 // file for "notifications/notifications" to find both spots to fix.
 export async function getNotifications(userId) {
-  const res = await fetch(`${API_BASE_URL}/notifications/notifications/${userId}`);
+  const res = await fetch(`${API_BASE_URL}/notifications/${userId}`);
   return handleResponse(res); // [{ id, user_id, title, message, is_read, created_at }, ...]
 }
 
@@ -395,4 +407,11 @@ export async function updateUserStatus(id, isActive) {
   }
 
   return response.json();
+}
+
+export async function getAnalyticsSummary(userId) {
+  const res = await fetch(`${API_BASE_URL}/progress-report/${userId}/summary`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse(res);
 }

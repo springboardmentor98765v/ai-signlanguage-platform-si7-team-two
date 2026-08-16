@@ -1,9 +1,34 @@
-from fastapi import APIRouter, HTTPException
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 import requests
+
+from sqlalchemy.orm import Session
+
+from app.core.security import require_learner
+from app.database.database import get_db
+from app.schemas.analytics_schema import AnalyticsSummaryResponse
+from app.services.analytics_service import get_summary_for_learner
 from app.services.integration_service import IntegrationService
 
 router = APIRouter()
+
+
+@router.get("/{user_id}/summary", response_model=AnalyticsSummaryResponse)
+def get_persisted_summary(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_learner),
+):
+    """Return the authenticated learner's persisted analytics_summary row."""
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own analytics summary",
+        )
+
+    return get_summary_for_learner(db, user_id)
 
 
 @router.get("/{user_id}")

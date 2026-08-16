@@ -47,7 +47,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
                 "id": str(logged_user.id),
                 "full_name": logged_user.full_name,
                 "email": logged_user.email,
-                "role": role_name.lower(),
+                "role": role_name,
                 "role_id": str(logged_user.role_id),
                 "mascot_id": logged_user.mascot_id or "owl",
             },
