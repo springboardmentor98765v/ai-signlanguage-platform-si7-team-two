@@ -9,10 +9,12 @@ const links = [
   { to: '/practice/A', label: 'Practice', roles: ['learner'] },
 
   { to: '/reports', label: 'Reports', roles: ['learner'] },
+  { to: '/certification', label: 'Certification', roles: ['learner'] },
   { to: '/leaderboard', label: 'Leaderboard', roles: ['learner'] },
   { to: '/instructor', label: 'Instructor', roles: ['instructor'] },
   { to: '/admin', label: 'Admin', roles: ['admin'] },
-  { to: '/profile', label: 'Profile', roles: ['learner', 'instructor', 'admin'] },
+  { to: '/trainer', label: 'Trainer Dashboard', roles: ['trainer'] },
+  { to: '/profile', label: 'Profile', roles: ['learner', 'instructor', 'admin', 'trainer'] },
 ]
 
 export default function Sidebar({ open = false, onClose }) {

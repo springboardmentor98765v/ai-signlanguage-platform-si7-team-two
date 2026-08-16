@@ -260,7 +260,7 @@ Additional documentation is available in:
 
 **Project:** AI-Powered Sign Language Learning and Assessment Platform
 
-**Milestone:** Milestone 3
+**Milestone:** All the milestones were completed 
 
 **Module:** AI/ML & Computer Vision
 
