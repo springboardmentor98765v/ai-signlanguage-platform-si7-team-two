@@ -7,8 +7,19 @@ import {
   endPracticeSession,
   completeLesson,
 } from "../services/api.js";
-import { useParams, useNavigate } from "react-router-dom";
-import { getUser } from "../utils/auth.js";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { getUser, getUserId } from "../utils/auth.js";
+import Mascot from "../components/mascot/Mascot.jsx";
+import HandDemo from "../components/practice/HandDemo.jsx";
+import CelebrationOverlay from "../components/celebrations/CelebrationOverlay.jsx";
+
+// aiPhase values: '' | 'connecting' | 'retrying' | 'demo' | 'error'
+// 'demo'  = AI service unavailable, showing simulated result
+// 'error' = non-service error (bad frame, no hand)
+const AI_PHASE_LABELS = {
+  connecting: 'Connecting to AI…',
+  retrying: 'Retrying…',
+}
 
 const TARGET_ATTEMPTS = 5;
 
@@ -25,11 +36,27 @@ function formatTime(totalSeconds) {
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
+/**
+ * Pick mascot state based on the latest attempt outcome.
+ * - No attempt yet → idle
+ * - Correct sign   → celebrating
+ * - Wrong but < 3 fails → encouraging
+ * - 3+ consecutive fails → oops
+ */
+function getMascotState({ assessment, isCorrect, consecutiveFails }) {
+  if (!assessment) return "idle";
+  if (isCorrect) return "celebrating";
+  if (consecutiveFails >= 3) return "oops";
+  return "encouraging";
+}
+
 export default function Practice() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const canvasRef = useRef(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const lessonId = searchParams.get("lessonId");
 
   const [isPracticing, setIsPracticing] = useState(false);
   const [cameraError, setCameraError] = useState("");
@@ -39,8 +66,14 @@ export default function Practice() {
   useEffect(() => {
     async function loadLessons() {
       try {
-        const data = await getLessons();
-        setLessonList(data);
+        const userId = getUserId();
+        if(userId) {
+            const data = await getLessons(userId);
+            setLessonList(data);
+        } else {
+            const data = await getLessons();
+            setLessonList(data);
+        }
       } catch (err) {
         console.error("Failed to load lessons:", err);
         setLessonList([]);
@@ -53,23 +86,28 @@ export default function Practice() {
   const targetLetter = letter || "A";
 
   const [isChecking, setIsChecking] = useState(false);
+  const [aiPhase, setAiPhase] = useState(''); // 'connecting' | 'retrying' | 'demo' | 'error' | ''
   const [checkError, setCheckError] = useState("");
   const [prediction, setPrediction] = useState(null);
   const [assessment, setAssessment] = useState(null);
   const [attemptTime, setAttemptTime] = useState(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   const [sessionId, setSessionId] = useState(null);
   const sessionIdRef = useRef(null);
 
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [attemptCount, setAttemptCount] = useState(0);
+  const [maxAccuracy, setMaxAccuracy] = useState(0);
   const timerRef = useRef(null);
-  const completionRequestedRef = useRef(false);
 
-  // Milestone 3, Day 8: score-reveal count-up. Animates the displayed
-  // accuracy from 0 up to the real value whenever a new result comes in.
-  // Skips straight to the final value if the user has requested reduced
-  // motion at the OS level.
+  // Track consecutive failed attempts for mascot oops state
+  const [consecutiveFails, setConsecutiveFails] = useState(0);
+
+  // Course completion celebration
+  const [showCompletion, setShowCompletion] = useState(false);
+
+  // Milestone 3, Day 8: score-reveal count-up.
   const [displayAccuracy, setDisplayAccuracy] = useState(0);
   const countUpRef = useRef(null);
 
@@ -162,7 +200,7 @@ export default function Practice() {
     setAssessment(null);
     setAttemptTime(null);
     setAttemptCount(0);
-    completionRequestedRef.current = false;
+    setConsecutiveFails(0);
     navigate(`/practice/${e.target.value}`);
   }
 
@@ -170,7 +208,7 @@ export default function Practice() {
     setCameraError("");
     setElapsedSeconds(0);
     setAttemptCount(0);
-    completionRequestedRef.current = false;
+    setConsecutiveFails(0);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -239,6 +277,7 @@ export default function Practice() {
 
     setCheckError("");
     setIsChecking(true);
+    setAiPhase('connecting');
     setPrediction(null);
     setAssessment(null);
     setAttemptTime(null);
@@ -247,21 +286,31 @@ export default function Practice() {
 
     try {
       const canvas = canvasRef.current;
-
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
-
       canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
 
       const blob = await new Promise((resolve) =>
-        canvas.toBlob(resolve, "image/jpeg"),
+        canvas.toBlob(resolve, "image/jpeg")
       );
 
-      if (!blob) {
-        throw new Error("Unable to capture webcam frame.");
-      }
+      if (!blob) throw new Error("Unable to capture webcam frame.");
 
-      const predictionResult = await predictSign(blob);
+      // Pass target letter and onPhase callback to the new predictSign
+      const predictionResult = await predictSign(
+        blob,
+        targetLetter,
+        (phase) => setAiPhase(phase)
+      );
+
+      // Mark demo mode if AI service was unavailable
+      if (predictionResult.isDemo) {
+        setIsDemoMode(true);
+        setAiPhase('demo');
+      } else {
+        setIsDemoMode(false);
+        setAiPhase('');
+      }
 
       setPrediction(predictionResult);
 
@@ -274,31 +323,40 @@ export default function Practice() {
 
       setAssessment(assessmentResult);
 
+      const correct =
+        (predictionResult.prediction ?? predictionResult.predicted_sign) === targetLetter;
+      if (correct) {
+        setConsecutiveFails(0);
+      } else {
+        setConsecutiveFails((prev) => prev + 1);
+      }
+
       const elapsed = ((performance.now() - startedAt) / 1000).toFixed(1);
-
       setAttemptTime(elapsed);
-      const newAttemptCount = Math.min(attemptCount + 1, TARGET_ATTEMPTS);
-      setAttemptCount(newAttemptCount);
+      const newCount = Math.min(attemptCount + 1, TARGET_ATTEMPTS);
+      setAttemptCount(newCount);
 
-      // A lesson is complete only after the configured attempt threshold. The
-      // backend, not browser storage, persists that completion and its score.
-      if (newAttemptCount >= TARGET_ATTEMPTS && !completionRequestedRef.current) {
-        const user = getUser();
-        const lesson = lessonList.find((item) => item.letter === targetLetter);
-        if (!user?.id || !lesson?.id) {
-          throw new Error("Unable to save lesson completion.");
-        }
+      if (assessmentResult?.accuracy) {
+        const newMax = Math.max(maxAccuracy, assessmentResult.accuracy);
+        setMaxAccuracy(newMax);
 
-        completionRequestedRef.current = true;
-        try {
-          await completeLesson(lesson.id, user.id, assessmentResult.accuracy);
-        } catch (completionError) {
-          completionRequestedRef.current = false;
-          throw completionError;
+        // Tell backend about the attempt to update progress/stars
+        if (lessonId) {
+           const userId = getUserId();
+           if (userId) {
+              completeLesson(lessonId, userId, assessmentResult.accuracy).catch((err) => {
+                 console.error("Failed to update lesson progress:", err);
+              });
+           }
         }
+      }
+
+      if (newCount >= TARGET_ATTEMPTS && !showCompletion) {
+        setTimeout(() => setShowCompletion(true), 1200);
       }
     } catch (err) {
       console.error(err);
+      setAiPhase('error');
       setCheckError(err.message || "Could not check your sign.");
     } finally {
       setIsChecking(false);
@@ -318,9 +376,32 @@ export default function Practice() {
     100,
   );
 
+  const mascotState = getMascotState({ assessment, isCorrect, consecutiveFails });
+
+  const mascotBubble = assessment
+    ? isCorrect
+      ? "Nice! ✓"
+      : consecutiveFails >= 3
+      ? "Keep trying! 💪"
+      : "Almost! 🤞"
+    : isPracticing
+    ? "I'm watching! 👀"
+    : undefined;
+
   return (
     <div>
       <h1 className="sr-only">Practice</h1>
+
+      {/* Course completion celebration overlay */}
+      {showCompletion && (
+        <CelebrationOverlay
+          type="course"
+          title={`Session Complete! 🎉`}
+          subtitle={`You completed ${TARGET_ATTEMPTS} attempts for Letter ${targetLetter}. Keep up the great work!`}
+          onDismiss={() => setShowCompletion(false)}
+        />
+      )}
+
       <div className="practice-header">
         <div className="practice-header-row">
           <div>
@@ -373,7 +454,32 @@ export default function Practice() {
 
           {cameraError && <p className="camera-error" role="alert">{cameraError}</p>}
 
-          {checkError && <p className="camera-error" role="alert">{checkError}</p>}
+          {/* AI phase indicator — replaces generic error text while connecting/retrying */}
+          {(aiPhase === 'connecting' || aiPhase === 'retrying') && (
+            <p className="ai-phase-indicator" role="status" aria-live="polite">
+              <span className="ai-phase-dot" aria-hidden="true" />
+              {AI_PHASE_LABELS[aiPhase]}
+            </p>
+          )}
+
+          {/* Only show check error for non-service errors (bad frame, no hand) */}
+          {aiPhase === 'error' && checkError && (
+            <p className="camera-error" role="alert">{checkError}</p>
+          )}
+
+          {/* Demo mode banner — shown when AI service is unavailable */}
+          {isDemoMode && (
+            <div className="demo-mode-banner" role="note">
+              <span aria-hidden="true">⚡</span> AI service unavailable — showing Demo results.
+              <a
+                href="#"
+                className="demo-mode-link"
+                onClick={(e) => { e.preventDefault(); setIsDemoMode(false); setAiPhase(''); }}
+              >
+                Dismiss
+              </a>
+            </div>
+          )}
 
           {isPracticing && (
             <div className="attempt-progress">
@@ -405,7 +511,13 @@ export default function Practice() {
                   onClick={handleCheckSign}
                   disabled={isChecking}
                 >
-                  {isChecking ? "Checking..." : "Check My Sign"}
+                  {aiPhase === 'connecting'
+                    ? 'Connecting…'
+                    : aiPhase === 'retrying'
+                    ? 'Retrying…'
+                    : isChecking
+                    ? 'Checking…'
+                    : 'Check My Sign'}
                 </button>
               </>
             )}
@@ -506,15 +618,18 @@ export default function Practice() {
           )}
         </div>
 
+        {/* Side panel: HandDemo + Mascot + AI Prediction */}
         <div className="practice-side">
+          {/* Animated hand reference demo */}
           <div className="reference-card">
             <p className="label">Reference Sign</p>
+            <HandDemo letter={targetLetter} />
+            <p className="hint">Watch the motion, then match your hand.</p>
+          </div>
 
-            <div className="reference-image">
-              <span>{targetLetter}</span>
-            </div>
-
-            <p className="hint">Match your hand shape.</p>
+          {/* Mascot reacting to attempts */}
+          <div className="practice-mascot-wrap" aria-hidden="true">
+            <Mascot state={mascotState} size="sm" label={mascotBubble} aria-hidden={true} />
           </div>
 
           <div className="prediction-card">

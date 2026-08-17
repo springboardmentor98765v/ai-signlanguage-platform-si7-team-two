@@ -1,65 +1,74 @@
 import { useEffect, useState } from "react";
+import AccuracyOverTimeChart from '../components/charts/AccuracyOverTimeChart.jsx'
+import LessonsCompletedChart from '../components/charts/LessonsCompletedChart.jsx'
 import BadgesStreaks from '../components/dashboard/BadgesStreaks.jsx'
-import { getAnalyticsSummary, getRecommendations } from "../services/api.js";
-import { getUserId } from "../utils/auth.js";
+import Mascot from '../components/mascot/Mascot.jsx'
+import { getProgressReport, getWeeklyAnalytics } from "../services/api.js";
+import { getUser, getUserId } from "../utils/auth.js";
+import { recommendedSigns } from "../data/mockData.js";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
+  const [weeklyStats, setWeeklyStats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
-  function loadDashboard() {
+  useEffect(() => {
     const userId = getUserId();
     if (!userId) {
       setLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(false);
-
     Promise.all([
-      getAnalyticsSummary(userId),
-      // Weekly analytics 404s for a learner with zero sessions — that's
-      // the empty state, not an error, so treat it as "no weeks yet".
-      getRecommendations(userId).catch(() => ({ recommendations: [] })),
+      getProgressReport(userId),
+      getWeeklyAnalytics(userId).catch(() => ({ weekly_stats: [] }))
     ])
-      .then(([progress, recs]) => {
+      .then(([reportData, weeklyData]) => {
         setStats({
-          accuracy: progress.average_accuracy,
-          lessonsCompleted: progress.lessons_completed,
-          practiceHours: (progress.total_practice_time / 3600).toFixed(1),
+          accuracy: reportData.average_accuracy,
+          lessonsCompleted: reportData.lessons_completed,
+          practiceHours: (reportData.total_practice_time / 3600).toFixed(1),
         });
-        setRecommendations(recs.recommendations || []);
+        setWeeklyStats(weeklyData.weekly_stats || []);
       })
-      .catch(() => setError(true))
+      .catch(() => setStats(null))
       .finally(() => setLoading(false));
-  }
-
-  useEffect(() => {
-    loadDashboard();
   }, []);
 
   if (loading) return null;
 
-  if (error) {
-    return (
-      <div className="empty-page" role="alert">
-        <h2>Couldn't load your dashboard</h2>
-        <p>Something went wrong while fetching your stats. Please try again.</p>
-        <button className="btn-primary" onClick={loadDashboard}>
-          Try Again
-        </button>
-      </div>
-    );
-  }
+  const accuracyChartData = weeklyStats.map((stat) => ({
+    day: stat.week_start,
+    accuracy: Math.round(stat.average_accuracy),
+  }));
+
+  const lessonsChartData = weeklyStats.map((stat) => ({
+    week: stat.week_start,
+    lessons: stat.attempts_count,
+  }));
 
   const hasActivity = stats && stats.lessonsCompleted > 0;
+  // Mascot celebrates if accuracy is high, encourages otherwise
+  const dashMascotState = hasActivity
+    ? (stats.accuracy >= 80 ? 'celebrating' : 'encouraging')
+    : 'idle'
 
   return (
     <div>
       <h1 className="sr-only">Dashboard Overview</h1>
+
+      <div className="dashboard-mascot-row" aria-hidden="true">
+        <Mascot
+          state={dashMascotState}
+          size="sm"
+          mascotId={getUser()?.mascot_id}
+          label={hasActivity
+            ? (stats.accuracy >= 80 ? 'Great work! 🌟' : 'Keep going! 💪')
+            : 'Let\'s start! 🤟'
+          }
+          aria-hidden={true}
+        />
+      </div>
 
       {!hasActivity ? (
         <div className="empty-page" role="status">
@@ -86,28 +95,35 @@ export default function Dashboard() {
             </div>
           </div>
 
+          <div className="chart-grid">
+            {accuracyChartData.length > 0 && (
+              <AccuracyOverTimeChart data={accuracyChartData} />
+            )}
+            {lessonsChartData.length > 0 && (
+              <LessonsCompletedChart data={lessonsChartData} />
+            )}
+          </div>
         </>
       )}
 
       <BadgesStreaks />
 
-      {recommendations.length > 0 && (
-        <div className="recommend-box">
-          <p className="recommend-box-title">
-            <span className="hand-bullet" aria-hidden="true">🤟</span>
-            Recommended Signs
-            <span className="sparkle-dot gold" aria-hidden="true"></span>
-          </p>
-          <ul className="recommend-box-list">
-            {recommendations.map((rec) => (
-              <li key={rec.id} className="recommend-chip">
-                <span className="recommend-chip-sign">{rec.letter_or_word}</span>
-                <span className="recommend-chip-reason">{rec.reason}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* DEV ONLY: mock data, not wired to the recommendation API yet — see mockData.js */}
+      <div className="recommend-box">
+        <p className="recommend-box-title">
+          <span className="hand-bullet" aria-hidden="true">🤟</span>
+          Recommended Signs
+          <span className="sparkle-dot gold" aria-hidden="true"></span>
+        </p>
+        <ul className="recommend-box-list">
+          {recommendedSigns.map((rec) => (
+            <li key={rec.id} className="recommend-chip">
+              <span className="recommend-chip-sign">{rec.sign}</span>
+              <span className="recommend-chip-reason">{rec.reason}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

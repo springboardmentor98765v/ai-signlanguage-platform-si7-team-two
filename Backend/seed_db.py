@@ -46,12 +46,12 @@ def seed():
         
     # 3. Seed Lessons
     print("Seeding lessons...")
-    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    for idx, letter in enumerate(letters):
-        lesson = db.query(Lesson).filter_by(course_id=str(course.id), letter=letter).first()
+    letters_list = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ") + ["lll"]
+    for idx, letter in enumerate(letters_list):
+        lesson = db.query(Lesson).filter_by(course_id=course.id, letter=letter).first()
         if not lesson:
             lesson = Lesson(
-                course_id=str(course.id),
+                course_id=course.id,
                 letter=letter,
                 title=f"Letter {letter}",
                 description=f"Learn to sign the letter {letter}",

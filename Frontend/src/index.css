@@ -1,29 +1,45 @@
 :root {
-  --ink: #e9e7f5;
-  --paper: #11101f;
-  --panel: #1b1a30;
-
-  --moss: #2fd48f;
-  --moss-dark: #123d2c;
-  --moss-light: #6be8b4;
-
-  --clay: #ff9270;
-  --clay-text: #ff8a63;
-
-  --accent: #ff7a59;
-  --accent-dark: #e0502f;
-  --accent-light: #ffb199;
-
-  --gold: #f4c452;
-  --gold-dark: #c98f1f;
-
-  --violet: #9b8cf5;
-  --violet-light: #c3b8ff;
-
-  --line: #2e2d4d;
-  --muted: #a8a4c8;
-  --radius: 12px;
+  /* ── Typography ── */
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+
+  /* ── Core surfaces (charcoal dark theme) ── */
+  --ink:        #f0ede8; /* warm off-white text */
+  --paper:      #0f0f0f; /* near-black charcoal bg */
+  --panel:      #1a1a1a; /* elevated surface */
+  --panel-input:#212121; /* input field bg */
+  --panel-card: #1e1e1e; /* card bg */
+  --line:       #2a2a2a; /* dividers / borders */
+  --muted:      #8a8680; /* secondary text */
+
+  /* ── Primary accent: warm amber ── */
+  --amber:       #e8a838;
+  --amber-dark:  #c47a1e;
+  --amber-light: #f4d07a;
+  --amber-bg:    rgba(232, 168, 56, 0.12);
+
+  /* ── Success / correct answer: green (kept) ── */
+  --moss:       #2fd48f;
+  --moss-dark:  #123d2c;
+  --moss-light: #6be8b4;
+  --moss-bg:    rgba(47, 212, 143, 0.1);
+
+  /* ── Error / warning: burnt coral ── */
+  --clay:       #e05c3a;
+  --clay-text:  #f07050;
+  --clay-bg:    rgba(224, 92, 58, 0.1);
+
+  /* ── Gold (leaderboard) ── */
+  --gold:       #f4c452;
+  --gold-dark:  #c98f1f;
+
+  /* ── Backward compat aliases ── */
+  --accent:       var(--amber);
+  --accent-dark:  var(--amber-dark);
+  --accent-light: var(--amber-light);
+  --violet:       #8e8a9f; /* updated to pass WCAG AA contrast (4.5+) on --panel */
+  --violet-light: #9896a4;
+
+  --radius: 12px;
 }
 
 * { box-sizing: border-box; }
@@ -57,10 +73,10 @@ button, input, select {
   top: auto;
   z-index: 100;
   background: var(--moss);
-  color: white;
+  color: var(--paper);
   padding: 10px 16px;
   border-radius: 0 0 8px 0;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 13.5px;
   text-decoration: none;
 }
@@ -119,7 +135,7 @@ select:focus-visible,
   height: 34px;
   border-radius: 8px;
   background: var(--moss);
-  color: white;
+  color: var(--paper);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,19 +179,14 @@ select:focus-visible,
   border-radius: 8px;
   font-size: 14px;
   background: var(--paper);
+  color: var(--ink);
 }
 
-.field input:focus {
-  outline: 2px solid var(--moss);
-  outline-offset: 1px;
-  background: white;
-}
-
+.field input:focus,
 .field select:focus {
   outline: 2px solid var(--moss);
   outline-offset: 1px;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--panel);
 }
 
 .field select {
@@ -186,7 +197,6 @@ select:focus-visible,
   font-size: 14px;
   background: var(--paper);
   color: var(--ink);
-  color-scheme: dark;
 }
 
 .btn-primary {
@@ -196,8 +206,8 @@ select:focus-visible,
   border-radius: 8px;
   background: linear-gradient(120deg, var(--moss), var(--moss-light), var(--moss));
   background-size: 200% auto;
-  color: white;
-  font-weight: 600;
+  color: var(--paper);
+  font-weight: 700;
   font-size: 14.5px;
   cursor: pointer;
   margin-top: 4px;
@@ -219,8 +229,8 @@ select:focus-visible,
   padding: 11px;
   border: none;
   border-radius: 8px;
-  color: white;
-  font-weight: 600;
+  color: var(--paper);
+  font-weight: 700;
   font-size: 14.5px;
   cursor: pointer;
   background: linear-gradient(120deg, var(--accent), var(--gold));
@@ -308,7 +318,7 @@ select:focus-visible,
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  color: white;
+  color: var(--paper);
 }
 
 .sidebar nav a {
@@ -801,7 +811,7 @@ select:focus-visible,
   height: 52px;
   border-radius: 50%;
   background: var(--moss);
-  color: white;
+  color: var(--paper);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -864,53 +874,176 @@ select:focus-visible,
   margin: -4px 0 12px;
 }
 
-/* Lessons */
-.lesson-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
-}
+/* ============================================================
+   Lesson Path (Duolingo Style)
+   ============================================================ */
 
-.lesson-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--accent);
-  border-radius: var(--radius);
-  padding: 20px;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-}
-
-.lesson-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 28px rgba(255, 122, 89, 0.18);
-  border-color: var(--accent-light);
-}
-
-.lesson-grid .lesson-card:nth-child(6n+2) { border-left-color: var(--gold); }
-.lesson-grid .lesson-card:nth-child(6n+3) { border-left-color: var(--violet); }
-.lesson-grid .lesson-card:nth-child(6n+4) { border-left-color: var(--moss-light); }
-.lesson-grid .lesson-card:nth-child(6n+5) { border-left-color: var(--accent-light); }
-.lesson-grid .lesson-card:nth-child(6n+6) { border-left-color: var(--gold-dark); }
-
-.lesson-card-header {
+.lesson-path {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 10px;
+  flex-direction: column-reverse; /* Bottom to top for path progression */
+  align-items: center;
+  gap: 32px;
+  padding: 48px 0;
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+  background-image: url('/lesson_map_bg.png');
+  background-size: cover;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
 }
 
-.lesson-card h3 {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--accent);
-  letter-spacing: -0.01em;
+/* The connecting line */
+.lesson-path::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 14px;
+  background: var(--surface-raised);
+  transform: translateX(-50%);
+  z-index: 1;
+  border-radius: 12px;
 }
 
-.lesson-card p {
+.lesson-node {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 4px solid var(--surface-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 8px 0 var(--surface-dim);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.lesson-node.status-completed {
+  background: var(--gold-light);
+  border-color: var(--gold);
+  box-shadow: 0 8px 0 var(--gold-dark);
+}
+
+.lesson-node.status-current {
+  background: var(--violet-light);
+  border-color: var(--violet);
+  box-shadow: 0 8px 0 var(--violet-dark);
+}
+
+.lesson-node.status-locked {
+  background: var(--surface-dim);
+  border-color: var(--surface-raised);
+  box-shadow: 0 8px 0 var(--surface-raised);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.lesson-node:hover:not(.status-locked) {
+  transform: translateY(2px);
+}
+.lesson-node.status-completed:hover {
+  box-shadow: 0 6px 0 var(--gold-dark);
+}
+.lesson-node.status-current:hover {
+  box-shadow: 0 6px 0 var(--violet-dark);
+}
+
+.lesson-node:active:not(.status-locked) {
+  transform: translateY(8px);
+  box-shadow: 0 0 0 transparent;
+}
+
+/* Zig zag pattern */
+.path-pos-0 { transform: translateX(0); }
+.path-pos-1 { transform: translateX(50px); }
+.path-pos-2 { transform: translateX(0); }
+.path-pos-3 { transform: translateX(-50px); }
+
+.lesson-node:hover:not(.status-locked).path-pos-0 { transform: translateX(0) translateY(2px); }
+.lesson-node:hover:not(.status-locked).path-pos-1 { transform: translateX(50px) translateY(2px); }
+.lesson-node:hover:not(.status-locked).path-pos-2 { transform: translateX(0) translateY(2px); }
+.lesson-node:hover:not(.status-locked).path-pos-3 { transform: translateX(-50px) translateY(2px); }
+
+.lesson-node:active:not(.status-locked).path-pos-0 { transform: translateX(0) translateY(8px); }
+.lesson-node:active:not(.status-locked).path-pos-1 { transform: translateX(50px) translateY(8px); }
+.lesson-node:active:not(.status-locked).path-pos-2 { transform: translateX(0) translateY(8px); }
+.lesson-node:active:not(.status-locked).path-pos-3 { transform: translateX(-50px) translateY(8px); }
+.lesson-node:active:not(.status-locked).path-pos-3 { transform: translateX(-50px) translateY(8px); }
+
+.node-label {
+  position: absolute;
+  top: 96px; /* below the node */
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-color, #1a1a1a);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* Tooltip on hover */
+.node-tooltip {
+  position: absolute;
+  top: 50%;
+  left: 100px;
+  transform: translateY(-50%);
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px 16px;
+  width: 200px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 2px solid var(--surface-dim);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.2s;
+  pointer-events: none;
+}
+
+.path-pos-1 .node-tooltip { left: auto; right: 100px; }
+.path-pos-3 .node-tooltip { left: 100px; }
+
+.node-tooltip::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -10px;
+  transform: translateY(-50%);
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid var(--surface-dim);
+}
+
+.path-pos-1 .node-tooltip::before {
+  left: auto;
+  right: -10px;
+  border-right: none;
+  border-left: 8px solid var(--surface-dim);
+}
+
+.lesson-node:hover .node-tooltip,
+.lesson-node:focus-visible .node-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.node-tooltip h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.node-tooltip p {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--muted);
 }
 
@@ -994,7 +1127,6 @@ select:focus-visible,
   font-size: 13.5px;
   background: var(--panel);
   color: var(--ink);
-  color-scheme: dark;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -1025,7 +1157,7 @@ select:focus-visible,
   top: 12px;
   right: 12px;
   background: linear-gradient(120deg, var(--accent), var(--gold));
-  color: white;
+  color: var(--paper);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -1072,7 +1204,7 @@ select:focus-visible,
 .btn-stop {
   border: none; border-radius: 8px;
   background: linear-gradient(120deg, var(--accent-dark), var(--accent));
-  color: white;
+  color: var(--paper);
   font-weight: 700; font-size: 14.5px; cursor: pointer;
   box-shadow: 0 4px 14px rgba(255, 122, 89, 0.3);
   transition: transform 0.15s ease, box-shadow 0.2s ease;
@@ -1602,6 +1734,8 @@ select:focus-visible,
   gap: 14px;
 }
 
+
+
 .badge-card {
   position: relative;
   display: flex;
@@ -1726,6 +1860,26 @@ select:focus-visible,
   background: rgba(47, 168, 125, 0.19);
   padding: 2px 8px;
   border-radius: 999px;
+}
+
+.leaderboard-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.list-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--avatar-bg, var(--surface-dim));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  font-size: 16px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 @media (max-width: 780px) {
@@ -2139,3 +2293,308 @@ select:focus-visible,
   font-size: 13.5px;
   color: var(--muted);
 }
+
+/* ============================================================
+   Mascot layout helpers — used across Dashboard, Lessons,
+   Practice, Leaderboard, Reports, Profile.
+   Each page gets a small "mascot row" that holds the
+   reusable <Mascot> component without changing page flow.
+   ============================================================ */
+
+.leaderboard-mascot-row,
+.dashboard-mascot-row,
+.lessons-mascot-row,
+.reports-mascot-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 6px 0 12px;
+  /* Keep the mascot from adding horizontal scroll on narrow viewports */
+  overflow: hidden;
+}
+
+/* On the Practice page the mascot sits inside the side panel */
+.practice-mascot-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
+}
+
+/* ============================================================
+   Leaderboard: rank-1 row styling
+   The 🥇 emoji itself is animated via .rank-dance-icon in
+   Mascot.css (imported by the Mascot component).
+   ============================================================ */
+
+.leaderboard-row.rank-1-row {
+  background: linear-gradient(
+    90deg,
+    rgba(244, 196, 82, 0.07) 0%,
+    rgba(244, 196, 82, 0.02) 100%
+  );
+  border-left: 3px solid var(--gold);
+}
+
+.leaderboard-row.rank-1-row td {
+  font-weight: 700;
+}
+
+.rank-1-crown {
+  font-size: 14px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   Practice page: hand-demo section sits inside reference-card
+   We override the plain letter placeholder with the animated
+   HandDemo component.
+   ============================================================ */
+
+.reference-card .hand-demo-wrap {
+  /* Remove any extra border the reference-card already provides */
+  border: none;
+  background: transparent;
+  padding: 4px 0;
+  width: 100%;
+}
+
+/* ============================================================
+   Celebration overlay — z-index guard so it always floats
+   above the Sidebar (z-index 50) and any modals.
+   The overlay's own CSS handles everything else.
+   ============================================================ */
+
+/* Prevent body scroll while the overlay is open */
+body:has(.celebration-overlay) {
+  overflow: hidden;
+}
+
+/* ============================================================
+   PR2: AI Phase Indicator & Demo Mode Banner
+   ============================================================ */
+
+/* Pulsing dot shown while connecting/retrying to AI service */
+.ai-phase-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--amber);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin: 6px 0;
+}
+
+.ai-phase-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: ai-phase-pulse 1s ease-in-out infinite;
+}
+
+@keyframes ai-phase-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-phase-dot { animation: none; }
+}
+
+/* Amber banner shown when AI service is unavailable (demo mode) */
+.demo-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-dark);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  color: var(--amber-light);
+  font-weight: 500;
+  margin: 8px 0;
+}
+
+.demo-mode-link {
+  margin-left: auto;
+  color: var(--amber);
+  text-decoration: underline;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+/* ============================================================
+   PR2: Avatar Circle (Leaderboard list rows 4+)
+   ============================================================ */
+
+.avatar-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  background: var(--panel-card);
+  color: var(--ink);
+  border: 2px solid var(--line);
+  transition: border-color 0.2s;
+}
+
+.avatar-circle--current {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+/* ============================================================
+   PR2: Scroll-reveal animations
+   ============================================================ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger variants for lists */
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+.reveal-delay-5 { transition-delay: 0.40s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ============================================================
+   PR2: Button depth hover effects (all pages)
+   ============================================================ */
+
+.btn-primary,
+.btn-check,
+.btn-stop,
+button[class^="btn-"] {
+  position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.btn-primary:hover,
+.btn-check:hover,
+button[class^="btn-"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  filter: brightness(1.08);
+}
+
+.btn-primary:active,
+.btn-check:active,
+button[class^="btn-"]:active {
+  transform: translateY(0);
+  box-shadow: none;
+  filter: brightness(0.95);
+}
+
+/* ============================================================
+   PR2: Profile input contrast fix
+   ============================================================ */
+
+/* Ensure all input/textarea text is legible against dark backgrounds */
+input,
+textarea,
+select {
+  color: var(--ink);
+  background-color: var(--panel-input);
+  border-color: var(--line);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+  border-color: var(--amber-dark);
+}
+
+/* ============================================================
+   PR2: Dashboard ambient particle background
+   ============================================================ */
+
+.dashboard-hero-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dashboard-hero-particles::before,
+.dashboard-hero-particles::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: var(--amber);
+  opacity: 0.06;
+  animation: particle-drift 12s ease-in-out infinite alternate;
+}
+
+.dashboard-hero-particles::before {
+  width: 260px; height: 260px;
+  top: -80px; right: 10%;
+  animation-duration: 14s;
+}
+
+.dashboard-hero-particles::after {
+  width: 180px; height: 180px;
+  bottom: -40px; left: 5%;
+  background: var(--moss);
+  animation-duration: 10s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes particle-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(20px, -20px) scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-hero-particles::before,
+  .dashboard-hero-particles::after { animation: none; }
+}
+
+/* ============================================================
+   PR2: Mascot parallax tilt (set via JS inline style --tx/--ty)
+   ============================================================ */
+
+.mascot-parallax {
+  transition: transform 0.25s ease;
+  transform: rotateX(calc(var(--ty, 0) * 1deg)) rotateY(calc(var(--tx, 0) * 1deg));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-parallax { transform: none; transition: none; }
+}
+

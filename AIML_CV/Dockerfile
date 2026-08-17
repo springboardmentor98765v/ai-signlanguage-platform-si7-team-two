@@ -16,6 +16,6 @@ COPY AIML_CV/ ./AIML_CV/
 
 ENV PYTHONPATH=/app
 
-EXPOSE 8001
+EXPOSE 7860
 
-CMD ["uvicorn", "AIML_CV.api.main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "7860"]

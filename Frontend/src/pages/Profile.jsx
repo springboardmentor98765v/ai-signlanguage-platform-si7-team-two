@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { getUser, saveSession } from "../utils/auth.js";
 import { updateProfile, changePassword } from "../services/api.js";
+import Mascot from "../components/mascot/Mascot.jsx";
+import MascotPicker, { getActiveMascotId } from "../components/mascot/MascotPicker.jsx";
 
 export default function Profile() {
   const user = getUser();
 
   const [name, setName] = useState(user?.name || user?.full_name || "");
   const [email, setEmail] = useState(user?.email || "");
+  const [mascotId, setMascotId] = useState(user?.mascot_id || getActiveMascotId());
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
   const [saveError, setSaveError] = useState("");
@@ -36,6 +39,7 @@ export default function Profile() {
       const updated = await updateProfile(user.id, {
         full_name: name,
         email: email,
+        mascot_id: mascotId,
       });
 
       saveSession({
@@ -43,6 +47,7 @@ export default function Profile() {
         name: updated.full_name,
         full_name: updated.full_name,
         email: updated.email,
+        mascot_id: updated.mascot_id,
       });
 
       setSaveStatus("Profile updated successfully.");
@@ -80,8 +85,13 @@ export default function Profile() {
       <h1 className="sr-only">Profile</h1>
 
       <div className="practice-header">
-        <h2>Profile</h2>
-        <p className="sub">Manage your account details and password.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Mascot state="idle" size="sm" mascotId={mascotId} aria-hidden={true} />
+          <div>
+            <h2>Profile</h2>
+            <p className="sub">Manage your account details and password.</p>
+          </div>
+        </div>
       </div>
 
       <section className="reference-card lift-hover" style={{ marginBottom: "24px", maxWidth: "480px" }}>
@@ -158,6 +168,8 @@ export default function Profile() {
           </button>
         </form>
       </section>
+
+      <MascotPicker value={mascotId} onChange={setMascotId} />
     </div>
   );
 }
