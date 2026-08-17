@@ -4,6 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from services.streak_service import update_streak
 from services.badge_service import evaluate_badges
+from services.learner_analytics_service import (
+    refresh_learner_analytics,
+)
 from datetime import date
 from database import SessionLocal
 from models.practice_model import Lesson, PracticeSession
@@ -109,7 +112,18 @@ def end_session(
     db.commit()
     db.refresh(session)
 
-    update_streak(db, session.user_id, date.today())
+# Automatically refresh learner analytics
+# immediately after the practice session ends.
+    refresh_learner_analytics(
+    db,
+    session.user_id,
+   )
+
+    update_streak(
+    db,
+    session.user_id,
+    date.today(),
+   )
 
     newly_earned = evaluate_badges(
     db,

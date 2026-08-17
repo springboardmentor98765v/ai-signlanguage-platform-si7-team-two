@@ -15,11 +15,17 @@ from database import Base
 class AnalyticsSummary(Base):
     __tablename__ = "analytics_summary"
 
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
+    )
+
     user_id = Column(
         String(36),
         ForeignKey("users.id", ondelete="CASCADE"),
-        primary_key=True,
         nullable=False,
+        unique=True,
     )
 
     average_accuracy = Column(
@@ -34,16 +40,16 @@ class AnalyticsSummary(Base):
         default=0,
     )
 
-    total_practice_time = Column(
-        Integer,
-        nullable=False,
-        default=0,
-    )
-
     weak_letters = Column(
         JSONB,
         nullable=False,
         default=list,
+    )
+
+    total_practice_time = Column(
+        Integer,
+        nullable=False,
+        default=0,
     )
 
     last_updated = Column(
