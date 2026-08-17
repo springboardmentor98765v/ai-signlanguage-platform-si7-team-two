@@ -5,10 +5,11 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    text
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
-
+from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 
 
