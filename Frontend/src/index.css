@@ -38,6 +38,13 @@
   --accent-light: var(--amber-light);
   --violet:       #8e8a9f; /* updated to pass WCAG AA contrast (4.5+) on --panel */
   --violet-light: #9896a4;
+  --violet-dark:  #6e6a7f;
+
+  /* ── Missing path variables ── */
+  --surface:        var(--panel);
+  --surface-dim:    #121212;
+  --surface-raised: #2a2a2a;
+  --gold-light:     #f9d880;
 
   --radius: 12px;
 }
@@ -2596,5 +2603,10 @@ select:focus {
 
 @media (prefers-reduced-motion: reduce) {
   .mascot-parallax { transform: none; transition: none; }
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
-

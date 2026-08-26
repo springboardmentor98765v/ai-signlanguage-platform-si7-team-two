@@ -57,12 +57,43 @@ export default function Mascot({
 }
 
 /* ---------------------------------------------------------------
-   Self-authored SVG mascot — a simple, friendly round character
-   with expressive eyes and hands.  All colours use CSS variables
-   so the mascot automatically matches the app theme.
+   Mascot body dispatch — each mascot gets its own distinct artwork
+   (ears, body shape, signature features).  The eye / mouth / hand
+   state variants above remain mascot-agnostic and render on top.
+
+   The previous implementation drew a single round-head SVG and only
+   changed fill colour — so all 5 mascots looked identical apart from
+   tint.  Now each mascot has a recognisable silhouette.
    --------------------------------------------------------------- */
 function MascotSVG({ state, mascotId }) {
-  // Eye expressions per state
+  // Resolve which mascot to render. Fall back to the active one, then
+  // the first mascot in the array.
+  const id =
+    mascotId ||
+    (typeof getActiveMascot === 'function' && getActiveMascot().id) ||
+    MASCOTS[0].id
+
+  // Per-mascot body. Dispatch by id, not by colour.
+  let Body
+  switch (id) {
+    case 'fox':
+      Body = <FoxBody />
+      break
+    case 'bear':
+      Body = <BearBody />
+      break
+    case 'cat':
+      Body = <CatBody />
+      break
+    case 'robot':
+      Body = <RobotBody />
+      break
+    case 'owl':
+    default:
+      Body = <OwlBody />
+  }
+
+  // Eye expressions per state — shared across mascots.
   const eyes = {
     idle:        <EyesNormal />,
     celebrating: <EyesHappy />,
@@ -71,7 +102,7 @@ function MascotSVG({ state, mascotId }) {
     dance:       <EyesHappy />,
   }
 
-  // Mouth per state
+  // Mouth per state — shared across mascots.
   const mouths = {
     idle:        <MouthSmile />,
     celebrating: <MouthBig />,
@@ -80,7 +111,7 @@ function MascotSVG({ state, mascotId }) {
     dance:       <MouthBig />,
   }
 
-  // Hand position per state (arms up/down/wave)
+  // Hand position per state — shared across mascots.
   const hands = {
     idle:        <HandsDown />,
     celebrating: <HandsUp />,
@@ -96,31 +127,146 @@ function MascotSVG({ state, mascotId }) {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      {/* Body */}
-      <circle cx="40" cy="44" r="22" fill={mascotId ? (MASCOTS.find((m) => m.id === mascotId) || MASCOTS[0]).color : getActiveMascot().color} />
-
-      {/* Head */}
-      <circle cx="40" cy="30" r="20" fill={mascotId ? (MASCOTS.find((m) => m.id === mascotId) || MASCOTS[0]).color : getActiveMascot().color} />
-      <path d="M24 16 L28 22 L20 28 Z" fill={mascotId ? (MASCOTS.find((m) => m.id === mascotId) || MASCOTS[0]).color : getActiveMascot().color} />
-      <path d="M56 16 L52 22 L60 28 Z" fill={mascotId ? (MASCOTS.find((m) => m.id === mascotId) || MASCOTS[0]).color : getActiveMascot().color} />
-
-      {/* Cheeks */}
-      <ellipse cx="26" cy="35" rx="5" ry="3.5" fill="var(--accent, #ff7a59)" opacity="0.5" />
-      <ellipse cx="54" cy="35" rx="5" ry="3.5" fill="var(--accent, #ff7a59)" opacity="0.5" />
-
-      {/* Eyes */}
+      {Body}
       {eyes[state] || <EyesNormal />}
-
-      {/* Mouth */}
       {mouths[state] || <MouthSmile />}
-
-      {/* Hands/Arms */}
       {hands[state] || <HandsDown />}
-
-      {/* Ears / bumps */}
-      <circle cx="20" cy="26" r="5" fill="var(--moss, #2fd48f)" />
-      <circle cx="60" cy="26" r="5" fill="var(--moss, #2fd48f)" />
     </svg>
+  )
+}
+
+/* --- Mascot-specific bodies --- */
+
+function OwlBody() {
+  // Wide rounded body, two large concentric eyes (owl signature),
+  // small triangular tufts on top, soft chest feathers.
+  const c = MASCOTS.find((m) => m.id === 'owl').color
+  return (
+    <g>
+      {/* Body */}
+      <ellipse cx="40" cy="48" rx="26" ry="22" fill={c} />
+      {/* Head */}
+      <circle cx="40" cy="30" r="22" fill={c} />
+      {/* Ear tufts */}
+      <path d="M22 14 L28 22 L20 22 Z" fill={c} />
+      <path d="M58 14 L52 22 L60 22 Z" fill={c} />
+      {/* Big owl eye discs */}
+      <circle cx="30" cy="30" r="11" fill="white" />
+      <circle cx="50" cy="30" r="11" fill="white" />
+      {/* Belly feather V */}
+      <path d="M28 44 Q40 56 52 44" fill="rgba(255,255,255,0.35)" />
+    </g>
+  )
+}
+
+function FoxBody() {
+  // Slim head, tall pointed ears, distinctive white muzzle + face mask,
+  // small bushy tail element.
+  const c = MASCOTS.find((m) => m.id === 'fox').color
+  return (
+    <g>
+      {/* Body */}
+      <ellipse cx="40" cy="50" rx="20" ry="20" fill={c} />
+      {/* Tail (peeks from behind) */}
+      <path d="M62 56 Q72 50 70 38 Q66 44 64 52 Z" fill={c} />
+      <path d="M66 42 Q70 38 69 32" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {/* Head */}
+      <path d="M18 32 Q22 14 40 12 Q58 14 62 32 Q62 44 40 46 Q18 44 18 32 Z" fill={c} />
+      {/* Pointed ears */}
+      <path d="M20 22 L24 6 L30 22 Z" fill={c} />
+      <path d="M60 22 L56 6 L50 22 Z" fill={c} />
+      {/* Inner ear pink */}
+      <path d="M23 20 L25 12 L28 20 Z" fill="#ffb6a3" />
+      <path d="M57 20 L55 12 L52 20 Z" fill="#ffb6a3" />
+      {/* White muzzle + face mask */}
+      <path d="M28 34 Q40 50 52 34 Q40 38 28 34 Z" fill="white" />
+      <path d="M28 34 L52 34 L52 28 L28 28 Z" fill="rgba(255,255,255,0.25)" />
+      {/* Cheeks */}
+      <ellipse cx="26" cy="36" rx="3" ry="2" fill="#ffb6a3" opacity="0.7" />
+      <ellipse cx="54" cy="36" rx="3" ry="2" fill="#ffb6a3" opacity="0.7" />
+    </g>
+  )
+}
+
+function BearBody() {
+  // Round body, round small ears on top, broad head, dark nose dot.
+  const c = MASCOTS.find((m) => m.id === 'bear').color
+  return (
+    <g>
+      {/* Body */}
+      <ellipse cx="40" cy="50" rx="24" ry="22" fill={c} />
+      {/* Head — slightly broader than owl's */}
+      <circle cx="40" cy="32" r="22" fill={c} />
+      {/* Small round ears */}
+      <circle cx="22" cy="14" r="7" fill={c} />
+      <circle cx="58" cy="14" r="7" fill={c} />
+      {/* Inner ear */}
+      <circle cx="22" cy="14" r="3.5" fill="#c9a98a" />
+      <circle cx="58" cy="14" r="3.5" fill="#c9a98a" />
+      {/* Snout */}
+      <ellipse cx="40" cy="40" rx="10" ry="7" fill="#d9c1a3" />
+      {/* Nose */}
+      <ellipse cx="40" cy="36" rx="3.5" ry="2.5" fill="#3a2a1a" />
+    </g>
+  )
+}
+
+function CatBody() {
+  // Sleek head, tall pointed ears with pink inner triangles, whiskers,
+  // vertical slit pupils drawn on top of the shared eye variants.
+  const c = MASCOTS.find((m) => m.id === 'cat').color
+  return (
+    <g>
+      {/* Body */}
+      <ellipse cx="40" cy="50" rx="20" ry="20" fill={c} />
+      {/* Tail curl */}
+      <path d="M58 60 Q72 64 70 46" stroke={c} strokeWidth="6" fill="none" strokeLinecap="round" />
+      {/* Head — slightly narrower */}
+      <path d="M22 30 Q22 14 40 12 Q58 14 58 30 Q58 44 40 46 Q22 44 22 30 Z" fill={c} />
+      {/* Pointed ears */}
+      <path d="M22 18 L18 4 L32 16 Z" fill={c} />
+      <path d="M58 18 L62 4 L48 16 Z" fill={c} />
+      {/* Inner ear */}
+      <path d="M22 16 L20 8 L28 16 Z" fill="#ffb6d5" />
+      <path d="M58 16 L60 8 L52 16 Z" fill="#ffb6d5" />
+      {/* Muzzle */}
+      <ellipse cx="40" cy="40" rx="6" ry="4" fill="white" />
+      {/* Nose */}
+      <path d="M38 36 L42 36 L40 39 Z" fill="#ff6f9c" />
+      {/* Whiskers */}
+      <line x1="14" y1="40" x2="28" y2="40" stroke="#222" strokeWidth="1" strokeLinecap="round" />
+      <line x1="14" y1="44" x2="28" y2="42" stroke="#222" strokeWidth="1" strokeLinecap="round" />
+      <line x1="66" y1="40" x2="52" y2="40" stroke="#222" strokeWidth="1" strokeLinecap="round" />
+      <line x1="66" y1="44" x2="52" y2="42" stroke="#222" strokeWidth="1" strokeLinecap="round" />
+    </g>
+  )
+}
+
+function RobotBody() {
+  // Square body, antenna with circle bulb, rectangular eyes, bolts on side.
+  const c = MASCOTS.find((m) => m.id === 'robot').color
+  return (
+    <g>
+      {/* Antenna */}
+      <line x1="40" y1="6" x2="40" y2="14" stroke="#222" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="40" cy="6" r="3" fill="#ff5e5e" />
+      {/* Head — rounded square */}
+      <rect x="14" y="14" width="52" height="34" rx="6" fill={c} />
+      {/* Body */}
+      <rect x="20" y="46" width="40" height="26" rx="4" fill={c} />
+      {/* Body panel line */}
+      <line x1="22" y1="56" x2="58" y2="56" stroke="rgba(0,0,0,0.25)" strokeWidth="1" />
+      {/* Bolts on side of head */}
+      <circle cx="18" cy="22" r="1.5" fill="#222" />
+      <circle cx="18" cy="40" r="1.5" fill="#222" />
+      <circle cx="62" cy="22" r="1.5" fill="#222" />
+      <circle cx="62" cy="40" r="1.5" fill="#222" />
+      {/* Bolts on body */}
+      <circle cx="24" cy="50" r="1.5" fill="#222" />
+      <circle cx="56" cy="50" r="1.5" fill="#222" />
+      {/* Eye screen backdrop (the eye variants draw on top) */}
+      <rect x="22" y="22" width="36" height="14" rx="3" fill="#0d1b2a" />
+    </g>
   )
 }
 

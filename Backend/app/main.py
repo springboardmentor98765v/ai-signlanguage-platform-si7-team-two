@@ -48,6 +48,11 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        # Deployed Vercel frontend (production + preview deployments)
+        "https://sign-language-frontend-two.vercel.app",
+        "https://sign-language-frontend-obzwzgebb.vercel.app",
+        "https://sign-language-frontend-5csyicbdf.vercel.app",
+        "https://sign-language-frontend-kfyiuabiq.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],

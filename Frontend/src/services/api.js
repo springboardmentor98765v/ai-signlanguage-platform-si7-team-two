@@ -85,13 +85,22 @@ function makeDemoResult(targetLetter) {
 }
 
 async function attemptPredict(imageBlob) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  
   const formData = new FormData()
   formData.append('frame', imageBlob, 'frame.jpg')
-  const res = await fetch(`${BUSINESS_LOGIC_URL}/ai/predict`, {
-    method: 'POST',
-    body: formData,
-  })
-  return handleResponse(res)
+  
+  try {
+    const res = await fetch(`${BUSINESS_LOGIC_URL}/ai/predict`, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal
+    })
+    return await handleResponse(res)
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 /**
@@ -112,12 +121,19 @@ export async function predictSign(imageBlob, targetLetter = 'A', onPhase) {
   try {
     return await attemptPredict(imageBlob)
   } catch (firstErr) {
-    // Only retry on service-level errors (503, network), not on 400 bad image
+    // Retry on service-level errors (503, network, abort/timeout),
+    // not on 400 bad image. AbortError fires when our 5s timeout
+    // expires — without these keywords the loop in Practice.jsx would
+    // keep re-firing setAiPhase('connecting') forever.
+    const msg = (firstErr?.message || '').toLowerCase()
     const isServiceDown =
       firstErr.message.includes('503') ||
       firstErr.message.includes('service unavailable') ||
-      firstErr.message.toLowerCase().includes('failed to fetch') ||
-      firstErr.message.toLowerCase().includes('network')
+      msg.includes('failed to fetch') ||
+      msg.includes('network') ||
+      msg.includes('abort') ||
+      msg.includes('timed out') ||
+      msg.includes('timeout')
 
     if (!isServiceDown) {
       // Surface genuine errors (bad frame, no hand, etc.) immediately
@@ -312,7 +328,7 @@ export async function getProgressReport(userId) {
 
 export async function downloadProgressReport(userId, learnerName) {
   const res = await fetch(
-    `${BUSINESS_LOGIC_URL}/progress-report/${userId}/download?learner_name=${encodeURIComponent(learnerName)}`
+    `${BUSINESS_LOGIC_URL}/progress-report/${userId}/pdf?learner_name=${encodeURIComponent(learnerName)}`
   );
 
   if (!res.ok) {
@@ -462,8 +478,45 @@ export async function getRecommendations(learnerId) {
 
 // ---------- Certification Exam ----------
 
+// Canonical fallback letter set: full alphabet A-Z. Used if the backend
+// /certification_exams/letters endpoint is unreachable for any reason.
+const FALLBACK_EXAM_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+export async function getExamLetters(level = "Full") {
+  try {
+    const res = await fetch(
+      `${BUSINESS_LOGIC_URL}/certification_exams/letters?level=${encodeURIComponent(level)}`
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (Array.isArray(data?.letters) && data.letters.length > 0) {
+      return {
+        level: data.level,
+        letters: data.letters,
+        passThreshold: data.pass_threshold ?? 80.0,
+      };
+    }
+  } catch (err) {
+    console.warn("getExamLetters fell back to static alphabet:", err);
+  }
+  return { level, letters: FALLBACK_EXAM_LETTERS, passThreshold: 80.0 };
+}
+
+export async function getExamCertificate(examId) {
+  // Hits the dedicated per-exam certificate route. Returns a blob the
+  // frontend saves with the standard saveBlob helper (see Reports.jsx).
+  const res = await fetch(
+    `${BUSINESS_LOGIC_URL}/certification_exams/${examId}/certificate`
+  );
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(extractErrorMessage(data, "Failed to download certificate."));
+  }
+  return res.blob();
+}
+
 export async function submitCertificationExam(userId, examData) {
-  const res = await fetch(`${BUSINESS_LOGIC_URL}/certification-exam/${userId}/submit`, {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/certification_exams/submit`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

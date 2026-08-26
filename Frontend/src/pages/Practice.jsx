@@ -67,12 +67,13 @@ export default function Practice() {
     async function loadLessons() {
       try {
         const userId = getUserId();
-        if(userId) {
-            const data = await getLessons(userId);
-            setLessonList(data);
+        if (userId) {
+          const data = await getLessons(userId);
+          setLessonList(Array.isArray(data) ? data : []);
         } else {
-            const data = await getLessons();
-            setLessonList(data);
+          // Unauthenticated — the letter picker falls back to the static
+          // A-Z alphabet (see <select> below), so we just skip the call.
+          setLessonList([]);
         }
       } catch (err) {
         console.error("Failed to load lessons:", err);
@@ -186,6 +187,29 @@ export default function Practice() {
       }
     };
   }, []);
+
+  // AI Prediction Loop
+  useEffect(() => {
+    let loopTimeout;
+    
+    async function runLoop() {
+      if (!isPracticing || attemptCount >= TARGET_ATTEMPTS || isChecking) {
+        return;
+      }
+      
+      // Auto-trigger check
+      await handleCheckSign();
+      
+      // Schedule next check if still practicing
+      loopTimeout = setTimeout(runLoop, 2000);
+    }
+    
+    if (isPracticing && !isChecking && attemptCount < TARGET_ATTEMPTS) {
+      loopTimeout = setTimeout(runLoop, 2000); // 2s between auto-checks
+    }
+    
+    return () => clearTimeout(loopTimeout);
+  }, [isPracticing, isChecking, attemptCount]);
 
   function stopStream() {
     if (!streamRef.current) return;
@@ -414,16 +438,24 @@ export default function Practice() {
           <div className="letter-picker">
             <label htmlFor="letter-select">Pick a letter</label>
             <select id="letter-select" value={targetLetter} onChange={handleLetterChange}>
-              {lessonList.length === 0 ? (
-                <option value={targetLetter}>{targetLetter}</option>
-              ) : (
-                lessonList.map((l) => (
+              {/*
+                The static A-Z alphabet is the source of truth for the picker.
+                Any words / dynamic lessons returned by the backend are merged
+                on top so we never end up with only one option (the previous
+                "only A" symptom came from this dropdown depending entirely on
+                the backend response shape or auth state).
+              */}
+              {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((l) => (
+                <option key={`letter-${l}`} value={l}>{l}</option>
+              ))}
+              {lessonList
+                .filter((l) => l.letter && !/^[A-Z]$/.test(l.letter))
+                .map((l) => (
                   <option key={l.id} value={l.letter}>
-                    {l.title}
+                    {l.title || l.letter}
                     {l.difficulty ? ` · ${l.difficulty}` : ""}
                   </option>
-                ))
-              )}
+                ))}
             </select>
           </div>
         </div>
@@ -431,16 +463,26 @@ export default function Practice() {
 
       <div className="practice-grid">
         <div className="practice-panel">
-          <div className="video-frame">
+          <div className={`video-frame ${
+            assessment ? (isCorrect ? 'feedback-green' : 'feedback-red') : ''
+          }`}>
             {isPracticing ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="video-feed"
-                aria-label="Live camera preview of your hand sign"
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="video-feed"
+                  aria-label="Live camera preview of your hand sign"
+                />
+                <div className="video-overlay-skeleton">
+                  <svg viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeDasharray="4 4">
+                    <path d="M40 80 V50 Q40 40 45 40 T50 50 V80 M50 80 V45 Q50 35 55 35 T60 45 V80 M60 80 V48 Q60 38 65 38 T70 48 V80 M70 80 V55 Q70 45 75 45 T80 55 V80 M40 60 Q30 65 30 75 V90 H80 V90" />
+                  </svg>
+                  <p className="overlay-text">Align hand here</p>
+                </div>
+              </>
             ) : (
               <div className="video-placeholder">Camera is Off</div>
             )}
@@ -501,25 +543,9 @@ export default function Practice() {
                 Start Practice
               </button>
             ) : (
-              <>
-                <button className="btn-stop" onClick={handleStop}>
-                  Stop Practice
-                </button>
-
-                <button
-                  className="btn-check"
-                  onClick={handleCheckSign}
-                  disabled={isChecking}
-                >
-                  {aiPhase === 'connecting'
-                    ? 'Connecting…'
-                    : aiPhase === 'retrying'
-                    ? 'Retrying…'
-                    : isChecking
-                    ? 'Checking…'
-                    : 'Check My Sign'}
-                </button>
-              </>
+              <button className="btn-stop" onClick={handleStop}>
+                Stop Practice
+              </button>
             )}
           </div>
 
@@ -629,7 +655,7 @@ export default function Practice() {
 
           {/* Mascot reacting to attempts */}
           <div className="practice-mascot-wrap" aria-hidden="true">
-            <Mascot state={mascotState} size="sm" label={mascotBubble} aria-hidden={true} />
+            <Mascot state={mascotState} size="sm" label={mascotBubble} mascotId={getUser()?.mascot_id} aria-hidden={true} />
           </div>
 
           <div className="prediction-card">

@@ -76,11 +76,8 @@ def export_instructor_summary(
 @router.get("/{user_id}", response_model=ProgressReportResponse)
 def get_progress_report(user_id: UUID, db: Session = Depends(get_db)):
     sessions = db.query(PracticeSession).filter(PracticeSession.user_id == user_id).all()
-    if not sessions:
-        raise HTTPException(status_code=404, detail="No practice history found for this user")
-
-    session_ids = [s.id for s in sessions]
-    assessments = db.query(Assessment).filter(Assessment.session_id.in_(session_ids)).all()
+    session_ids = [s.id for s in sessions] if sessions else []
+    assessments = db.query(Assessment).filter(Assessment.session_id.in_(session_ids)).all() if session_ids else []
     certificates = db.query(Certificate).filter(Certificate.learner_id == user_id).all()
 
     report_data = build_progress_report(sessions, assessments, certificates)
@@ -100,11 +97,8 @@ def get_progress_report(user_id: UUID, db: Session = Depends(get_db)):
 @router.get("/{user_id}/pdf")
 def get_progress_report_pdf(user_id: UUID, learner_name: str = Query("Learner"), db: Session = Depends(get_db)):
     sessions = db.query(PracticeSession).filter(PracticeSession.user_id == user_id).all()
-    if not sessions:
-        raise HTTPException(status_code=404, detail="No practice history found for this user")
-
-    session_ids = [s.id for s in sessions]
-    assessments = db.query(Assessment).filter(Assessment.session_id.in_(session_ids)).all()
+    session_ids = [s.id for s in sessions] if sessions else []
+    assessments = db.query(Assessment).filter(Assessment.session_id.in_(session_ids)).all() if session_ids else []
     certificates = db.query(Certificate).filter(Certificate.learner_id == user_id).all()
 
     report_data = build_progress_report(sessions, assessments, certificates)
@@ -130,17 +124,11 @@ def get_progress_report_excel(
         PracticeSession.user_id == user_id
     ).all()
 
-    if not sessions:
-        raise HTTPException(
-            status_code=404,
-            detail="No practice history found for this user"
-        )
-
-    session_ids = [session.id for session in sessions]
+    session_ids = [session.id for session in sessions] if sessions else []
 
     assessments = db.query(Assessment).filter(
         Assessment.session_id.in_(session_ids)
-    ).all()
+    ).all() if session_ids else []
 
     certificates = db.query(Certificate).filter(
         Certificate.learner_id == user_id

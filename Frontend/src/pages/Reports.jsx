@@ -18,6 +18,10 @@ export default function Reports() {
   const [recommendationsError, setRecommendationsError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // Empty-but-not-error: backend returned successfully but the user has
+  // zero practice sessions. Render a friendly "start practicing" message
+  // instead of the generic error state.
+  const [isEmpty, setIsEmpty] = useState(false);
 
   // Milestone 3, Day 6/7: one shared status per download button, instead
   // of alert()/silent-failure. Each entry is "" (idle), "loading", or an
@@ -33,6 +37,7 @@ export default function Reports() {
 
     setLoading(true);
     setError("");
+    setIsEmpty(false);
 
     try {
       const [reportData, eligibilityData] = await Promise.all([
@@ -41,9 +46,17 @@ export default function Reports() {
       ]);
       setReport(reportData);
       setEligibility(eligibilityData);
+      // If the user has no practice sessions yet, the report will be the
+      // zeros — render an empty-state instead of an error.
+      const hasNoData =
+        !reportData ||
+        (reportData.total_attempts === 0 &&
+          (reportData.lessons_completed ?? 0) === 0);
+      setIsEmpty(hasNoData);
     } catch (e) {
       // Milestone 3, Day 7: friendly, non-technical error message instead
       // of showing the raw fetch/network error text.
+      console.error("Reports fetch failed:", e);
       setError(
         "We couldn't load your report right now. Please check your connection and try again."
       );
@@ -120,6 +133,28 @@ export default function Reports() {
     );
   }
 
+  if (isEmpty) {
+    return (
+      <div style={{ padding: 30 }}>
+        <h1>Progress Report</h1>
+        <div className="empty-page" role="status">
+          <h2>No practice data yet</h2>
+          <p>
+            You haven&apos;t completed any practice sessions or lessons.
+            Head over to <strong>Practice</strong> and try a letter to start
+            building your progress report.
+          </p>
+          <button
+            className="btn-primary"
+            onClick={() => (window.location.href = "/practice")}
+          >
+            Go to Practice
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const learnerName = user?.name || user?.full_name || "Learner";
   const reportMascotState = report?.average_accuracy >= 80 ? 'celebrating' : 'encouraging';
   const reportMascotLabel = report?.average_accuracy >= 80
@@ -129,7 +164,7 @@ export default function Reports() {
   return (
     <div style={{ padding: 30 }}>
       <div className="reports-mascot-row" aria-hidden="true">
-        <Mascot state={reportMascotState} size="sm" label={reportMascotLabel} aria-hidden={true} />
+        <Mascot state={reportMascotState} size="sm" label={reportMascotLabel} mascotId={getUser()?.mascot_id} aria-hidden={true} />
       </div>
       <h1>Progress Report</h1>
 

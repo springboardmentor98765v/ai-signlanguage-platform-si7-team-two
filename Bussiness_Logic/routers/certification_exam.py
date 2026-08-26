@@ -13,6 +13,7 @@ from models.practice_model import Certificate, User
 from services.certificate_engine import generate_certificate_code
 from services.certificate_generator import generate_certificate_pdf
 from services.notification_client import send_notification
+from services.certification_exam_service import CERTIFICATION_LEVELS
 
 router = APIRouter(
     prefix="/certification_exams",
@@ -31,6 +32,42 @@ class ExamSubmission(BaseModel):
     learner_id: str
     level: str
     scores: List[float]  # scores for each sign in the exam
+
+
+@router.get("/letters")
+def get_exam_letters(level: str = "Full"):
+    """
+    Return the letter set for a certification exam level so the frontend
+    can drive its sequence without hardcoding A-E.
+
+    Levels:
+      - "Full"          → all 26 letters (A-Z) in order, used by the default
+                          exam flow that should cover the entire alphabet.
+      - "Beginner"      → A-E (level 1)
+      - "Intermediate"  → F-M (level 2)
+      - "Advanced"      → N-U (level 3)
+      - "Professional"  → V-Z (level 4)
+
+    Falls back to the full alphabet for any unknown level so a typo never
+    strands the learner on an empty exam.
+    """
+    if level == "Full":
+        letters = [chr(ord("A") + i) for i in range(26)]
+        pass_threshold = 80.0
+    elif level in CERTIFICATION_LEVELS:
+        config = CERTIFICATION_LEVELS[level]
+        letters = list(config["signs"])
+        pass_threshold = float(config["pass_threshold"])
+    else:
+        letters = [chr(ord("A") + i) for i in range(26)]
+        pass_threshold = 80.0
+
+    return {
+        "level": level,
+        "letters": letters,
+        "total_letters": len(letters),
+        "pass_threshold": pass_threshold,
+    }
 
 
 @router.post("/submit")

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
+import httpx
+
 from services.ai_client import get_ai_prediction
 
 router = APIRouter(prefix="/ai", tags=["AI Integration"])
@@ -15,7 +17,14 @@ async def predict_sign(frame: UploadFile = File(...)):
     if not image_bytes:
         raise HTTPException(status_code=400, detail="The image frame is empty.")
 
-    result = await get_ai_prediction(image_bytes, filename=frame.filename or "frame.jpg")
+    try:
+        result = await get_ai_prediction(image_bytes, filename=frame.filename or "frame.jpg")
+    except httpx.HTTPError:
+        # Translate any AI-service reachability failure into a clean 503 so
+        # the frontend's retry + demo-mode flow can detect it (the message
+        # contains "service unavailable" which matches api.js isServiceDown).
+        raise HTTPException(status_code=503, detail="AI service unavailable")
+
     return {
         "predicted_sign": result["predicted_sign"],
         "confidence": round(result["confidence"] * 100, 2),

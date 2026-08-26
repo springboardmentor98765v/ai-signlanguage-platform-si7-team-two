@@ -14,13 +14,59 @@ export default function Register() {
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
+  // Live validation state
+  const [emailError, setEmailError] = useState("")
+  const [passwordError, setPasswordError] = useState("")
+
+  function validateEmail(val) {
+    if (!val) {
+      setEmailError("")
+      return true
+    }
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
+    setEmailError(isValid ? "" : "Please enter a valid email address")
+    return isValid
+  }
+
+  function handleEmailChange(e) {
+    const val = e.target.value
+    setEmail(val)
+    validateEmail(val)
+  }
+
+  function validatePasswords(pass, confirm) {
+    if (!pass || !confirm) {
+      setPasswordError("")
+      return true
+    }
+    const isValid = pass === confirm
+    setPasswordError(isValid ? "" : "Passwords do not match")
+    return isValid
+  }
+
+  function handlePasswordChange(e) {
+    const val = e.target.value
+    setPassword(val)
+    validatePasswords(val, confirmPassword)
+  }
+
+  function handleConfirmPasswordChange(e) {
+    const val = e.target.value
+    setConfirmPassword(val)
+    validatePasswords(password, val)
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+    
+    if (!validateEmail(email)) {
       return
     }
+    if (!validatePasswords(password, confirmPassword)) {
+      return
+    }
+
     setIsLoading(true)
     try {
       const response = await register(name, email, password, role)
@@ -62,13 +108,15 @@ export default function Register() {
           <div className="field">
             <label htmlFor="email">Email</label>
             <input id="email" type="email" placeholder="you@example.com"
-              value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} />
+              value={email} onChange={handleEmailChange} required disabled={isLoading} 
+              style={{ borderColor: emailError ? "var(--clay)" : "" }} />
+            {emailError && <div style={{ color: "var(--clay)", fontSize: "12px", marginTop: "4px" }}>{emailError}</div>}
           </div>
           <div className="field" style={{ position: 'relative' }}>
             <label htmlFor="password">Password</label>
             <input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••"
-              value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} 
-              style={{ paddingRight: '60px' }} />
+              value={password} onChange={handlePasswordChange} required disabled={isLoading} 
+              style={{ paddingRight: '60px', borderColor: passwordError ? "var(--clay)" : "" }} />
             <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}
               style={{ position: 'absolute', right: '12px', top: '35px', background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
               {showPassword ? "Hide" : "Show"}
@@ -77,8 +125,9 @@ export default function Register() {
           <div className="field" style={{ position: 'relative' }}>
             <label htmlFor="confirmPassword">Confirm password</label>
             <input id="confirmPassword" type={showPassword ? "text" : "password"} placeholder="••••••••"
-              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={isLoading} 
-              style={{ paddingRight: '60px' }} />
+              value={confirmPassword} onChange={handleConfirmPasswordChange} required disabled={isLoading} 
+              style={{ paddingRight: '60px', borderColor: passwordError ? "var(--clay)" : "" }} />
+            {passwordError && <div style={{ color: "var(--clay)", fontSize: "12px", marginTop: "4px" }}>{passwordError}</div>}
             <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}
               style={{ position: 'absolute', right: '12px', top: '35px', background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
               {showPassword ? "Hide" : "Show"}

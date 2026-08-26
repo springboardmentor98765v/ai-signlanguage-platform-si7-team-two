@@ -12,9 +12,33 @@ export default function Login() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  // Live validation state
+  const [emailError, setEmailError] = useState("");
+
+  function validateEmail(val) {
+    if (!val) {
+      setEmailError("");
+      return true;
+    }
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+    setEmailError(isValid ? "" : "Please enter a valid email address");
+    return isValid;
+  }
+
+  function handleEmailChange(e) {
+    const val = e.target.value;
+    setEmail(val);
+    validateEmail(val);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    
+    if (!validateEmail(email)) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -53,10 +77,12 @@ export default function Login() {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               required
               disabled={isLoading}
+              style={{ borderColor: emailError ? "var(--clay)" : "" }}
             />
+            {emailError && <div style={{ color: "var(--clay)", fontSize: "12px", marginTop: "4px" }}>{emailError}</div>}
           </div>
 
           <div className="field" style={{ position: 'relative' }}>

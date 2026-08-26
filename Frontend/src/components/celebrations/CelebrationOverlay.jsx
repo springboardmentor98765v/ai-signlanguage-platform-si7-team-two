@@ -1,19 +1,23 @@
 import { useEffect, useRef } from 'react'
 import confetti from 'canvas-confetti'
 import Mascot from '../mascot/Mascot.jsx'
+import { getUser } from '../../utils/auth.js'
+import { playCelebrationFanfare, playSuccessChime } from '../../utils/sound.js'
 import './CelebrationOverlay.css'
 
 /**
  * Full-screen celebration overlay.
  *
  * Props:
- *   type      — 'course' | 'badge'
+ *   type      — 'course' | 'badge' | 'streak' | 'trophy'
  *   title     — main heading (e.g. "Course Complete!")
  *   subtitle  — secondary line (e.g. "You finished all 26 letters!")
  *   onDismiss — called when the user clicks "Continue" or presses Escape
  *
  * 'course' → bigger celebration: full-screen confetti, large mascot, gradient title
- * 'badge'  → trophy zoom from small to large as focal point, with confetti burst
+ * 'streak' → fiery confetti, streak flame icon
+ * 'trophy' → gold confetti, trophy icon
+ * 'badge'  → single big burst, badge star icon
  *
  * Confetti is skipped when prefers-reduced-motion is set — the overlay
  * still appears in full with text and mascot (just no particle rain).
@@ -34,6 +38,13 @@ export default function CelebrationOverlay({ type = 'badge', title, subtitle, on
 
   // Fire confetti — respects prefers-reduced-motion
   useEffect(() => {
+    // Play sound on mount
+    if (type === 'course' || type === 'trophy') {
+      playCelebrationFanfare();
+    } else {
+      playSuccessChime();
+    }
+
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReducedMotion) return
 
@@ -67,6 +78,20 @@ export default function CelebrationOverlay({ type = 'badge', title, subtitle, on
         confettiRef.current?.reset()
         confettiRef.current = null
       }
+    } else if (type === 'streak') {
+      // Fiery burst
+      fire(0.4, { spread: 80, startVelocity: 65, colors: ['#ff7a59', '#f4c452', '#ff4d4d'] })
+      return () => {
+        confettiRef.current?.reset()
+        confettiRef.current = null
+      }
+    } else if (type === 'trophy') {
+      // Golden burst
+      fire(0.4, { spread: 100, startVelocity: 55, colors: ['#f4c452', '#fff0b3', '#c98f1f'] })
+      return () => {
+        confettiRef.current?.reset()
+        confettiRef.current = null
+      }
     } else {
       // Single big burst for badge
       fire(0.3, { spread: 70, startVelocity: 60, colors: ['#f4c452', '#ff7a59', '#9b8cf5'] })
@@ -79,6 +104,8 @@ export default function CelebrationOverlay({ type = 'badge', title, subtitle, on
   }, [type])
 
   const isCourse = type === 'course'
+  const isStreak = type === 'streak'
+  const isTrophy = type === 'trophy'
 
   return (
     <div
@@ -105,11 +132,15 @@ export default function CelebrationOverlay({ type = 'badge', title, subtitle, on
         {/* Icon / Trophy */}
         {isCourse ? (
           <>
-            <Mascot state="celebrating" size="lg" aria-hidden={true} />
+            <Mascot state="celebrating" size="lg" mascotId={getUser()?.mascot_id} aria-hidden={true} />
             <span className="celebration-course-icon" aria-hidden="true">🎓</span>
           </>
-        ) : (
+        ) : isStreak ? (
+          <span className="celebration-trophy" role="img" aria-label="Streak Flame">🔥</span>
+        ) : isTrophy ? (
           <span className="celebration-trophy" role="img" aria-label="Trophy">🏆</span>
+        ) : (
+          <span className="celebration-trophy" role="img" aria-label="Badge">🎖️</span>
         )}
 
         {/* Stars */}

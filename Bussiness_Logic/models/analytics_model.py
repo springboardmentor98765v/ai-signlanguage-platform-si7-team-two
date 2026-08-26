@@ -1,4 +1,5 @@
 from sqlalchemy import (
+    JSON,
     Column,
     DateTime,
     ForeignKey,
@@ -6,7 +7,6 @@ from sqlalchemy import (
     Numeric,
     String,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 
 from database import Base
@@ -40,8 +40,10 @@ class AnalyticsSummary(Base):
         default=0,
     )
 
+    # JSONB is Postgres-only; use SQLAlchemy portable JSON so this model
+    # works against SQLite for local dev and Postgres in production.
     weak_letters = Column(
-        JSONB,
+        JSON,
         nullable=False,
         default=list,
     )

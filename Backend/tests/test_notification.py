@@ -5,14 +5,14 @@ client = TestClient(app)
 
 
 def test_notification_invalid_uuid():
-    response = client.get("/notifications/notifications/invalid-uuid")
+    response = client.get("/notifications/invalid-uuid")
 
     assert response.status_code == 422
 
 
 def test_notification_invalid_body():
     response = client.post(
-        "/notifications/notifications/",
+        "/notifications/",
         json={
             "user_id": "invalid-uuid",
             "title": "",

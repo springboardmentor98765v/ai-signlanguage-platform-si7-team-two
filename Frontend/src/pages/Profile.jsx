@@ -127,6 +127,10 @@ export default function Profile() {
           {saveError && <p className="camera-error" role="alert">{saveError}</p>}
           {saveStatus && <p className="form-success" role="status">{saveStatus}</p>}
 
+          <div style={{ marginTop: "32px", marginBottom: "32px" }}>
+            <MascotPicker value={mascotId} onChange={setMascotId} />
+          </div>
+
           <button className="btn-primary" type="submit" disabled={isSaving}>
             {isSaving ? "Saving..." : "Save changes"}
           </button>
@@ -169,7 +173,6 @@ export default function Profile() {
         </form>
       </section>
 
-      <MascotPicker value={mascotId} onChange={setMascotId} />
     </div>
   );
 }

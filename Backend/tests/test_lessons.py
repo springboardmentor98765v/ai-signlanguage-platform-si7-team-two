@@ -24,15 +24,22 @@ def test_get_all_lessons(client: TestClient):
 
 
 def test_get_single_lesson(client: TestClient):
-    response = client.get(f"/lessons/{LESSON_ID}")
+    # First get all lessons to find a valid ID
+    all_response = client.get("/lessons/")
+    assert all_response.status_code == 200
+    data_all = all_response.json()
+    assert len(data_all) > 0
+    lesson = data_all[0]
+    
+    response = client.get(f"/lessons/{lesson['id']}")
 
     assert response.status_code == 200
 
     data = response.json()
 
-    assert data["id"] == LESSON_ID
-    assert data["letter"] == "A"
-    assert data["title"] == "Letter A"
+    assert data["id"] == lesson["id"]
+    assert data["letter"] == lesson["letter"]
+    assert data["title"] == lesson["title"]
 
 
 def test_get_invalid_lesson(client: TestClient):

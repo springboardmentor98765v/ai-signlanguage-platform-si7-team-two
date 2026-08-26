@@ -17,7 +17,12 @@ async def get_ai_prediction(image_bytes: bytes, filename: str = "frame.jpg") -> 
     """
     Calls Intern 3's real AI service (POST /predict, multipart/form-data).
     Returns predicted_sign, confidence (0-1 scale), and possible_issue.
-    Falls back to a safe mock response if the service is unreachable.
+
+    Raises httpx.HTTPError (or HTTPException via the FastAPI handler) when
+    the AI service is unreachable, times out, or returns an error response.
+    The frontend treats these as service-down, retries once, and falls back
+    to its own demo-mode banner — the learner is never silently shown fake
+    "real" predictions.
     """
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
@@ -31,10 +36,7 @@ async def get_ai_prediction(image_bytes: bytes, filename: str = "frame.jpg") -> 
                 "confidence": data["confidence"] / 100.0,
                 "possible_issue": data.get("possible_issue", "No major issue detected."),
             }
-    except Exception as e:
-        print(f"[WARN] AI service unreachable, using mock response: {e}")
-        return {
-            "predicted_sign": "A",
-            "confidence": 0.85,
-            "possible_issue": "No major issue detected.",
-        }
+    except httpx.HTTPError as e:
+        # Surface the failure honestly — don't pretend the AI succeeded.
+        print(f"[WARN] AI service unreachable: {e}")
+        raise
