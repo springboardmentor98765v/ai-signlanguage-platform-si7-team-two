@@ -34,7 +34,7 @@ if not db_url:
     raise RuntimeError(
         "DATABASE_URL not set — copy .env.example to .env at the repo root first."
     )
-config.set_main_option("sqlalchemy.url", db_url)
+config.set_main_option("sqlalchemy.url", db_url.replace("%","%%"))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from db.models.users import User
     from db.models.lessons import Lesson
     from db.models.assessments import Assessment
+    from db.models.dynamic_sign_attempts import DynamicSignAttempt
 
 
 class PracticeSession(Base):
@@ -53,6 +54,9 @@ class PracticeSession(Base):
     assessments: Mapped[list["Assessment"]] = relationship(
         back_populates="session", cascade="all, delete-orphan"
     )
-
+    dynamic_sign_attempts: Mapped[list["DynamicSignAttempt"]] = relationship(
+    back_populates="practice_session",
+    cascade="all, delete-orphan",
+    )
     def __repr__(self) -> str:
         return f"<PracticeSession id={self.id} status={self.status!r}>"

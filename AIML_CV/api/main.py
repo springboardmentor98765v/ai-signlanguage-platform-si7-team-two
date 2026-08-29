@@ -7,7 +7,9 @@ from api.exceptions import (
     AIServiceException,
     ai_exception_handler
 )
-
+from api.routes.dynamic_prediction import (
+    router as dynamic_prediction_router
+)
 app = FastAPI(
     title="Sign Language Assessment API",
     version="1.0.0",
@@ -59,3 +61,4 @@ def home():
 
 app.include_router(health_router)
 app.include_router(prediction_router)
+app.include_router(dynamic_prediction_router)

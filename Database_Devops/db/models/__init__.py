@@ -22,7 +22,7 @@ from db.models.streaks import Streak
 from db.models.badges import Badge
 from db.models.certification_exams import CertificationExam
 from db.models.accessibility_trainer_learner_mapping import AccessibilityTrainerLearnerMapping
-
+from db.models.dynamic_sign_attempts import DynamicSignAttempt
 
 __all__ = [
     "Base",

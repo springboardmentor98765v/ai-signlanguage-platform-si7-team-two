@@ -1,0 +1,32 @@
+{
+    "test_loss": 0.11706911027431488,
+    "test_accuracy": 0.9611111283302307,
+    "final_accuracy": 0.9611111111111111,
+    "number_of_classes": 24,
+    "classes": [
+        "Bad",
+        "Book",
+        "Bus",
+        "Busy",
+        "Correct",
+        "Father",
+        "Fine",
+        "Finish",
+        "Forget",
+        "Go",
+        "Good",
+        "Happy",
+        "Hello",
+        "Help",
+        "More",
+        "Mother",
+        "No",
+        "Not",
+        "Please",
+        "Sad",
+        "School",
+        "Thanks",
+        "Wrong",
+        "Yes"
+    ]
+}

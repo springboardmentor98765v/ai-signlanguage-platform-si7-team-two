@@ -4,7 +4,7 @@ import { getUserRole } from '../../utils/auth.js'
 const links = [
   { to: '/dashboard', label: 'Dashboard', roles: ['learner'] },
   { to: '/lessons', label: 'Lessons', roles: ['learner'] },
-
+   { to: '/word-lessons', label: 'Word Practice', roles: ['learner'] },
   // Default Practice page opens Letter A
   { to: '/practice/A', label: 'Practice', roles: ['learner'] },
 

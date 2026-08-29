@@ -103,12 +103,12 @@ The label column is encoded using LabelEncoder.
 
 The following models were trained and compared.
 
-| Model | Accuracy |
-|--------|-----------|
-| K-Nearest Neighbors | 70.98% |
-| Random Forest | 80.95% |
-| Support Vector Machine | 80.73% |
-| XGBoost | **85.71%** |
+| Model                  | Accuracy  |
+| ---------------------- | --------- |
+| K-Nearest Neighbors    | 70.98%    |
+| Random Forest          | 80.95%    |
+| Support Vector Machine | 80.73%    |
+| XGBoost                | **98.4%** |
 
 XGBoost achieved the highest accuracy and was selected as the final model.
 
@@ -206,8 +206,8 @@ Output
 
 ```json
 {
-    "prediction": "A",
-    "confidence": 98.74
+  "prediction": "A",
+  "confidence": 98.74
 }
 ```
 
