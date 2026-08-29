@@ -2,6 +2,7 @@ import { getToken } from "./../utils/auth.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 const BUSINESS_LOGIC_URL = import.meta.env.VITE_BUSINESS_LOGIC_URL || 'http://localhost:8002'
+const PROGRESS_REPORT_PATH = '/progress-report'
 
 // Turns a FastAPI error response body into a plain, readable string.
 // - Simple errors: { "detail": "Invalid credentials" }              -> "Invalid credentials"
@@ -248,7 +249,7 @@ export async function deleteUser(id) {
 // ---------- Progress Report ----------
 
 export async function getProgressReport(userId) {
-  const res = await fetch(`${API_BASE_URL}/progress-report/${userId}`);
+  const res = await fetch(`${API_BASE_URL}${PROGRESS_REPORT_PATH}/${userId}`);
   return handleResponse(res);
   // { user_id, full_name, lessons_completed, total_practice_time,
   //   average_accuracy, attempted_letters, weak_letters, total_attempts,
@@ -257,7 +258,7 @@ export async function getProgressReport(userId) {
 
 export async function downloadProgressReport(userId, learnerName) {
   const res = await fetch(
-    `${API_BASE_URL}/progress-report/${userId}/download?learner_name=${encodeURIComponent(learnerName)}`
+    `${API_BASE_URL}${PROGRESS_REPORT_PATH}/${userId}/download?learner_name=${encodeURIComponent(learnerName)}`
   );
 
   if (!res.ok) {
@@ -410,8 +411,45 @@ export async function updateUserStatus(id, isActive) {
 }
 
 export async function getAnalyticsSummary(userId) {
-  const res = await fetch(`${API_BASE_URL}/progress-report/${userId}/summary`, {
+  const res = await fetch(`${API_BASE_URL}${PROGRESS_REPORT_PATH}/${userId}/summary`, {
     headers: { ...authHeaders() },
   });
   return handleResponse(res);
 }
+export async function predictDynamicSign(
+  imageBlob,
+  userId,
+  practiceSessionId,
+  expectedWord
+) {
+  const formData = new FormData();
+
+  formData.append(
+    "file",
+    imageBlob,
+    "frame.jpg"
+  );
+
+  formData.append("user_id", userId);
+
+  formData.append(
+    "practice_session_id",
+    practiceSessionId
+  );
+
+  formData.append(
+    "expected_word",
+    expectedWord
+  );
+
+  const res = await fetch(
+    `${API_BASE_URL}/ai/dynamic/predict`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  return handleResponse(res);
+}
+

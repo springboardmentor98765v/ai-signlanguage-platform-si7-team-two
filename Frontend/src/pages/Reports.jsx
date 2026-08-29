@@ -28,7 +28,11 @@ export default function Reports() {
   });
 
   const fetchReport = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setError("We couldn't identify your account. Please sign in again.");
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -52,7 +56,10 @@ export default function Reports() {
   }, [user?.id]);
 
   const fetchRecommendations = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setRecommendations([]);
+      return;
+    }
 
     try {
       const data = await getRecommendations(user.id);
@@ -120,6 +127,17 @@ export default function Reports() {
   }
 
   const learnerName = user?.name || user?.full_name || "Learner";
+  const safeReport = report || {};
+  const numberValue = (value, fallback = 0) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+  const attemptedLetters = Array.isArray(safeReport.attempted_letters)
+    ? safeReport.attempted_letters
+    : [];
+  const weakLetters = Array.isArray(safeReport.weak_letters)
+    ? safeReport.weak_letters
+    : [];
 
   return (
     <div style={{ padding: 30 }}>
@@ -128,19 +146,19 @@ export default function Reports() {
       <div className="stats-grid" style={{ marginTop: 20, marginBottom: 28 }}>
         <div className="stat-card fade-up">
           <p className="label">Overall Accuracy</p>
-          <p className="value">{report.average_accuracy}%</p>
+          <p className="value">{numberValue(safeReport.average_accuracy)}%</p>
         </div>
         <div className="stat-card fade-up">
           <p className="label">Lessons Completed</p>
-          <p className="value">{report.lessons_completed}</p>
+          <p className="value">{numberValue(safeReport.lessons_completed)}</p>
         </div>
         <div className="stat-card fade-up">
           <p className="label">Total Attempts</p>
-          <p className="value">{report.total_attempts}</p>
+          <p className="value">{numberValue(safeReport.total_attempts)}</p>
         </div>
         <div className="stat-card fade-up">
           <p className="label">Practice Time</p>
-          <p className="value">{(report.total_practice_time / 3600).toFixed(2)}h</p>
+          <p className="value">{(numberValue(safeReport.total_practice_time) / 3600).toFixed(2)}h</p>
         </div>
       </div>
 
@@ -148,11 +166,11 @@ export default function Reports() {
         <span className="icon" aria-hidden="true">✍️</span>
         Attempted Letters
       </h2>
-      {report.attempted_letters.length === 0 ? (
+      {attemptedLetters.length === 0 ? (
         <p className="empty-note">No letters attempted yet.</p>
       ) : (
         <ul className="letter-chip-list">
-          {report.attempted_letters.map((l) => (
+          {attemptedLetters.map((l) => (
             <li key={l} className="letter-chip">{l}</li>
           ))}
         </ul>
@@ -162,11 +180,11 @@ export default function Reports() {
         <span className="icon" aria-hidden="true">⚠️</span>
         Weak Letters
       </h2>
-      {report.weak_letters.length === 0 ? (
+      {weakLetters.length === 0 ? (
         <p className="empty-note">None 🎉</p>
       ) : (
         <ul className="letter-chip-list">
-          {report.weak_letters.map((l) => (
+          {weakLetters.map((l) => (
             <li key={l} className="letter-chip weak">{l}</li>
           ))}
         </ul>

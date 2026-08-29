@@ -15,7 +15,8 @@ import Admin from './pages/Admin.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
 import Trainer from './pages/Trainer.jsx'
 import Certification from './pages/Certification.jsx'
-
+import WordLessons from './pages/WordLessons.jsx'
+import DynamicPractice from './pages/DynamicPractice.jsx'
 export default function App() {
   return (
     <Routes>
@@ -30,6 +31,23 @@ export default function App() {
         }
       >
         {/* Learner-only pages */}
+        <Route
+  path="/word-lessons"
+  element={
+    <RoleRoute allowedRoles={["learner"]}>
+      <WordLessons />
+    </RoleRoute>
+  }
+/>
+
+<Route
+  path="/word-practice/:word"
+  element={
+    <RoleRoute allowedRoles={["learner"]}>
+      <DynamicPractice />
+    </RoleRoute>
+  }
+/>
         <Route
           path="/dashboard"
           element={

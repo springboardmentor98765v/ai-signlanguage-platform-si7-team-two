@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Register the analytics_summary SQLAlchemy mapping on the application's Base.
 from app.models.analytics_summary import AnalyticsSummary
+from app.models.dynamic_sign_attempt import DynamicSignAttempt
 from app.routers import auth
 from app.routers import practice
 from app.routers import lesson
@@ -13,7 +14,7 @@ from app.routers import admin
 from app.routers import certificate
 from app.routers import progress_report
 from app.routers import notification
-
+from app.routers import dynamic_sign
 from app.middleware.logging import log_requests
 from app.middleware.rate_limit import rate_limit
 
@@ -72,6 +73,12 @@ app.include_router(
     practice.router,
     prefix="/ai",
     tags=["AI"],
+)
+
+app.include_router(
+    dynamic_sign.router,
+    prefix="/ai",
+    tags=["Dynamic Sign"],
 )
 
 app.include_router(
