@@ -23,6 +23,7 @@ from db.models.badges import Badge
 from db.models.certification_exams import CertificationExam
 from db.models.accessibility_trainer_learner_mapping import AccessibilityTrainerLearnerMapping
 from db.models.dynamic_sign_attempts import DynamicSignAttempt
+from db.models.lesson_progress import LessonProgress
 
 __all__ = [
     "Base",
@@ -41,5 +42,7 @@ __all__ = [
     "Badge",
     "CertificationExam",
     "AccessibilityTrainerLearnerMapping",
+    "DynamicSignAttempt",
+    "LessonProgress",
 ]
 

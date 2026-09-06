@@ -3,7 +3,7 @@ import httpx
 
 router = APIRouter()
 
-AI_SERVICE_URL = "http://127.0.0.1:8001/predict"
+AI_SERVICE_URL = "http://ai-service:8001/predict"
 
 
 @router.post("/predict")

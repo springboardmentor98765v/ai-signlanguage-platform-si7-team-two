@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 # Dynamic prediction endpoint in AI service
-AI_DYNAMIC_SERVICE_URL = "http://127.0.0.1:8001/predict-dynamic"
+AI_DYNAMIC_SERVICE_URL = "http://ai-service:8001/predict-dynamic"
 
 
 @router.post("/dynamic/predict")
@@ -45,16 +45,18 @@ async def predict_dynamic_sign(
         async with httpx.AsyncClient(timeout=30.0) as client:
 
             response = await client.post(
-                AI_DYNAMIC_SERVICE_URL,
-
-                files={
-                    "file": (
-                        file.filename,
-                        image,
-                        file.content_type,
-                    )
-                },
-            )
+               AI_DYNAMIC_SERVICE_URL,
+               files={
+                  "file": (
+                     file.filename,
+                     image,
+                    file.content_type,
+        )
+    },
+    data={
+        "practice_session_id": str(practice_session_id),
+    },
+)
 
 
         # Handle AI errors

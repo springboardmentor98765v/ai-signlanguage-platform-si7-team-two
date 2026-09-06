@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import (
+from Bussiness_Logic.routers import (
     ai,
     practice,
     assessment,
@@ -15,11 +15,11 @@ from routers import (
     reports,
 )
 
-from routers.certificate import router as certificate_router
-from routers.recommendation import router as recommendation_router
-from routers.weekly_analytics import router as weekly_analytics_router
-from routers.certification_exam import router as certification_exam_router
-from routers.accessibility_trainer import router as accessibility_trainer_router
+from Bussiness_Logic.routers.certificate import router as certificate_router
+from Bussiness_Logic.routers.recommendation import router as recommendation_router
+from Bussiness_Logic.routers.weekly_analytics import router as weekly_analytics_router
+from Bussiness_Logic.routers.certification_exam import router as certification_exam_router
+from Bussiness_Logic.routers.accessibility_trainer import router as accessibility_trainer_router
 
 
 app = FastAPI(title="Business Logic Service")

@@ -82,17 +82,41 @@ export default function DynamicPractice() {
   }, [isPracticing]);
 
 
-  useEffect(() => {
-    return () => {
-      stopStream();
+ useEffect(() => {
+  return () => {
+    stopStream();
 
-      if (sessionIdRef.current) {
-        endPracticeSession(
-          sessionIdRef.current
-        ).catch(() => {});
-      }
-    };
-  }, []);
+    const oldSessionId = sessionIdRef.current;
+
+    sessionIdRef.current = null;
+
+    if (oldSessionId) {
+      endPracticeSession(oldSessionId).catch(() => {});
+    }
+  };
+}, []);
+
+useEffect(() => {
+  setIsPracticing(false);
+  setPrediction(null);
+  setCheckError("");
+  setCameraError("");
+
+  stopStream();
+
+  if (videoRef.current) {
+    videoRef.current.srcObject = null;
+  }
+
+  const oldSessionId = sessionIdRef.current;
+
+  sessionIdRef.current = null;
+  setSessionId(null);
+
+  if (oldSessionId) {
+    endPracticeSession(oldSessionId).catch(() => {});
+  }
+ }, [targetWord]);
 
 
   function stopStream() {

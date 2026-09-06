@@ -14,7 +14,7 @@ def _get_sessions(db: Session, user_id: UUID) -> list:
 def _get_assessments_with_letter(db: Session, user_id: UUID) -> list:
     """Returns (Assessment, expected_letter) pairs via join on PracticeSession."""
     return (
-        db.query(Assessment, PracticeSession.expected_sign)
+        db.query(Assessment, Assessment.expected_sign)
         .join(PracticeSession, Assessment.session_id == PracticeSession.id)
         .filter(PracticeSession.user_id == user_id)
         .all()

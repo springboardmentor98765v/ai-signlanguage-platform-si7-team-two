@@ -99,9 +99,11 @@ def complete_lesson(db: Session, user_id: UUID, lesson_id: UUID, accuracy: float
         stars = 1
         
     # Only update if it's a new high score
-    if accuracy > float(progress.highest_accuracy):
+    current_highest = float(progress.highest_accuracy) if progress.highest_accuracy is not None else 0.0
+    if accuracy > current_highest:
         progress.highest_accuracy = accuracy
-    if stars > progress.stars:
+    current_stars = progress.stars if progress.stars is not None else 0
+    if stars > current_stars:
         progress.stars = stars
         
     newly_completed = not progress.is_completed

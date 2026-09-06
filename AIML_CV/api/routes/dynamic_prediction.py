@@ -1,4 +1,9 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    Form,
+)
 
 import cv2
 import mediapipe as mp
@@ -33,10 +38,10 @@ holistic = mp_holistic.Holistic(
 
 
 # ============================================================
-# DYNAMIC RECOGNIZER
+# DYNAMIC RECOGNIZERS
 # ============================================================
 
-recognizer = DynamicSignRecognizer()
+recognizers = {}
 
 
 # ============================================================
@@ -47,7 +52,8 @@ recognizer = DynamicSignRecognizer()
     "/predict-dynamic"
 )
 async def predict_dynamic(
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    practice_session_id: str = Form(...),
 ):
 
     logger.info(
@@ -100,6 +106,21 @@ async def predict_dynamic(
 
 
     # --------------------------------------------------------
+    # GET SESSION RECOGNIZER
+    # --------------------------------------------------------
+
+    recognizer = recognizers.get(
+        practice_session_id
+    )
+
+    if recognizer is None:
+
+        recognizer = DynamicSignRecognizer()
+
+        recognizers[practice_session_id] = recognizer
+
+
+    # --------------------------------------------------------
     # ADD FRAME TO SEQUENCE
     # --------------------------------------------------------
 
@@ -129,17 +150,27 @@ async def predict_dynamic(
 
 
     # --------------------------------------------------------
+    # RESET AFTER COMPLETE SEQUENCE
+    # --------------------------------------------------------
+
+    if result["ready"]:
+
+        recognizer.reset()
+
+        recognizers.pop(
+            practice_session_id,
+            None
+        )
+
+
+    # --------------------------------------------------------
     # RESPONSE
     # --------------------------------------------------------
 
     return {
         "ready": result["ready"],
-        "frames_collected": result[
-            "frames_collected"
-        ],
-        "frames_required": result[
-            "frames_required"
-        ],
+        "frames_collected": result["frames_collected"],
+        "frames_required": result["frames_required"],
         "prediction": result["prediction"],
         "confidence": result["confidence"]
     }

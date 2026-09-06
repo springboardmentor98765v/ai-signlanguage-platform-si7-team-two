@@ -51,7 +51,6 @@ def start_session(
     new_session = PracticeSession(
         user_id=request.user_id,
         lesson_id=request.lesson_id,
-        expected_sign=lesson.letter,
         status="in_progress",
         attempt_count=0,
     )

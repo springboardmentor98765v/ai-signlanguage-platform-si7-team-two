@@ -1,10 +1,14 @@
+import os
 import requests
 
 
 class IntegrationService:
     """Communication with the business-logic microservice."""
 
-    BUSINESS_LOGIC_URL = "http://127.0.0.1:8002"
+    BUSINESS_LOGIC_URL = os.getenv(
+        "BUSINESS_LOGIC_URL",
+        "http://bussiness_logic:8002"
+    )
 
     @staticmethod
     def get_certificate_eligibility(user_id):

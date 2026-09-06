@@ -358,7 +358,7 @@ export async function getNotifications(userId) {
 }
 
 export async function markNotificationAsRead(notificationId) {
-  const res = await fetch(`${API_BASE_URL}/notifications/notifications/${notificationId}/read`, {
+  const res = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
     method: "PUT",
   });
   return handleResponse(res);
@@ -452,4 +452,84 @@ export async function predictDynamicSign(
 
   return handleResponse(res);
 }
+// ---------- Trainer Dashboard ----------
 
+export async function getTrainerLearners() {
+  const res = await fetch(`${API_BASE_URL}/trainer/learners`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse(res);
+}
+
+export async function getTrainerEngagement(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/engagement`,
+    {
+      headers: { ...authHeaders() },
+    }
+  );
+  return handleResponse(res);
+}
+
+export async function getTrainerSkillDevelopment(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/skill-development`,
+    {
+      headers: { ...authHeaders() },
+    }
+  );
+  return handleResponse(res);
+}
+
+export async function getTrainerAssessmentAnalytics(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/assessment-analytics`,
+    {
+      headers: { ...authHeaders() },
+    }
+  );
+  return handleResponse(res);
+}
+
+export async function getTrainerCertificationStatus(learnerId) {
+  const res = await fetch(
+    `${API_BASE_URL}/trainer/learner/${learnerId}/certification-status`,
+    {
+      headers: { ...authHeaders() },
+    }
+  );
+  return handleResponse(res);
+}
+
+// ---------- Certification Exam (Business Logic) ----------
+
+export async function getCertificationExamStructure(level) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/certification_exams/${encodeURIComponent(level)}/structure`);
+  return handleResponse(res);
+}
+
+export async function submitCertificationExam(userId, level, scores) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/certification_exams/submit`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      learner_id: userId,
+      level: level,
+      scores: scores,
+    }),
+  });
+  return handleResponse(res);
+}
+
+export async function downloadExamCertificate(examId) {
+  const res = await fetch(`${BUSINESS_LOGIC_URL}/certification_exams/${examId}/certificate`);
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(extractErrorMessage(data, "Failed to download exam certificate."));
+  }
+
+  return res.blob();
+}

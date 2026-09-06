@@ -57,8 +57,6 @@ class PracticeSession(Base):
         nullable=False,
     )
 
-    expected_sign = Column(String(2), nullable=False)
-
     status = Column(
         String(20),
         nullable=False,
@@ -79,6 +77,11 @@ class PracticeSession(Base):
 
     ended_at = Column(
         DateTime(timezone=True),
+        nullable=True,
+    )
+
+    expected_sign = Column(
+        String(2),
         nullable=True,
     )
 
