@@ -32,7 +32,21 @@ export default function BadgesStreaks() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <section className="badges-section" aria-label="Loading badges">
+        <div className="badges-header">
+          <h2>Badges &amp; Streaks</h2>
+          <div className="streak-counter">...</div>
+        </div>
+        <ul className="badges-grid">
+          {[1, 2, 3, 4].map((i) => (
+            <li key={i} className="badge-skeleton" />
+          ))}
+        </ul>
+      </section>
+    );
+  }
 
   return (
     <section className="badges-section" aria-labelledby="badges-heading">

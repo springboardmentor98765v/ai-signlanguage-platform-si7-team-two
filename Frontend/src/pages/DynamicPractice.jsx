@@ -82,17 +82,41 @@ export default function DynamicPractice() {
   }, [isPracticing]);
 
 
-  useEffect(() => {
-    return () => {
-      stopStream();
+ useEffect(() => {
+  return () => {
+    stopStream();
 
-      if (sessionIdRef.current) {
-        endPracticeSession(
-          sessionIdRef.current
-        ).catch(() => {});
-      }
-    };
-  }, []);
+    const oldSessionId = sessionIdRef.current;
+
+    sessionIdRef.current = null;
+
+    if (oldSessionId) {
+      endPracticeSession(oldSessionId).catch(() => {});
+    }
+  };
+}, []);
+
+useEffect(() => {
+  setIsPracticing(false);
+  setPrediction(null);
+  setCheckError("");
+  setCameraError("");
+
+  stopStream();
+
+  if (videoRef.current) {
+    videoRef.current.srcObject = null;
+  }
+
+  const oldSessionId = sessionIdRef.current;
+
+  sessionIdRef.current = null;
+  setSessionId(null);
+
+  if (oldSessionId) {
+    endPracticeSession(oldSessionId).catch(() => {});
+  }
+ }, [targetWord]);
 
 
   function stopStream() {
@@ -318,44 +342,34 @@ export default function DynamicPractice() {
 
   return (
     <div>
-
+      <h1 className="sr-only">Dynamic Practice</h1>
       <div className="practice-header">
+        <div className="practice-header-row">
+          <div>
+              <button
+                type="button"
+                className="btn-secondary mb-12"
+                onClick={() => navigate("/word-lessons")}
+              >
+                ← Back to Words
+              </button>
 
-        <div>
+            <h2 className="practice-title">
+              Practice Word:{" "}
+              <span className="practice-word">{targetWord}</span>
+            </h2>
 
-          <button
-            className="btn-secondary"
-            onClick={() =>
-              navigate("/word-lessons")
-            }
-          >
-            ← Back to Words
-          </button>
-
-
-          <h2>
-            Practice Word: {targetWord}
-          </h2>
-
-
-          <p className="sub">
-            Perform the complete sign for the word
-            and let the AI analyze your movement.
-          </p>
-
+            <p className="sub practice-sub">
+              Perform the complete sign naturally and let the AI analyze your movement.
+            </p>
+          </div>
         </div>
-
       </div>
 
-
       <div className="practice-grid">
-
         <div className="practice-panel">
-
           <div className="video-frame">
-
             {isPracticing ? (
-
               <video
                 ref={videoRef}
                 autoPlay
@@ -363,72 +377,60 @@ export default function DynamicPractice() {
                 muted
                 className="video-feed"
               />
-
             ) : (
-
               <div className="video-placeholder">
                 Camera is Off
               </div>
-
             )}
 
+            {isChecking && (
+              <div className="checking-overlay" aria-label="Checking your sign">
+                <span className="checking-spinner" />
+                <span className="checking-text">Checking...</span>
+              </div>
+            )}
           </div>
-
 
           <canvas
             ref={canvasRef}
-            style={{
-              display: "none",
-            }}
+            className="hidden-canvas"
           />
 
-
           {cameraError && (
-
             <p
               className="camera-error"
               role="alert"
             >
               {cameraError}
             </p>
-
           )}
 
-
           {checkError && (
-
             <p
               className="camera-error"
               role="alert"
             >
               {checkError}
             </p>
-
           )}
 
-
           <div className="practice-controls">
-
             {!isPracticing ? (
-
               <button
                 className="btn-primary"
                 onClick={handleStart}
               >
                 Start Word Practice
               </button>
-
             ) : (
-
               <>
-
                 <button
                   className="btn-stop"
                   onClick={handleStop}
+                  disabled={isChecking}
                 >
                   Stop Practice
                 </button>
-
 
                 <button
                   className="btn-check"
@@ -439,53 +441,72 @@ export default function DynamicPractice() {
                     ? "Checking..."
                     : "Check My Word"}
                 </button>
-
               </>
-
             )}
-
           </div>
 
-
           {prediction && (
-
             <div
-              className="result-card"
-              style={{
-                marginTop: "20px",
-              }}
+              className={`result-card ${
+                prediction.ready
+                  ? isCorrect
+                    ? "result-card--correct"
+                    : "result-card--incorrect"
+                  : ""
+              }`}
             >
 
               {!prediction.ready ? (
-
                 <>
-
                   <h3>
                     Collecting Movement Frames
                   </h3>
 
-                  <p>
-                    Frames collected:
-                    {" "}
-                    {prediction.frames_collected}
-                    {" / "}
-                    {prediction.frames_required}
-                  </p>
+                  <div className="frame-progress-header">
+                    <p className="frame-progress-text">
+                      Frames collected:{" "}
+                      <strong>
+                        {prediction.frames_collected}
+                      </strong>
+                      {" / "}
+                      {prediction.frames_required}
+                    </p>
+                    <span className="frame-progress-percent">
+                      {Math.round(
+                        Math.min(
+                          (prediction.frames_collected /
+                            prediction.frames_required) *
+                            100,
+                          100
+                        )
+                      )}
+                      %
+                    </span>
+                  </div>
 
-                  <p>
+                  <div className="frame-progress-bar-wrap">
+                    <div
+                      className="frame-progress-bar"
+                      style={{
+                        width: `${Math.min(
+                          (prediction.frames_collected /
+                            prediction.frames_required) *
+                            100,
+                          100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+
+                  <p className="frame-progress-hint">
                     Keep performing the sign.
                   </p>
-
                 </>
-
               ) : (
-
                 <>
-
                   <h3>
                     Prediction Result
                   </h3>
-
 
                   <div className="practice-result-row">
 
@@ -495,7 +516,7 @@ export default function DynamicPractice() {
                         Expected Word
                       </p>
 
-                      <p>
+                      <p className="result-value">
                         {targetWord}
                       </p>
 
@@ -508,7 +529,7 @@ export default function DynamicPractice() {
                         AI Prediction
                       </p>
 
-                      <p>
+                      <p className="result-value prediction-value">
                         {prediction.prediction}
                       </p>
 
@@ -537,7 +558,6 @@ export default function DynamicPractice() {
 
                   </div>
 
-
                   <div className="summary-card">
 
                     <div className="summary-row">
@@ -546,12 +566,11 @@ export default function DynamicPractice() {
                         Confidence
                       </span>
 
-                      <span>
+                      <span className="confidence-value">
                         {prediction.confidence}%
                       </span>
 
                     </div>
-
 
                     <div className="summary-row">
 
@@ -570,7 +589,6 @@ export default function DynamicPractice() {
                   </div>
 
                 </>
-
               )}
 
             </div>

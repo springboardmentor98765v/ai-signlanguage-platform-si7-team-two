@@ -10,6 +10,12 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from models.certification_exam_model import CertificationExam
 from models.practice_model import Certificate, User
+from services.certification_exam_service import (
+    CERTIFICATION_LEVELS,
+    evaluate_certification_exam,
+    generate_certificate_after_exam,
+    get_exam_structure,
+)
 from services.certificate_engine import generate_certificate_code
 from services.certificate_generator import generate_certificate_pdf
 from services.notification_client import send_notification
@@ -33,84 +39,80 @@ class ExamSubmission(BaseModel):
     scores: List[float]  # scores for each sign in the exam
 
 
+@router.get("/{level}/structure")
+def get_exam_structure_endpoint(level: str):
+    try:
+        return get_exam_structure(level)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.post("/submit")
 def submit_exam(submission: ExamSubmission, db: Session = Depends(get_db)):
     if not submission.scores:
         raise HTTPException(status_code=400, detail="Scores cannot be empty")
-        
-    overall_score = sum(submission.scores) / len(submission.scores)
-    
-    # Pass thresholds based on level
-    thresholds = {
-        "Beginner": 60.0,
-        "Intermediate": 70.0,
-        "Advanced": 80.0,
-        "Professional": 90.0,
-    }
-    
-    if submission.level not in thresholds:
-        raise HTTPException(status_code=400, detail="Invalid level")
-        
-    is_passed = overall_score >= thresholds[submission.level]
-    
+
+    result = evaluate_certification_exam(
+        level=submission.level,
+        scores=submission.scores,
+    )
+
     exam = CertificationExam(
         learner_id=submission.learner_id,
         level=submission.level,
-        score=overall_score,
-        is_passed=is_passed
+        score=result.average_score,
+        is_passed=result.passed,
     )
-    
+
     db.add(exam)
     db.commit()
     db.refresh(exam)
-    
-    if is_passed:
-        # Check if they already have a certificate for this level or overall?
-        # The requirements say "feeding into the same Certificate PDF generator you built in Milestone 2"
+
+    if result.passed:
         learner = db.query(User).filter(User.id == submission.learner_id).first()
         learner_name = learner.full_name if learner else "Learner"
-        
+
         certificate_code = generate_certificate_code(submission.learner_id)
-        
+
         certificate = Certificate(
             learner_id=submission.learner_id,
-            average_score=overall_score,
-            lessons_completed=len(submission.scores), # roughly proxying exam length
+            average_score=result.average_score,
+            lessons_completed=result.total_signs,
             certificate_code=certificate_code,
         )
         db.add(certificate)
         db.commit()
         db.refresh(certificate)
-        
+
         file_path = generate_certificate_pdf(
             learner_name,
-            overall_score,
+            result.average_score,
             certificate_code,
         )
-        
+
         certificate.file_path = file_path
         exam.certificate_id = certificate.id
         db.commit()
-        
+
         send_notification(
             user_id=submission.learner_id,
             title="Certification Exam Passed",
-            message=f"Congratulations! You passed the {submission.level} exam with a score of {overall_score:.2f}.",
+            message=f"Congratulations! You passed the {submission.level} exam with a score of {result.average_score:.2f}.",
         )
-        
+
         return {
             "message": "Exam passed and certificate generated",
             "exam_id": exam.id,
             "certificate_id": certificate.id,
-            "score": overall_score,
-            "is_passed": True
+            "score": result.average_score,
+            "is_passed": True,
         }
-    
+
     return {
         "message": "Exam failed. Keep practicing!",
         "exam_id": exam.id,
-        "score": overall_score,
-        "is_passed": False
+        "score": result.average_score,
+        "is_passed": False,
     }
 
 @router.get("/{exam_id}/certificate")

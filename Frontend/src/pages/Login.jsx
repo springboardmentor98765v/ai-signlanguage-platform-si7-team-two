@@ -31,20 +31,21 @@ export default function Login() {
     <div className="auth-shell">
       <main className="auth-card">
         <div className="auth-brand">
-          <div className="mark">SL</div>
+          <div className="mark" aria-hidden="true">SL</div>
           <div className="name">SignLearn</div>
         </div>
 
         <h1>Welcome back</h1>
-        <p className="sub">Log in to continue your lessons.</p>
+        <p className="sub">Log in to continue your sign language lessons.</p>
 
         {error && (
-          <div className="form-error" role="alert">
+          <div className="form-error" role="alert" aria-live="assertive">
+            <span aria-hidden="true">⚠</span>
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} aria-busy={isLoading}>
           <div className="field">
             <label htmlFor="email">Email</label>
             <input
@@ -55,6 +56,7 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
+              autoComplete="email"
             />
           </div>
 
@@ -68,6 +70,7 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
+              autoComplete="current-password"
             />
           </div>
 
@@ -77,7 +80,12 @@ export default function Login() {
             </Link>
           </div>
 
-          <button type="submit" className="btn-primary" disabled={isLoading}>
+          <button 
+            type="submit" 
+            className="btn-primary" 
+            disabled={isLoading}
+            aria-disabled={isLoading}
+          >
             {isLoading ? "Logging in..." : "Log in"}
           </button>
         </form>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import BadgesStreaks from '../components/dashboard/BadgesStreaks.jsx'
 import { getAnalyticsSummary, getRecommendations } from "../services/api.js";
-import { getUserId } from "../utils/auth.js";
+import { getUserId, getUser } from "../utils/auth.js";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -21,8 +21,6 @@ export default function Dashboard() {
 
     Promise.all([
       getAnalyticsSummary(userId),
-      // Weekly analytics 404s for a learner with zero sessions — that's
-      // the empty state, not an error, so treat it as "no weeks yet".
       getRecommendations(userId).catch(() => ({ recommendations: [] })),
     ])
       .then(([progress, recs]) => {
@@ -41,13 +39,23 @@ export default function Dashboard() {
     loadDashboard();
   }, []);
 
-  if (loading) return null;
+  const user = getUser();
+
+  if (loading) {
+    return (
+      <div className="dashboard-skeleton" aria-label="Loading dashboard">
+        <div className="skeleton-card" />
+        <div className="skeleton-card" />
+        <div className="skeleton-card" />
+      </div>
+    );
+  }
 
   if (error) {
     return (
       <div className="empty-page" role="alert">
         <h2>Couldn't load your dashboard</h2>
-        <p>Something went wrong while fetching your stats. Please try again.</p>
+        <p>Something went wrong while fetching your stats. Please check your connection and try again.</p>
         <button className="btn-primary" onClick={loadDashboard}>
           Try Again
         </button>
@@ -60,6 +68,14 @@ export default function Dashboard() {
   return (
     <div>
       <h1 className="sr-only">Dashboard Overview</h1>
+
+      <div className="page-header">
+        <h2 className="page-title">
+          {user?.full_name || user?.name
+            ? `Welcome back, ${user.full_name || user.name}`
+            : 'Welcome back'}
+        </h2>
+      </div>
 
       {!hasActivity ? (
         <div className="empty-page" role="status">
@@ -85,9 +101,13 @@ export default function Dashboard() {
               <p className="value">{stats.practiceHours}h</p>
             </div>
           </div>
-
         </>
       )}
+
+      <p className="section-title">
+        <span className="sparkle-dot gold" aria-hidden="true"></span>
+        Badges &amp; Streaks
+      </p>
 
       <BadgesStreaks />
 

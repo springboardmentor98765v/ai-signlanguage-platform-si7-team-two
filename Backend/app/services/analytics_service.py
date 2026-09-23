@@ -12,7 +12,7 @@ from app.models.analytics_summary import AnalyticsSummary
 
 def get_summary_for_learner(db: Session, user_id: UUID) -> AnalyticsSummary | dict:
     """Read persisted summary analytics without creating or mutating a row."""
-    summary = db.get(AnalyticsSummary, user_id)
+    summary = db.query(AnalyticsSummary).filter(AnalyticsSummary.user_id == user_id).first()
     if summary is not None:
         return summary
 
@@ -41,7 +41,7 @@ def update_analytics_summary(
     retrying an already-completed lesson cannot alter the completed count or
     replace the average with a single latest result.
     """
-    summary = db.get(AnalyticsSummary, user_id)
+    summary = db.query(AnalyticsSummary).filter(AnalyticsSummary.user_id == user_id).first()
     if summary is None:
         summary = AnalyticsSummary(user_id=user_id)
         db.add(summary)

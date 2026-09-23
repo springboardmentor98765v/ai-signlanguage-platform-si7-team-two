@@ -99,22 +99,31 @@ services:
   # ----------------------------------------------------------
   # AI Service
   # ----------------------------------------------------------
+    # ----------------------------------------------------------
+  # AI / CV Service
+  # ----------------------------------------------------------
   ai-service:
     build:
-      # The AI service is self-contained inside
-      # Database_Devops/ai-service/.
-      context: ../ai-service
-      dockerfile: Dockerfile
+      # Build the REAL AIML_CV service from repository root.
+      context: ../..
+      dockerfile: AIML_CV/Dockerfile
 
     container_name: signlang_ai_service
     restart: unless-stopped
 
-    env_file:
-      - ../../.env.production
-
-    # AI Dockerfile exposes port 8500.
     ports:
-      - "8500:8500"
+      - "8001:8001"
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/health')\""
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
 
 # ============================================================
@@ -123,12 +132,12 @@ services:
 
   bussiness_logic:
     build:
-      context: ..
+      context: ../..
       dockerfile: Database_Devops/bussiness_logic/Dockerfile
     container_name: signlang_bussiness_logic
     restart: unless-stopped
     env_file:
-      - ../.env
+       - ../../.env.production
     environment:
       DATABASE_URL: postgresql://${DB_USER:-signlang_app}:${DB_PASSWORD:-changeme_on_day2}@db:5432/${DB_NAME:-signlang_platform}
     ports:

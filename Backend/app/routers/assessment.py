@@ -4,8 +4,7 @@ import httpx
 
 router = APIRouter()
 
-BUSINESS_LOGIC_URL = "http://127.0.0.1:8002/assessment/score"
-
+BUSINESS_LOGIC_URL = "http://bussiness_logic:8002/assessment/score"
 
 @router.post("/score")
 async def score(payload: dict):

@@ -6,24 +6,48 @@ from app.database.database import Base
 
 
 class AnalyticsSummary(Base):
-    """Aggregated learner analytics stored in PostgreSQL's analytics_summary table."""
+    """Aggregated learner analytics stored in PostgreSQL."""
 
-    __tablename__ = "analytics_summary"
+    __tablename__ = "learner_analytics"
+
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
+    )
 
     user_id = Column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
-        primary_key=True,
+        nullable=False,
+        unique=True,
     )
-    average_accuracy = Column(Numeric(5, 2), nullable=False, default=0)
-    lessons_completed = Column(Integer, nullable=False, default=0)
-    total_practice_time = Column(Integer, nullable=False, default=0)
+
+    average_accuracy = Column(
+        Numeric(5, 2),
+        nullable=False,
+        default=0,
+    )
+
+    lessons_completed = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    total_practice_time = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
     weak_letters = Column(
         JSONB,
         nullable=False,
         default=list,
         server_default=text("'[]'::jsonb"),
     )
+
     last_updated = Column(
         DateTime(timezone=True),
         nullable=False,

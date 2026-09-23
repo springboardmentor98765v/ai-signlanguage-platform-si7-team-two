@@ -36,14 +36,13 @@ export default function WordLessons() {
 
   return (
     <div>
-      <div className="practice-header">
-        <div>
-          <h2>Word Sign Lessons</h2>
+      <h1 className="sr-only">Word Sign Lessons</h1>
 
-          <p className="sub">
-            Select a word and practice its sign using your camera.
-          </p>
-        </div>
+      <div className="section-header">
+        <h2 className="page-title">Word Sign Lessons</h2>
+        <p className="page-sub">
+          Select a word and practice its sign using your camera.
+        </p>
       </div>
 
       <div className="lesson-grid">
@@ -51,7 +50,6 @@ export default function WordLessons() {
           <div
             key={word}
             className="lesson-card"
-            style={{ cursor: "pointer" }}
             onClick={() => openWord(word)}
             role="button"
             tabIndex={0}
@@ -65,7 +63,7 @@ export default function WordLessons() {
             <div className="lesson-card-header">
               <h3>{word}</h3>
 
-              <span className="badge badge-intermediate">
+              <span className="lesson-status-pill lesson-status--word">
                 Word Sign
               </span>
             </div>
