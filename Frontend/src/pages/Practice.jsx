@@ -324,15 +324,22 @@ export default function Practice() {
       <div className="practice-header">
         <div className="practice-header-row">
           <div>
-            <h2>Practice: Letter {targetLetter}</h2>
-            <p className="sub">
+            <h2 className="practice-title">
+              Practice: <span className="practice-letter">{targetLetter}</span>
+            </h2>
+            <p className="sub practice-sub">
               Show the sign in front of your camera and hold it steady.
             </p>
           </div>
 
           <div className="letter-picker">
             <label htmlFor="letter-select">Pick a letter</label>
-            <select id="letter-select" value={targetLetter} onChange={handleLetterChange}>
+            <select 
+              id="letter-select" 
+              value={targetLetter} 
+              onChange={handleLetterChange}
+              disabled={isPracticing}
+            >
               {lessonList.length === 0 ? (
                 <option value={targetLetter}>{targetLetter}</option>
               ) : (
@@ -369,7 +376,7 @@ export default function Practice() {
             )}
           </div>
 
-          <canvas ref={canvasRef} style={{ display: "none" }} />
+          <canvas ref={canvasRef} className="hidden-canvas" />
 
           {cameraError && <p className="camera-error" role="alert">{cameraError}</p>}
 
@@ -377,8 +384,29 @@ export default function Practice() {
 
           {isPracticing && (
             <div className="attempt-progress">
-              <div className="attempt-progress-label">
-                <span>Attempt {Math.min(attemptCount, TARGET_ATTEMPTS)} of {TARGET_ATTEMPTS}</span>
+              <div className="attempt-progress-header">
+                <span className="attempt-progress-label">Attempt {Math.min(attemptCount, TARGET_ATTEMPTS)} of {TARGET_ATTEMPTS}</span>
+                <div className="attempt-steps">
+                  {Array.from({ length: TARGET_ATTEMPTS }, (_, i) => (
+                    <div
+                      key={i}
+                      className={`attempt-step ${
+                        i < attemptCount
+                          ? "attempt-step--done"
+                          : i === attemptCount
+                          ? "attempt-step--current"
+                          : "attempt-step--upcoming"
+                      }`}
+                      aria-label={`Attempt ${i + 1} ${
+                        i < attemptCount
+                          ? "completed"
+                          : i === attemptCount
+                          ? "current"
+                          : "upcoming"
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
               <div className="attempt-progress-bar-wrap">
                 <div
@@ -386,6 +414,16 @@ export default function Practice() {
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
+            </div>
+          )}
+
+          {!isPracticing && attemptCount >= TARGET_ATTEMPTS && (
+            <div className="practice-completion" role="status" aria-live="polite">
+              <div className="practice-completion-icon" aria-hidden="true">🎉</div>
+              <p className="practice-completion-title">Practice complete!</p>
+              <p className="practice-completion-sub">
+                You completed all {TARGET_ATTEMPTS} attempts for Letter {targetLetter}.
+              </p>
             </div>
           )}
 
@@ -416,7 +454,9 @@ export default function Practice() {
               <div className="result-card">
                 <div
                   key={assessment.accuracy}
-                  className="result-score score-animate"
+                  className={`result-score score-animate ${
+                    isCorrect ? "result-score--correct" : "result-score--incorrect"
+                  }`}
                 >
                   <span className="score-value">{displayAccuracy}%</span>
                   <span className="score-label">Accuracy</span>
@@ -533,7 +573,7 @@ export default function Practice() {
               </p>
               {prediction && (
                 <>
-                  <p className="label" style={{ marginTop: "12px" }}>
+                  <p className="label mt-12">
                     Possible Issue
                   </p>
 

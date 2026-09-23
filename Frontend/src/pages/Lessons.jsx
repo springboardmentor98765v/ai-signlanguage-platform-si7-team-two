@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { getLessons } from "../services/api.js";
+import { getLessonsWithProgress } from "../services/api.js";
+import { getUserId } from "../utils/auth.js";
 
-
-function badgeClass(difficulty) {
-  if (difficulty === "Beginner") return "badge badge-beginner";
-  if (difficulty === "Intermediate") return "badge badge-intermediate";
-  return "badge badge-advanced";
+function statusLabel(status) {
+  if (status === "completed") return "Completed";
+  if (status === "current") return "In progress";
+  return "Locked";
 }
 
 export default function Lessons() {
@@ -21,11 +21,10 @@ export default function Lessons() {
     setError("");
 
     try {
-      const data = await getLessons();
+      const userId = getUserId();
+      const data = await getLessonsWithProgress(userId);
       setLessons(data);
     } catch (err) {
-      // Milestone 3, Day 7: friendly, non-technical error message instead
-      // of raw fetch/network error text.
       setError(
         "We couldn't load your lessons right now. Please check your connection and try again."
       );
@@ -38,14 +37,30 @@ export default function Lessons() {
     fetchLessons();
   }, [fetchLessons]);
 
+  function openLesson(letter) {
+    navigate(`/practice/${letter}`);
+  }
+
+  function handleKeyDown(e, letter) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openLesson(letter);
+    }
+  }
+
   return (
     <div>
       <h1 className="sr-only">Lessons</h1>
 
       {isLoading ? (
-        <p className="lessons-status" role="status">
-          Loading lessons...
-        </p>
+        <div className="lessons-skeleton" role="status" aria-label="Loading lessons">
+          <div className="lesson-skeleton" />
+          <div className="lesson-skeleton" />
+          <div className="lesson-skeleton" />
+          <div className="lesson-skeleton" />
+          <div className="lesson-skeleton" />
+          <div className="lesson-skeleton" />
+        </div>
       ) : error ? (
         <div className="empty-page" role="alert">
           <h2>Something went wrong</h2>
@@ -61,52 +76,48 @@ export default function Lessons() {
         </div>
       ) : (
         <>
-          <h2 className="sr-only">Available Lessons</h2>
-          <LessonGrid lessons={lessons} navigate={navigate} />
-        </>
-      )}
-    </div>
-  );
-}
-
-function LessonGrid({ lessons, navigate }) {
-  function openLesson(letter) {
-    navigate(`/practice/${letter}`);
-  }
-
-  // Milestone 3, Day 6: lets keyboard users open a lesson the same way a
-  // mouse click does, via Enter or Space on a focused card.
-  function handleKeyDown(e, letter) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openLesson(letter);
-    }
-  }
-
-  return (
-    <div className="lesson-grid">
-      {lessons.map((lesson) => (
-        <div
-          key={lesson.id}
-          className="lesson-card"
-          style={{ cursor: "pointer" }}
-          onClick={() => openLesson(lesson.letter)}
-          onKeyDown={(e) => handleKeyDown(e, lesson.letter)}
-          tabIndex={0}
-          role="button"
-          aria-label={`Open lesson: ${lesson.title}, ${lesson.difficulty} difficulty`}
-        >
-          <div className="lesson-card-header">
-            <h3>{lesson.title}</h3>
-
-            <span className={badgeClass(lesson.difficulty)}>
-              {lesson.difficulty}
-            </span>
+          <div className="section-header">
+            <h2 className="page-title">Your Lessons</h2>
+            <p className="page-sub">Continue your sign language journey.</p>
           </div>
 
-          <p>{lesson.description}</p>
-        </div>
-      ))}
+          <div className="lesson-grid">
+            {lessons.map((lesson) => (
+              <div
+                key={lesson.id}
+                className={`lesson-card lesson-card--${lesson.status}`}
+                onClick={() => openLesson(lesson.letter)}
+                onKeyDown={(e) => handleKeyDown(e, lesson.letter)}
+                tabIndex={0}
+                role="button"
+                aria-label={`Open lesson: ${lesson.title}, status: ${lesson.status}`}
+              >
+                <div className="lesson-card-header">
+                  <h3>{lesson.title}</h3>
+                  <span className="lesson-status-pill">{statusLabel(lesson.status)}</span>
+                </div>
+
+                <p>{lesson.description}</p>
+
+                <div className="lesson-card-footer">
+                  <span className="lesson-meta">
+                    {lesson.stars > 0 ? (
+                      <span className="lesson-stars" aria-label={`${lesson.stars} stars`}>
+                        {"⭐".repeat(lesson.stars)}
+                      </span>
+                    ) : (
+                      <span className="lesson-meta-muted">Not started</span>
+                    )}
+                  </span>
+                  <span className="lesson-accuracy">
+                    {lesson.accuracy > 0 ? `${lesson.accuracy.toFixed(1)}%` : "—"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

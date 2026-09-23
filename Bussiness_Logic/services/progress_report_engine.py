@@ -43,13 +43,22 @@ def build_progress_report(
         if session.expected_sign
     }
 
+    # Fallback: when a session has no expected_sign, use the assessment's
+    # expected_sign for that session so historical attempts are still counted.
+    assessment_letter_fallback = {
+        assessment.session_id: assessment.expected_sign
+        for assessment in assessments
+        if getattr(assessment, "expected_sign", None)
+    }
+
     # Build per-letter scores
     letter_scores = {}
 
     for assessment in assessments:
 
-        letter = session_letter_map.get(
-            assessment.session_id
+        letter = (
+            session_letter_map.get(assessment.session_id)
+            or assessment_letter_fallback.get(assessment.session_id)
         )
 
         if letter:

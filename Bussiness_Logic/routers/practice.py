@@ -53,6 +53,7 @@ def start_session(
         lesson_id=request.lesson_id,
         status="in_progress",
         attempt_count=0,
+        expected_sign=lesson.letter,
     )
 
     db.add(new_session)

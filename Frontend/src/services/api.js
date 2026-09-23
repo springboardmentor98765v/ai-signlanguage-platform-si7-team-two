@@ -115,6 +115,11 @@ export async function getLessons() {
   return handleResponse(res) // [{ id, title, level, description }, ...]
 }
 
+export async function getLessonsWithProgress(userId) {
+  const res = await fetch(`${API_BASE_URL}/lessons/with-progress/${userId}`);
+  return handleResponse(res);
+}
+
 export async function completeLesson(lessonId, userId, accuracy) {
   const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/complete/${userId}`, {
     method: "POST",

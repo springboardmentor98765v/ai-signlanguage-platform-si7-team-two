@@ -24,7 +24,7 @@ def find_weak_letters(assessment_session_pairs):
 
     for assessment, session in sorted_pairs:
 
-        letter = session.expected_sign
+        letter = session.expected_sign or getattr(assessment, "expected_sign", None)
 
         if not letter:
             continue

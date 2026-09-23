@@ -204,9 +204,9 @@ export default function Certification() {
   return (
     <div>
       <h1 className="sr-only">Certification Exam</h1>
-      <div className="reports-header">
-        <h2>Certification Exam</h2>
-        <p className="sub">
+      <div className="section-header">
+        <h2 className="page-title">Certification Exam</h2>
+        <p className="page-sub">
           Take a structured exam to earn an official certificate for your
           sign language level.
         </p>
@@ -219,7 +219,7 @@ export default function Certification() {
               <div key={level.id} className="lesson-card fade-up">
                 <div className="lesson-card-header">
                   <h3>{level.name}</h3>
-                  <span className="badge badge-beginner">
+                  <span className="lesson-status-pill lesson-status--cert">
                     {level.passThreshold}% to pass
                   </span>
                 </div>
@@ -227,8 +227,7 @@ export default function Certification() {
                 <p className="hint">{level.signs.length} signs covered</p>
                 <button
                   type="button"
-                  className="btn-accent"
-                  style={{ marginTop: 14 }}
+                  className="btn-accent mt-14"
                   onClick={() => startExam(level)}
                 >
                   Start {level.name} Exam
@@ -265,7 +264,7 @@ export default function Certification() {
                 )}
               </div>
 
-              <canvas ref={canvasRef} style={{ display: "none" }} />
+              <canvas ref={canvasRef} className="hidden-canvas" />
               {cameraError && (
                 <p className="camera-error" role="alert">
                   {cameraError}
@@ -293,28 +292,21 @@ export default function Certification() {
             </div>
 
             <div className="practice-side">
-              <div
-                className="reference-card"
-                style={{
-                  textAlign: "center",
-                  padding: "40px 20px",
-                }}
-              >
-                <p className="label">Current Target Sign</p>
-                <h1 style={{ fontSize: "72px", margin: "20px 0" }}>
-                  {targetLetter}
-                </h1>
-                <p className="hint">
-                  Make this sign and click &quot;Submit Sign&quot;.
-                </p>
+              <div className="reference-card cert-reference-card">
+              <p className="label">Current Target Sign</p>
+              <div className="cert-target-letter">
+                {targetLetter}
               </div>
+              <p className="hint">
+                Make this sign and click &quot;Submit Sign&quot;.
+              </p>
+            </div>
             </div>
           </div>
 
           <button
             type="button"
-            className="btn-secondary btn-inline"
-            style={{ marginTop: 10 }}
+            className="btn-secondary btn-inline mt-14"
             onClick={resetExam}
           >
             Cancel
@@ -359,8 +351,7 @@ export default function Certification() {
                   </p>
                   <button
                     type="button"
-                    className="btn-accent"
-                    style={{ marginTop: 14 }}
+                    className="btn-accent mt-14"
                     onClick={handleDownloadCertificate}
                   >
                     Download Certificate
@@ -384,8 +375,7 @@ export default function Certification() {
 
           <button
             type="button"
-            className="btn-secondary btn-inline"
-            style={{ marginTop: 14 }}
+            className="btn-secondary btn-inline mt-14"
             onClick={resetExam}
           >
             Back to Exam Levels
